@@ -16,7 +16,15 @@ import { GoogleGenAI } from "@google/genai";
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 
 // --- Types ---
-type Strand = 'vocabulary' | 'pronunciation' | 'grammar' | 'tests' | 'home' | 'pet' | 'challenge';
+type Strand = 'vocabulary' | 'pronunciation' | 'grammar' | 'tests' | 'home' | 'pet' | 'logs';
+
+interface PointLog {
+  id: string;
+  type: string;
+  points: number;
+  description: string;
+  timestamp: any;
+}
 
 interface UserData {
   points: number;
@@ -216,9 +224,7 @@ export default function App() {
   const [sessionCheckedIn, setSessionCheckedIn] = useState(false);
   const [showSubjects, setShowSubjects] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
-  const [dailyChallenge, setDailyChallenge] = useState<any>(null);
-  const [isSolvingChallenge, setIsSolvingChallenge] = useState(false);
-  const [challengeFeedback, setChallengeFeedback] = useState<string | null>(null);
+  const [logs, setLogs] = useState<PointLog[]>([]);
   const [sessionStudyTime, setSessionStudyTime] = useState(0);
   
   // Activity tracking
@@ -268,6 +274,21 @@ export default function App() {
         setPetData(snapshot.docs[0].data() as PetData);
       }
     });
+
+    onSnapshot(query(collection(db, 'users', uid, 'logs'), where('timestamp', '!=', null)), (snapshot) => {
+      const newLogs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PointLog));
+      setLogs(newLogs.sort((a, b) => b.timestamp?.toMillis() - a.timestamp?.toMillis()));
+    });
+  };
+
+  const addPointLog = async (uid: string, type: string, points: number, description: string) => {
+    const logRef = collection(db, 'users', uid, 'logs');
+    await setDoc(doc(logRef), {
+      type,
+      points,
+      description,
+      timestamp: serverTimestamp()
+    });
   };
 
   const handleCheckIn = async (u: any) => {
@@ -275,9 +296,10 @@ export default function App() {
     const snap = await getDoc(userRef);
     
     const today = new Date().toDateString();
-    const lastCheckIn = snap.exists() ? snap.data().lastCheckIn?.toDate?.()?.toDateString() : null;
+    const data = snap.data();
+    const lastCheckIn = snap.exists() ? data?.lastCheckIn?.toDate?.()?.toDateString() : null;
 
-    if (lastCheckIn !== today) {
+    if (lastCheckIn !== today || !data?.dailyWord) {
       // Generate daily word and quote using Gemini
       try {
         const result = await ai.models.generateContent({
@@ -285,61 +307,43 @@ export default function App() {
           contents: "Generate a unique 'Daily English Word' and an 'Inspirational Quote' for an English learning app. Return as JSON: { word: string, quote: string, definition: string }",
           config: { responseMimeType: "application/json" }
         });
-        const data = JSON.parse(result.text || '{}');
+        const geminiData = JSON.parse(result.text || '{}');
         
         await setDoc(userRef, {
           email: u.email,
           displayName: u.displayName,
-          points: increment(10),
+          points: lastCheckIn !== today ? increment(10) : increment(0),
           lastCheckIn: serverTimestamp(),
-          dailyWord: data.word || "Ethereal",
-          dailyQuote: data.quote || "The stars are not reachable, but they are visible.",
+          dailyWord: geminiData.word || "Ethereal",
+          dailyQuote: geminiData.quote || "The stars are not reachable, but they are visible.",
         }, { merge: true });
+
+        if (lastCheckIn !== today) {
+          await addPointLog(u.uid, 'check-in', 10, 'Daily Check-in Reward');
+        }
       } catch (e) {
         console.error("Gemini failed", e);
         await setDoc(userRef, {
           email: u.email,
           displayName: u.displayName,
-          points: increment(10),
+          points: lastCheckIn !== today ? increment(10) : increment(0),
           lastCheckIn: serverTimestamp(),
-          dailyWord: "Persistence",
-          dailyQuote: "Success is not final, failure is not fatal: it is the courage to continue that counts.",
+          dailyWord: data?.dailyWord || "Persistence",
+          dailyQuote: data?.dailyQuote || "Success is not final, failure is not fatal.",
         }, { merge: true });
+
+        if (lastCheckIn !== today) {
+          await addPointLog(u.uid, 'check-in', 10, 'Daily Check-in Reward');
+        }
       }
       
-      setShowCheckIn(true);
+      if (lastCheckIn !== today) {
+        setShowCheckIn(true);
+      }
       setSessionCheckedIn(true);
     } else if (!sessionCheckedIn) {
       setShowCheckIn(true);
       setSessionCheckedIn(true);
-    }
-  };
-
-  const generateChallenge = async () => {
-    setIsSolvingChallenge(true);
-    setChallengeFeedback(null);
-    try {
-      const result = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: "Generate a multiple choice English grammar or vocabulary question. Return as JSON: { question: string, options: string[], correctIndex: number, explanation: string }",
-        config: { responseMimeType: "application/json" }
-      });
-      setDailyChallenge(JSON.parse(result.text || '{}'));
-    } catch (e) {
-      console.error("Challenge gen failed", e);
-    }
-    setIsSolvingChallenge(false);
-  };
-
-  const handleSolveChallenge = async (index: number) => {
-    if (!dailyChallenge || !user) return;
-    if (index === dailyChallenge.correctIndex) {
-      setChallengeFeedback("Correct! +5 Points");
-      const userRef = doc(db, 'users', user.uid);
-      await updateDoc(userRef, { points: increment(5) });
-      setTimeout(() => setDailyChallenge(null), 2000);
-    } else {
-      setChallengeFeedback("Not quite. Try again!");
     }
   };
 
@@ -361,6 +365,7 @@ export default function App() {
           points: increment(5),
           studyTimeTotal: increment(10)
         });
+        await addPointLog(uid, 'study', 5, '10 Minutes of Active Study');
       }
     }, 10 * 60 * 1000);
   };
@@ -398,6 +403,7 @@ export default function App() {
     if (!user || !userData || userData.points < 100) return;
     const userRef = doc(db, 'users', user.uid);
     await updateDoc(userRef, { points: increment(-100) });
+    await addPointLog(user.uid, 'pet', -100, 'Adopted Luna the Cosmic Cat');
     const petRef = doc(db, 'users', user.uid, 'pets', 'main_pet');
     await setDoc(petRef, {
       name: "Luna",
@@ -415,6 +421,7 @@ export default function App() {
     const userRef = doc(db, 'users', user.uid);
     // Update points and pet hunger
     await updateDoc(userRef, { points: increment(-10) });
+    await addPointLog(user.uid, 'pet', -10, 'Fed Luna');
     // Assuming one pet for now
     const petSnap = await getDoc(doc(db, 'users', user.uid, 'pets', 'main_pet'));
     if (petSnap.exists()) {
@@ -427,12 +434,13 @@ export default function App() {
 
   if (!isAuthReady) return <div className="h-screen flex items-center justify-center"><Star className="animate-spin" /></div>;
 
-  const handleVisitGem = async () => {
+  const handleVisitGem = async (gemName: string) => {
     if (!user) return;
     const userRef = doc(db, 'users', user.uid);
     await updateDoc(userRef, {
-      points: increment(2) // Small reward for visiting
+      points: increment(5) // Correct answer / Activity reward
     });
+    await addPointLog(user.uid, 'quiz', 5, `Completed Activity: ${gemName}`);
   };
 
   return (
@@ -572,50 +580,61 @@ export default function App() {
               <h2 className="text-4xl font-display font-bold mb-8 text-center">Your Space Companion</h2>
               <PetSection points={userData?.points || 0} pet={petData} onFeed={handleFeedPet} onAdopt={handleAdoptPet} />
             </motion.div>
-          ) : currentStrand === 'challenge' ? (
+          ) : currentStrand === 'logs' ? (
             <motion.div
-              key="challenge"
+              key="logs"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="max-w-2xl mx-auto pt-12 text-center"
+              className="max-w-3xl mx-auto pt-12"
             >
-              <h2 className="text-4xl font-display font-bold mb-8">Daily Challenges</h2>
-              {!dailyChallenge ? (
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={generateChallenge}
-                  disabled={isSolvingChallenge}
-                  className="px-8 py-6 bg-gradient-to-r from-purple-600 to-blue-600 rounded-3xl font-display font-bold text-xl flex items-center gap-3 shadow-xl shadow-purple-500/20 mx-auto"
-                >
-                  <Zap className={cn("w-6 h-6", isSolvingChallenge && "animate-pulse")} />
-                  {isSolvingChallenge ? "Generating..." : "Start Daily Challenge (+5 pts)"}
-                </motion.button>
-              ) : (
-                <div className="bg-white/5 border border-white/10 p-8 md:p-12 rounded-[3rem] text-left">
-                  <h3 className="text-2xl font-display font-bold mb-6">{dailyChallenge.question}</h3>
-                  <div className="space-y-4">
-                    {dailyChallenge.options.map((option: string, i: number) => (
-                      <button
-                        key={i}
-                        onClick={() => handleSolveChallenge(i)}
-                        className="w-full p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-left transition-colors"
-                      >
-                        {option}
-                      </button>
-                    ))}
-                  </div>
-                  {challengeFeedback && (
-                    <p className={cn(
-                      "mt-6 font-bold text-lg",
-                      challengeFeedback.includes("Correct") ? "text-green-400" : "text-red-400"
-                    )}>
-                      {challengeFeedback}
-                    </p>
+              <h2 className="text-4xl font-display font-bold mb-8 text-center">Points History</h2>
+              <div className="bg-white/5 border border-white/10 rounded-[2rem] overflow-hidden backdrop-blur-xl">
+                <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
+                  <span className="text-white/40 uppercase tracking-widest text-xs">Activity</span>
+                  <span className="text-white/40 uppercase tracking-widest text-xs">Points</span>
+                </div>
+                <div className="max-h-[500px] overflow-y-auto">
+                  {logs.length === 0 ? (
+                    <div className="p-12 text-center text-white/20 italic">No logs found yet. Start studying to earn points!</div>
+                  ) : (
+                    logs.map((log) => (
+                      <div key={log.id} className="p-6 border-b border-white/5 flex justify-between items-center hover:bg-white/5 transition-colors">
+                        <div>
+                          <p className="font-medium text-white/90">{log.description}</p>
+                          <p className="text-[10px] text-white/30 uppercase tracking-wider mt-1">
+                            {log.timestamp?.toDate?.()?.toLocaleString() || 'Just now'}
+                          </p>
+                        </div>
+                        <div className={cn(
+                          "text-lg font-display font-bold",
+                          log.points > 0 ? "text-green-400" : "text-red-400"
+                        )}>
+                          {log.points > 0 ? `+${log.points}` : log.points}
+                        </div>
+                      </div>
+                    ))
                   )}
                 </div>
-              )}
+              </div>
+              
+              <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="p-6 rounded-2xl bg-white/5 border border-white/10 text-center">
+                  <Trophy className="w-6 h-6 text-yellow-500 mx-auto mb-3" />
+                  <p className="text-xs text-white/40 uppercase tracking-widest mb-1">Check-in</p>
+                  <p className="text-xl font-bold">+10 pts</p>
+                </div>
+                <div className="p-6 rounded-2xl bg-white/5 border border-white/10 text-center">
+                  <Clock className="w-6 h-6 text-blue-400 mx-auto mb-3" />
+                  <p className="text-xs text-white/40 uppercase tracking-widest mb-1">10m Study</p>
+                  <p className="text-xl font-bold">+5 pts</p>
+                </div>
+                <div className="p-6 rounded-2xl bg-white/5 border border-white/10 text-center">
+                  <Zap className="w-6 h-6 text-green-400 mx-auto mb-3" />
+                  <p className="text-xs text-white/40 uppercase tracking-widest mb-1">Correct Answer</p>
+                  <p className="text-xl font-bold">+5 pts</p>
+                </div>
+              </div>
             </motion.div>
           ) : (
             <motion.div
@@ -664,7 +683,7 @@ export default function App() {
                       url={gem.url} 
                       type={gem.type}
                       color={STRANDS[currentStrand as keyof typeof STRANDS].color}
-                      onVisit={handleVisitGem}
+                      onVisit={() => handleVisitGem(gem.name)}
                     />
                   ))
                 ) : (
@@ -676,7 +695,7 @@ export default function App() {
                       url={gem.url} 
                       type={gem.type || 'diamond'}
                       color={STRANDS[currentStrand as keyof typeof STRANDS].color}
-                      onVisit={handleVisitGem}
+                      onVisit={() => handleVisitGem(gem.name)}
                       onClick={() => gem.url === 'subjects' && setShowSubjects(true)}
                     />
                   ))
@@ -728,7 +747,7 @@ export default function App() {
         <button onClick={() => setCurrentStrand('pet')} className={cn("p-2 transition-all duration-300", currentStrand === 'pet' ? "text-white scale-125" : "text-white/40 hover:text-white/60 hover:scale-110")}>
           <User className="w-6 h-6" />
         </button>
-        <button onClick={() => setCurrentStrand('challenge')} className={cn("p-2 transition-all duration-300", currentStrand === 'challenge' ? "text-white scale-125" : "text-white/40 hover:text-white/60 hover:scale-110")}>
+        <button onClick={() => setCurrentStrand('logs')} className={cn("p-2 transition-all duration-300", currentStrand === 'logs' ? "text-white scale-125" : "text-white/40 hover:text-white/60 hover:scale-110")}>
           <Star className="w-6 h-6" />
         </button>
       </nav>
