@@ -524,11 +524,11 @@ export default function App() {
                     <span className="text-lg md:text-xl font-zh tracking-widest opacity-90 mt-2 leading-none">英文 Surely DO</span>
                   </h1>
                   {!user ? (
-                    <div className="flex items-center gap-2 text-sm font-medium opacity-60">
+                    <div className="flex items-center gap-2 text-sm font-medium opacity-60 mt-4">
                       <LogIn className="w-4 h-4" /> Click to Check-in
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2 text-sm font-medium text-green-600">
+                    <div className="flex items-center gap-2 text-sm font-medium text-green-600 mt-4">
                       <Zap className="w-4 h-4" /> Checked In
                     </div>
                   )}
@@ -560,78 +560,62 @@ export default function App() {
                   />
                 ))}
               </div>
-
-              {/* Pet Section */}
-              {user && (
-                <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="mt-32 w-full max-w-2xl"
-                >
-                  <PetSection points={userData?.points || 0} pet={petData} onFeed={handleFeedPet} onAdopt={handleAdoptPet} />
-                </motion.div>
-              )}
-
-              {/* Daily Challenge Button */}
-              {user && !dailyChallenge && (
+            </motion.div>
+          ) : currentStrand === 'pet' ? (
+            <motion.div
+              key="pet"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="max-w-2xl mx-auto pt-12"
+            >
+              <h2 className="text-4xl font-display font-bold mb-8 text-center">Your Space Companion</h2>
+              <PetSection points={userData?.points || 0} pet={petData} onFeed={handleFeedPet} onAdopt={handleAdoptPet} />
+            </motion.div>
+          ) : currentStrand === 'challenge' ? (
+            <motion.div
+              key="challenge"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="max-w-2xl mx-auto pt-12 text-center"
+            >
+              <h2 className="text-4xl font-display font-bold mb-8">Daily Challenges</h2>
+              {!dailyChallenge ? (
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={generateChallenge}
                   disabled={isSolvingChallenge}
-                  className="mt-12 px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl font-display font-bold flex items-center gap-3 shadow-lg shadow-purple-500/20"
+                  className="px-8 py-6 bg-gradient-to-r from-purple-600 to-blue-600 rounded-3xl font-display font-bold text-xl flex items-center gap-3 shadow-xl shadow-purple-500/20 mx-auto"
                 >
-                  <Zap className={cn("w-5 h-5", isSolvingChallenge && "animate-pulse")} />
-                  {isSolvingChallenge ? "Generating Challenge..." : "Daily Grammar Challenge (+5 pts)"}
+                  <Zap className={cn("w-6 h-6", isSolvingChallenge && "animate-pulse")} />
+                  {isSolvingChallenge ? "Generating..." : "Start Daily Challenge (+5 pts)"}
                 </motion.button>
-              )}
-
-              {/* Challenge Modal */}
-              <AnimatePresence>
-                {dailyChallenge && (
-                  <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
-                    <motion.div 
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="absolute inset-0 bg-black/90 backdrop-blur-md"
-                    />
-                    <motion.div
-                      initial={{ scale: 0.9, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{ scale: 0.9, opacity: 0 }}
-                      className="relative bg-zinc-900 border border-white/10 p-8 md:p-12 rounded-[3rem] max-w-lg w-full"
-                    >
-                      <h3 className="text-2xl font-display font-bold mb-6">{dailyChallenge.question}</h3>
-                      <div className="space-y-4">
-                        {dailyChallenge.options.map((option: string, i: number) => (
-                          <button
-                            key={i}
-                            onClick={() => handleSolveChallenge(i)}
-                            className="w-full p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-left transition-colors"
-                          >
-                            {option}
-                          </button>
-                        ))}
-                      </div>
-                      {challengeFeedback && (
-                        <p className={cn(
-                          "mt-6 font-bold",
-                          challengeFeedback.includes("Correct") ? "text-green-400" : "text-red-400"
-                        )}>
-                          {challengeFeedback}
-                        </p>
-                      )}
-                      <button 
-                        onClick={() => setDailyChallenge(null)}
-                        className="mt-8 text-white/40 hover:text-white text-sm"
+              ) : (
+                <div className="bg-white/5 border border-white/10 p-8 md:p-12 rounded-[3rem] text-left">
+                  <h3 className="text-2xl font-display font-bold mb-6">{dailyChallenge.question}</h3>
+                  <div className="space-y-4">
+                    {dailyChallenge.options.map((option: string, i: number) => (
+                      <button
+                        key={i}
+                        onClick={() => handleSolveChallenge(i)}
+                        className="w-full p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-left transition-colors"
                       >
-                        Close Challenge
+                        {option}
                       </button>
-                    </motion.div>
+                    ))}
                   </div>
-                )}
-              </AnimatePresence>
+                  {challengeFeedback && (
+                    <p className={cn(
+                      "mt-6 font-bold text-lg",
+                      challengeFeedback.includes("Correct") ? "text-green-400" : "text-red-400"
+                    )}>
+                      {challengeFeedback}
+                    </p>
+                  )}
+                </div>
+              )}
             </motion.div>
           ) : (
             <motion.div
