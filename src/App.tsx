@@ -16,7 +16,7 @@ import { GoogleGenAI } from "@google/genai";
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 
 // --- Types ---
-type Strand = 'vocabulary' | 'pronunciation' | 'grammar' | 'tests' | 'home';
+type Strand = 'vocabulary' | 'pronunciation' | 'grammar' | 'tests' | 'home' | 'pet' | 'challenge';
 
 interface UserData {
   points: number;
@@ -213,15 +213,18 @@ export default function App() {
   const [currentStrand, setCurrentStrand] = useState<Strand>('home');
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [showCheckIn, setShowCheckIn] = useState(false);
+  const [sessionCheckedIn, setSessionCheckedIn] = useState(false);
   const [showSubjects, setShowSubjects] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [dailyChallenge, setDailyChallenge] = useState<any>(null);
   const [isSolvingChallenge, setIsSolvingChallenge] = useState(false);
   const [challengeFeedback, setChallengeFeedback] = useState<string | null>(null);
+  const [sessionStudyTime, setSessionStudyTime] = useState(0);
   
   // Activity tracking
   const lastActivityRef = useRef(Date.now());
   const studyTimerRef = useRef<any>(null);
+  const syncTimerRef = useRef<any>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => {
@@ -305,6 +308,10 @@ export default function App() {
       }
       
       setShowCheckIn(true);
+      setSessionCheckedIn(true);
+    } else if (!sessionCheckedIn) {
+      setShowCheckIn(true);
+      setSessionCheckedIn(true);
     }
   };
 
@@ -337,9 +344,17 @@ export default function App() {
   };
 
   const startStudyTimer = (uid: string) => {
-    studyTimerRef.current = setInterval(async () => {
+    // UI Timer: Updates every second
+    studyTimerRef.current = setInterval(() => {
       const now = Date.now();
-      // Only award points if active in last 10 minutes
+      if (now - lastActivityRef.current < 5 * 60 * 1000) { // Active in last 5 mins
+        setSessionStudyTime(prev => prev + 1);
+      }
+    }, 1000);
+
+    // Sync Timer: Updates Firebase every 10 minutes
+    syncTimerRef.current = setInterval(async () => {
+      const now = Date.now();
       if (now - lastActivityRef.current < 10 * 60 * 1000) {
         const userRef = doc(db, 'users', uid);
         await updateDoc(userRef, {
@@ -347,11 +362,12 @@ export default function App() {
           studyTimeTotal: increment(10)
         });
       }
-    }, 10 * 60 * 1000); // Every 10 minutes
+    }, 10 * 60 * 1000);
   };
 
   const stopStudyTimer = () => {
     if (studyTimerRef.current) clearInterval(studyTimerRef.current);
+    if (syncTimerRef.current) clearInterval(syncTimerRef.current);
   };
 
   const handleLogin = async () => {
@@ -453,7 +469,9 @@ export default function App() {
               </div>
               <div>
                 <p className="text-[10px] uppercase tracking-widest text-white/40 leading-none">Study Time</p>
-                <p className="text-lg font-display font-bold">{userData?.studyTimeTotal || 0}m</p>
+                <p className="text-lg font-display font-bold">
+                  {(userData?.studyTimeTotal || 0) + Math.floor(sessionStudyTime / 60)}m
+                </p>
               </div>
             </motion.div>
           )}
@@ -501,9 +519,9 @@ export default function App() {
                   className="w-48 h-48 md:w-64 md:h-64 rounded-full bg-white moon-glow flex flex-col items-center justify-center text-black p-8 text-center cursor-pointer"
                   onClick={!user ? handleLogin : () => {}}
                 >
-                  <h1 className="flex flex-col items-center gap-1">
-                    <span className="text-2xl md:text-3xl font-artistic tracking-widest title-glow">Tr. Shirley Du</span>
-                    <span className="text-xl md:text-2xl font-zh tracking-tight opacity-80">英文 Surely DO</span>
+                  <h1 className="flex flex-col items-center whitespace-nowrap">
+                    <span className="text-3xl md:text-4xl font-artistic tracking-[0.2em] title-glow leading-none">Tr. Shirley Du</span>
+                    <span className="text-lg md:text-xl font-zh tracking-widest opacity-90 mt-2 leading-none">英文 Surely DO</span>
                   </h1>
                   {!user ? (
                     <div className="flex items-center gap-2 text-sm font-medium opacity-60">
@@ -719,14 +737,14 @@ export default function App() {
       </AnimatePresence>
 
       {/* Footer Nav */}
-      <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-white/5 backdrop-blur-xl border border-white/10 px-8 py-4 rounded-full flex gap-8 z-50">
-        <button onClick={() => setCurrentStrand('home')} className={cn("p-2 transition-colors", currentStrand === 'home' ? "text-white" : "text-white/40 hover:text-white/60")}>
+      <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-white/10 backdrop-blur-2xl border border-white/20 px-8 py-4 rounded-full flex gap-12 z-50 shadow-2xl">
+        <button onClick={() => setCurrentStrand('home')} className={cn("p-2 transition-all duration-300", currentStrand === 'home' ? "text-white scale-125" : "text-white/40 hover:text-white/60 hover:scale-110")}>
           <Home className="w-6 h-6" />
         </button>
-        <button className="p-2 text-white/40 hover:text-white/60">
+        <button onClick={() => setCurrentStrand('pet')} className={cn("p-2 transition-all duration-300", currentStrand === 'pet' ? "text-white scale-125" : "text-white/40 hover:text-white/60 hover:scale-110")}>
           <User className="w-6 h-6" />
         </button>
-        <button className="p-2 text-white/40 hover:text-white/60">
+        <button onClick={() => setCurrentStrand('challenge')} className={cn("p-2 transition-all duration-300", currentStrand === 'challenge' ? "text-white scale-125" : "text-white/40 hover:text-white/60 hover:scale-110")}>
           <Star className="w-6 h-6" />
         </button>
       </nav>
