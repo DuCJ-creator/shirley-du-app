@@ -282,58 +282,68 @@ export default function App() {
   };
 
   const addPointLog = async (uid: string, type: string, points: number, description: string) => {
-    const logRef = collection(db, 'users', uid, 'logs');
-    await setDoc(doc(logRef), {
-      type,
-      points,
-      description,
-      timestamp: serverTimestamp()
-    });
+    try {
+      const logRef = collection(db, 'users', uid, 'logs');
+      await setDoc(doc(logRef), {
+        type,
+        points,
+        description,
+        timestamp: serverTimestamp()
+      });
+    } catch (e) {
+      console.error("Failed to add point log. This usually means Firestore Security Rules need to be updated to allow access to the 'logs' subcollection.", e);
+    }
   };
 
   const handleCheckIn = async (u: any) => {
-    const userRef = doc(db, 'users', u.uid);
-    const snap = await getDoc(userRef);
-    
-    const today = new Date().toDateString();
-    const data = snap.data();
-    const lastCheckIn = snap.exists() ? data?.lastCheckIn?.toDate?.()?.toDateString() : null;
+    try {
+      const userRef = doc(db, 'users', u.uid);
+      const snap = await getDoc(userRef);
+      
+      const today = new Date().toDateString();
+      const data = snap.data();
+      const lastCheckIn = snap.exists() ? data?.lastCheckIn?.toDate?.()?.toDateString() : null;
 
-    if (lastCheckIn !== today || !data?.dailyWord) {
-      // Generate daily word and quote using Gemini
-      try {
-        const result = await ai.models.generateContent({
-          model: "gemini-3-flash-preview",
-          contents: "Generate a unique 'Daily English Word' and an 'Inspirational Quote' for an English learning app. Return as JSON: { word: string, quote: string, definition: string }",
-          config: { responseMimeType: "application/json" }
+      // Award points if first time today
+      if (lastCheckIn !== today) {
+        await updateDoc(userRef, {
+          points: increment(10),
+          lastCheckIn: serverTimestamp()
+        }).catch(async () => {
+          // If update fails (doc might not exist), try set
+          await setDoc(userRef, {
+            email: u.email,
+            displayName: u.displayName,
+            points: 10,
+            lastCheckIn: serverTimestamp(),
+            studyTimeTotal: 0
+          }, { merge: true });
         });
-        const geminiData = JSON.parse(result.text || '{}');
-        
-        await setDoc(userRef, {
-          email: u.email,
-          displayName: u.displayName,
-          points: lastCheckIn !== today ? increment(10) : increment(0),
-          lastCheckIn: serverTimestamp(),
-          dailyWord: geminiData.word || "Ethereal",
-          dailyQuote: geminiData.quote || "The stars are not reachable, but they are visible.",
-        }, { merge: true });
+        await addPointLog(u.uid, 'check-in', 10, 'Daily Check-in Reward');
+      }
 
-        if (lastCheckIn !== today) {
-          await addPointLog(u.uid, 'check-in', 10, 'Daily Check-in Reward');
-        }
-      } catch (e) {
-        console.error("Gemini failed", e);
-        await setDoc(userRef, {
-          email: u.email,
-          displayName: u.displayName,
-          points: lastCheckIn !== today ? increment(10) : increment(0),
-          lastCheckIn: serverTimestamp(),
-          dailyWord: data?.dailyWord || "Persistence",
-          dailyQuote: data?.dailyQuote || "Success is not final, failure is not fatal.",
-        }, { merge: true });
-
-        if (lastCheckIn !== today) {
-          await addPointLog(u.uid, 'check-in', 10, 'Daily Check-in Reward');
+      // Ensure daily inspiration exists
+      if (!data?.dailyWord || lastCheckIn !== today) {
+        try {
+          const result = await ai.models.generateContent({
+            model: "gemini-1.5-flash",
+            contents: "Generate a unique 'Daily English Word' and an 'Inspirational Quote' for an English learning app. Return as JSON: { word: string, quote: string, definition: string }",
+            generationConfig: { responseMimeType: "application/json" }
+          });
+          const geminiData = JSON.parse(result.text || '{}');
+          
+          await setDoc(userRef, {
+            dailyWord: geminiData.word || "Ethereal",
+            dailyQuote: geminiData.quote || "The stars are not reachable, but they are visible.",
+          }, { merge: true });
+        } catch (e) {
+          console.error("Gemini failed", e);
+          if (!data?.dailyWord) {
+            await setDoc(userRef, {
+              dailyWord: "Persistence",
+              dailyQuote: "Success is not final, failure is not fatal.",
+            }, { merge: true });
+          }
         }
       }
       
@@ -341,9 +351,8 @@ export default function App() {
         setShowCheckIn(true);
       }
       setSessionCheckedIn(true);
-    } else if (!sessionCheckedIn) {
-      setShowCheckIn(true);
-      setSessionCheckedIn(true);
+    } catch (e) {
+      console.error("Check-in failed", e);
     }
   };
 
@@ -596,7 +605,15 @@ export default function App() {
                 </div>
                 <div className="max-h-[500px] overflow-y-auto">
                   {logs.length === 0 ? (
-                    <div className="p-12 text-center text-white/20 italic">No logs found yet. Start studying to earn points!</div>
+                    <div className="p-12 text-center">
+                      <p className="text-white/20 italic mb-4">No logs found yet. Start studying to earn points!</p>
+                      <button 
+                        onClick={() => user && handleCheckIn(user)}
+                        className="text-xs text-white/40 hover:text-white underline"
+                      >
+                        Sync Points & Inspiration
+                      </button>
+                    </div>
                   ) : (
                     logs.map((log) => (
                       <div key={log.id} className="p-6 border-b border-white/5 flex justify-between items-center hover:bg-white/5 transition-colors">
