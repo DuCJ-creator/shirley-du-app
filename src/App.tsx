@@ -11,6 +11,9 @@ import {
   doc, getDoc, setDoc, updateDoc, increment, serverTimestamp, onSnapshot,
   collection, query, where
 } from './firebase';
+import { GoogleGenAI } from "@google/genai";
+
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 
 // --- Types ---
 type Strand = 'vocabulary' | 'pronunciation' | 'grammar' | 'tests' | 'home';
@@ -33,40 +36,40 @@ interface PetData {
 
 // --- Constants ---
 const STRANDS = {
-  vocabulary: { name: 'Vocabulary', planet: 'Venus', color: '#ffd700', icon: BookOpen, class: 'planet-venus' },
-  pronunciation: { name: 'Pronunciation', planet: 'Mars', color: '#ff4500', icon: Mic2, class: 'planet-mars' },
-  grammar: { name: 'Grammar', planet: 'Mercury', color: '#a9a9a9', icon: PenTool, class: 'planet-mercury' },
-  tests: { name: 'Tests', planet: 'Jupiter', color: '#deb887', icon: GraduationCap, class: 'planet-jupiter' },
+  vocabulary: { name: 'Vocabulary', nameZh: '單字', planet: 'Venus', color: '#ffd700', icon: BookOpen, class: 'planet-venus' },
+  pronunciation: { name: 'Pronunciation', nameZh: '發音', planet: 'Mars', color: '#ff4500', icon: Mic2, class: 'planet-mars' },
+  grammar: { name: 'Grammar', nameZh: '文法', planet: 'Mercury', color: '#a9a9a9', icon: PenTool, class: 'planet-mercury' },
+  tests: { name: 'Tests', nameZh: '測驗', planet: 'Jupiter', color: '#deb887', icon: GraduationCap, class: 'planet-jupiter' },
 };
 
 const GEMS = {
   vocabulary: [
-    { name: 'Wonderland 1', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/vocab-wonderland.html' },
-    { name: 'Wonderland 2', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/vocab-wonderland.html' },
-    { name: 'Wonderland 3', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/vocab-wonderland.html' },
-    { name: 'Wonderland 4', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/vocab-wonderland.html' },
-    { name: 'Wonderland 5', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/vocab-wonderland.html' },
-    { name: 'Wonderland 6', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/vocab-wonderland.html' },
-    { name: 'Wonderland 7', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/vocab-wonderland.html' },
-    { name: 'Bilingual Subjects', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/vocab-wonderland.html' },
+    { name: 'Wonderland 1', nameZh: '奇幻樂園 1', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/vocab-wonderland.html' },
+    { name: 'Wonderland 2', nameZh: '奇幻樂園 2', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/vocab-wonderland.html' },
+    { name: 'Wonderland 3', nameZh: '奇幻樂園 3', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/vocab-wonderland.html' },
+    { name: 'Wonderland 4', nameZh: '奇幻樂園 4', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/vocab-wonderland.html' },
+    { name: 'Wonderland 5', nameZh: '奇幻樂園 5', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/vocab-wonderland.html' },
+    { name: 'Wonderland 6', nameZh: '奇幻樂園 6', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/vocab-wonderland.html' },
+    { name: 'Wonderland 7', nameZh: '奇幻樂園 7', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/vocab-wonderland.html' },
+    { name: 'Bilingual Subjects', nameZh: '雙語學科', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/vocab-wonderland.html' },
   ],
   pronunciation: [
-    { name: 'KK Phonics', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/kk.html' },
-    { name: 'International Phonics', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/ipa.html' },
+    { name: 'KK Phonics', nameZh: 'KK 音標', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/kk.html' },
+    { name: 'International Phonics', nameZh: '國際音標', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/ipa.html' },
   ],
   grammar: [
-    { name: 'Lemon Tree', url: 'https://ducj-creator.github.io/Shirley-Grammar/' },
-    { name: 'Music Garden', url: 'https://ducj-creator.github.io/Shirley-AI-Music-Studio/learning/index.html' },
-    { name: 'CAP Grammar', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/CAP%20grammar.html' },
+    { name: 'Lemon Tree', nameZh: '檸檬樹', url: 'https://ducj-creator.github.io/Shirley-Grammar/' },
+    { name: 'Music Garden', nameZh: '音樂花園', url: 'https://ducj-creator.github.io/Shirley-AI-Music-Studio/learning/index.html' },
+    { name: 'CAP Grammar', nameZh: '會考文法', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/CAP%20grammar.html' },
   ],
   tests: [
-    { name: 'CAP Vocab & Grammar', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/CAP%20pastpapers.html' },
-    { name: 'CAP Listening', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/cap%20listening.html' },
-    { name: 'CAP Reading', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/cap%20reading.html' },
-    { name: 'GSAT Vocabulary', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/GSAT%20Vocab.html' },
-    { name: 'GSAT Comprehensive', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/GSAT%20Comprehensive.html' },
-    { name: 'GSAT Cloze', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/GSAT%20cloze.html' },
-    { name: 'GSAT Reading', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/gsat%20reading.html' },
+    { name: 'CAP Vocab & Grammar', nameZh: '會考單字與文法', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/CAP%20pastpapers.html' },
+    { name: 'CAP Listening', nameZh: '會考聽力', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/cap%20listening.html' },
+    { name: 'CAP Reading', nameZh: '會考閱讀', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/cap%20reading.html' },
+    { name: 'GSAT Vocabulary', nameZh: '學測單字', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/GSAT%20Vocab.html' },
+    { name: 'GSAT Comprehensive', nameZh: '學測綜合測驗', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/GSAT%20Comprehensive.html' },
+    { name: 'GSAT Cloze', nameZh: '學測克漏字', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/GSAT%20cloze.html' },
+    { name: 'GSAT Reading', nameZh: '學測閱讀', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/gsat%20reading.html' },
   ]
 };
 
@@ -96,18 +99,21 @@ const Planet = ({ strand, info, onClick, disabled }: { strand: Strand, info: any
     <span className="mt-4 font-display text-lg font-medium tracking-wider uppercase text-white/90 group-hover:text-white transition-colors">
       {info.name}
     </span>
-    <span className="text-xs text-white/40 uppercase tracking-widest">{info.planet}</span>
+    <span className="text-sm font-medium text-white/60 group-hover:text-white/80 transition-colors">
+      {info.nameZh}
+    </span>
+    <span className="text-[10px] text-white/30 uppercase tracking-[0.2em] mt-1">{info.planet}</span>
   </motion.div>
 );
 
-const Gem = ({ name, url, color, onVisit }: { name: string, url: string, color: string, onVisit: () => void, key?: any }) => (
+const Gem = ({ name, nameZh, url, color, onVisit }: { name: string, nameZh: string, url: string, color: string, onVisit: () => void, key?: any }) => (
   <motion.a
     href={url}
     target="_blank"
     rel="noopener noreferrer"
     whileHover={{ scale: 1.05, y: -5 }}
     onClick={onVisit}
-    className="relative p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center gap-3 group overflow-hidden"
+    className="relative p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center gap-2 group overflow-hidden"
   >
     <div 
       className="w-12 h-12 rotate-45 border-2 flex items-center justify-center transition-all duration-300 group-hover:rotate-90"
@@ -115,18 +121,25 @@ const Gem = ({ name, url, color, onVisit }: { name: string, url: string, color: 
     >
       <Sparkles className="w-6 h-6 -rotate-45 group-hover:-rotate-90 transition-all duration-300" />
     </div>
-    <span className="text-center font-medium text-sm text-white/80 group-hover:text-white">{name}</span>
+    <div className="text-center flex flex-col gap-0.5">
+      <span className="font-medium text-sm text-white/90 group-hover:text-white">{name}</span>
+      <span className="text-xs text-white/40 group-hover:text-white/60">{nameZh}</span>
+    </div>
     <ExternalLink className="absolute top-2 right-2 w-3 h-3 text-white/20 group-hover:text-white/60" />
     <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
   </motion.a>
 );
 
-const PetSection = ({ points, pet, onFeed }: { points: number, pet: PetData | null, onFeed: () => void }) => {
+const PetSection = ({ points, pet, onFeed, onAdopt }: { points: number, pet: PetData | null, onFeed: () => void, onAdopt: () => void }) => {
   if (!pet) return (
     <div className="p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md text-center">
       <h3 className="text-xl font-display mb-4">Adopt a Space Pet</h3>
       <p className="text-white/60 mb-6">Use your hard-earned points to adopt a celestial companion!</p>
-      <button className="px-6 py-2 bg-white text-black rounded-full font-medium hover:bg-white/90 transition-colors">
+      <button 
+        onClick={onAdopt}
+        disabled={points < 500}
+        className="px-6 py-2 bg-white text-black rounded-full font-medium hover:bg-white/90 transition-colors disabled:opacity-50"
+      >
         Adopt for 500 Points
       </button>
     </div>
@@ -190,6 +203,10 @@ export default function App() {
   const [currentStrand, setCurrentStrand] = useState<Strand>('home');
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [showCheckIn, setShowCheckIn] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [dailyChallenge, setDailyChallenge] = useState<any>(null);
+  const [isSolvingChallenge, setIsSolvingChallenge] = useState(false);
+  const [challengeFeedback, setChallengeFeedback] = useState<string | null>(null);
   
   // Activity tracking
   const lastActivityRef = useRef(Date.now());
@@ -247,20 +264,64 @@ export default function App() {
     const lastCheckIn = snap.exists() ? snap.data().lastCheckIn?.toDate?.()?.toDateString() : null;
 
     if (lastCheckIn !== today) {
-      // New check-in
-      const dailyWord = "Ethereal"; // Mock - could use Gemini here
-      const dailyQuote = "The stars are not reachable, but they are visible.";
-      
-      await setDoc(userRef, {
-        email: u.email,
-        displayName: u.displayName,
-        points: increment(10),
-        lastCheckIn: serverTimestamp(),
-        dailyWord,
-        dailyQuote,
-      }, { merge: true });
+      // Generate daily word and quote using Gemini
+      try {
+        const result = await ai.models.generateContent({
+          model: "gemini-3-flash-preview",
+          contents: "Generate a unique 'Daily English Word' and an 'Inspirational Quote' for an English learning app. Return as JSON: { word: string, quote: string, definition: string }",
+          config: { responseMimeType: "application/json" }
+        });
+        const data = JSON.parse(result.text || '{}');
+        
+        await setDoc(userRef, {
+          email: u.email,
+          displayName: u.displayName,
+          points: increment(10),
+          lastCheckIn: serverTimestamp(),
+          dailyWord: data.word || "Ethereal",
+          dailyQuote: data.quote || "The stars are not reachable, but they are visible.",
+        }, { merge: true });
+      } catch (e) {
+        console.error("Gemini failed", e);
+        await setDoc(userRef, {
+          email: u.email,
+          displayName: u.displayName,
+          points: increment(10),
+          lastCheckIn: serverTimestamp(),
+          dailyWord: "Persistence",
+          dailyQuote: "Success is not final, failure is not fatal: it is the courage to continue that counts.",
+        }, { merge: true });
+      }
       
       setShowCheckIn(true);
+    }
+  };
+
+  const generateChallenge = async () => {
+    setIsSolvingChallenge(true);
+    setChallengeFeedback(null);
+    try {
+      const result = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: "Generate a multiple choice English grammar or vocabulary question. Return as JSON: { question: string, options: string[], correctIndex: number, explanation: string }",
+        config: { responseMimeType: "application/json" }
+      });
+      setDailyChallenge(JSON.parse(result.text || '{}'));
+    } catch (e) {
+      console.error("Challenge gen failed", e);
+    }
+    setIsSolvingChallenge(false);
+  };
+
+  const handleSolveChallenge = async (index: number) => {
+    if (!dailyChallenge || !user) return;
+    if (index === dailyChallenge.correctIndex) {
+      setChallengeFeedback("Correct! +5 Points");
+      const userRef = doc(db, 'users', user.uid);
+      await updateDoc(userRef, { points: increment(5) });
+      setTimeout(() => setDailyChallenge(null), 2000);
+    } else {
+      setChallengeFeedback("Not quite. Try again!");
     }
   };
 
@@ -283,10 +344,16 @@ export default function App() {
   };
 
   const handleLogin = async () => {
+    setAuthError(null);
     try {
       await signInWithPopup(auth, googleProvider);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login failed", error);
+      if (error.code === 'auth/unauthorized-domain') {
+        setAuthError("Domain not authorized. Please add this URL to Firebase 'Authorized Domains'.");
+      } else {
+        setAuthError(error.message || "Login failed. Please try again.");
+      }
     }
   };
 
@@ -298,6 +365,21 @@ export default function App() {
       return;
     }
     setCurrentStrand(strand);
+  };
+
+  const handleAdoptPet = async () => {
+    if (!user || !userData || userData.points < 500) return;
+    const userRef = doc(db, 'users', user.uid);
+    await updateDoc(userRef, { points: increment(-500) });
+    const petRef = doc(db, 'users', user.uid, 'pets', 'main_pet');
+    await setDoc(petRef, {
+      name: "Luna",
+      type: "Cosmic Cat",
+      hunger: 80,
+      happiness: 100,
+      level: 1,
+      ownerId: user.uid
+    });
   };
 
   const handleFeedPet = async () => {
@@ -365,7 +447,16 @@ export default function App() {
           )}
         </div>
         
-        <div className="pointer-events-auto flex gap-4">
+        <div className="pointer-events-auto flex gap-4 items-center">
+          {authError && (
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-red-500/20 border border-red-500/50 px-4 py-2 rounded-full text-xs text-red-200 backdrop-blur-md max-w-xs"
+            >
+              {authError}
+            </motion.div>
+          )}
           {user ? (
             <button onClick={() => signOut(auth)} className="p-3 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 transition-colors">
               <LogOut className="w-5 h-5" />
@@ -446,9 +537,70 @@ export default function App() {
                   animate={{ opacity: 1 }}
                   className="mt-32 w-full max-w-2xl"
                 >
-                  <PetSection points={userData?.points || 0} pet={petData} onFeed={handleFeedPet} />
+                  <PetSection points={userData?.points || 0} pet={petData} onFeed={handleFeedPet} onAdopt={handleAdoptPet} />
                 </motion.div>
               )}
+
+              {/* Daily Challenge Button */}
+              {user && !dailyChallenge && (
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={generateChallenge}
+                  disabled={isSolvingChallenge}
+                  className="mt-12 px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl font-display font-bold flex items-center gap-3 shadow-lg shadow-purple-500/20"
+                >
+                  <Zap className={cn("w-5 h-5", isSolvingChallenge && "animate-pulse")} />
+                  {isSolvingChallenge ? "Generating Challenge..." : "Daily Grammar Challenge (+5 pts)"}
+                </motion.button>
+              )}
+
+              {/* Challenge Modal */}
+              <AnimatePresence>
+                {dailyChallenge && (
+                  <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
+                    <motion.div 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="absolute inset-0 bg-black/90 backdrop-blur-md"
+                    />
+                    <motion.div
+                      initial={{ scale: 0.9, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0.9, opacity: 0 }}
+                      className="relative bg-zinc-900 border border-white/10 p-8 md:p-12 rounded-[3rem] max-w-lg w-full"
+                    >
+                      <h3 className="text-2xl font-display font-bold mb-6">{dailyChallenge.question}</h3>
+                      <div className="space-y-4">
+                        {dailyChallenge.options.map((option: string, i: number) => (
+                          <button
+                            key={i}
+                            onClick={() => handleSolveChallenge(i)}
+                            className="w-full p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-left transition-colors"
+                          >
+                            {option}
+                          </button>
+                        ))}
+                      </div>
+                      {challengeFeedback && (
+                        <p className={cn(
+                          "mt-6 font-bold",
+                          challengeFeedback.includes("Correct") ? "text-green-400" : "text-red-400"
+                        )}>
+                          {challengeFeedback}
+                        </p>
+                      )}
+                      <button 
+                        onClick={() => setDailyChallenge(null)}
+                        className="mt-8 text-white/40 hover:text-white text-sm"
+                      >
+                        Close Challenge
+                      </button>
+                    </motion.div>
+                  </div>
+                )}
+              </AnimatePresence>
             </motion.div>
           ) : (
             <motion.div
@@ -469,10 +621,13 @@ export default function App() {
               <div className="flex flex-col md:flex-row items-center md:items-start gap-12 mb-20">
                 <div className={cn("w-32 h-32 rounded-full shrink-0", STRANDS[currentStrand as keyof typeof STRANDS].class)} />
                 <div>
-                  <h2 className="text-5xl md:text-7xl font-display font-bold mb-4 tracking-tighter">
+                  <h2 className="text-5xl md:text-7xl font-display font-bold mb-2 tracking-tighter">
                     {STRANDS[currentStrand as keyof typeof STRANDS].name}
                   </h2>
-                  <p className="text-xl text-white/40 uppercase tracking-[0.3em]">
+                  <h3 className="text-3xl md:text-4xl font-display font-medium text-white/60 mb-4">
+                    {STRANDS[currentStrand as keyof typeof STRANDS].nameZh}
+                  </h3>
+                  <p className="text-xl text-white/30 uppercase tracking-[0.3em]">
                     Strand of {STRANDS[currentStrand as keyof typeof STRANDS].planet}
                   </p>
                 </div>
@@ -483,6 +638,7 @@ export default function App() {
                   <Gem 
                     key={idx} 
                     name={gem.name} 
+                    nameZh={gem.nameZh}
                     url={gem.url} 
                     color={STRANDS[currentStrand as keyof typeof STRANDS].color}
                     onVisit={handleVisitGem}
