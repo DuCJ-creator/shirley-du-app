@@ -32,6 +32,19 @@ interface UserData {
   dailyWord: string;
   dailyQuote: string;
   studyTimeTotal: number;
+  streak: number;
+  dailyWordData?: {
+    word: string;
+    pos: string;
+    def: string;
+    sentEn: string;
+    sentCn: string;
+  };
+  dailyQuoteData?: {
+    quote: string;
+    trans: string;
+    author: string;
+  };
 }
 
 interface PetData {
@@ -64,6 +77,8 @@ const GEMS = {
   pronunciation: [
     { name: 'KK Phonics', nameZh: 'KK 音標', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/kk.html', type: 'sapphire' },
     { name: 'International Phonics', nameZh: '國際音標', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/ipa.html', type: 'ruby' },
+    { name: 'Vowel Clusters', nameZh: '母音字群', url: 'https://hexagon-of-vowels.vercel.app/', type: 'emerald' },
+    { name: 'Consonant Blends', nameZh: '子音字群', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/consonant.html', type: 'amethyst' },
   ],
   grammar: [
     { name: 'Grammar Lemon Tree', nameZh: '文法檸檬樹', url: 'https://ducj-creator.github.io/Shirley-Grammar/', type: 'emerald' },
@@ -300,54 +315,139 @@ export default function App() {
       const userRef = doc(db, 'users', u.uid);
       const snap = await getDoc(userRef);
       
-      const today = new Date().toDateString();
-      const data = snap.data();
+      const todayDate = new Date();
+      const today = todayDate.toDateString();
+      const data = snap.data() as UserData | undefined;
       const lastCheckIn = snap.exists() ? data?.lastCheckIn?.toDate?.()?.toDateString() : null;
 
-      // Award points if first time today
-      if (lastCheckIn !== today) {
+      let newStreak = data?.streak || 0;
+      let isNewDay = lastCheckIn !== today;
+
+      if (isNewDay) {
+        // Calculate streak
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toDateString();
+        
+        if (lastCheckIn === yesterdayStr) {
+          newStreak += 1;
+        } else {
+          newStreak = 1;
+        }
+
         await updateDoc(userRef, {
           points: increment(10),
-          lastCheckIn: serverTimestamp()
+          lastCheckIn: serverTimestamp(),
+          streak: newStreak
         }).catch(async () => {
-          // If update fails (doc might not exist), try set
           await setDoc(userRef, {
             email: u.email,
             displayName: u.displayName,
             points: 10,
             lastCheckIn: serverTimestamp(),
-            studyTimeTotal: 0
+            studyTimeTotal: 0,
+            streak: 1
           }, { merge: true });
         });
         await addPointLog(u.uid, 'check-in', 10, 'Daily Check-in Reward');
       }
 
-      // Ensure daily inspiration exists
-      if (!data?.dailyWord || lastCheckIn !== today) {
+      // Fetch Daily Inspiration from CSVs or Gemini
+      if (!data?.dailyWordData || isNewDay) {
         try {
-          const result = await ai.models.generateContent({
-            model: "gemini-1.5-flash",
-            contents: "Generate a unique 'Daily English Word' and an 'Inspirational Quote' for an English learning app. Return as JSON: { word: string, quote: string, definition: string }",
-            generationConfig: { responseMimeType: "application/json" }
-          });
-          const geminiData = JSON.parse(result.text || '{}');
+          // Try fetching CSVs first
+          const wordRes = await fetch("https://ducj-creator.github.io/Teacher-Shirley/assets/word%20of%20the%20day.csv");
+          const quoteRes = await fetch("https://ducj-creator.github.io/Teacher-Shirley/assets/quote%20of%20the%20day.csv");
           
-          await setDoc(userRef, {
-            dailyWord: geminiData.word || "Ethereal",
-            dailyQuote: geminiData.quote || "The stars are not reachable, but they are visible.",
-          }, { merge: true });
-        } catch (e) {
-          console.error("Gemini failed", e);
-          if (!data?.dailyWord) {
+          let wordData: any = null;
+          let quoteData: any = null;
+
+          if (wordRes.ok && quoteRes.ok) {
+            const wordCsv = await wordRes.text();
+            const quoteCsv = await quoteRes.text();
+            
+            const parseCsv = (csv: string) => {
+              const lines = csv.split('\n').filter(l => l.trim());
+              const headers = lines[0].split(',').map(h => h.trim());
+              return lines.slice(1).map(line => {
+                const values = line.split(',').map(v => v.trim());
+                return headers.reduce((obj: any, header, i) => {
+                  obj[header] = values[i];
+                  return obj;
+                }, {});
+              });
+            };
+
+            const words = parseCsv(wordCsv);
+            const quotes = parseCsv(quoteCsv);
+
+            // Match by date (assuming YYYY-MM-DD or similar in first column)
+            const dateStr = todayDate.toISOString().split('T')[0];
+            wordData = words.find(w => w.Date === dateStr) || words[todayDate.getDate() % words.length];
+            quoteData = quotes.find(q => q.Date === dateStr) || quotes[todayDate.getDate() % quotes.length];
+          }
+
+          if (wordData && quoteData) {
             await setDoc(userRef, {
-              dailyWord: "Persistence",
-              dailyQuote: "Success is not final, failure is not fatal.",
+              dailyWord: wordData.Word,
+              dailyQuote: quoteData.Quote,
+              dailyWordData: {
+                word: wordData.Word,
+                pos: wordData.POS || '',
+                def: wordData.Definition || '',
+                sentEn: wordData.Sentence_EN || '',
+                sentCn: wordData.Sentence_CN || ''
+              },
+              dailyQuoteData: {
+                quote: quoteData.Quote,
+                trans: quoteData.Translation || '',
+                author: quoteData.Author || 'Unknown'
+              }
+            }, { merge: true });
+          } else {
+            // Fallback to Gemini
+            const result = await ai.models.generateContent({
+              model: "gemini-3-flash-preview",
+              contents: [{ parts: [{ text: `Generate a unique 'Daily English Word' and an 'Inspirational Quote' for an English learning app. 
+              Return as JSON: { 
+                word: string, 
+                pos: string, 
+                definition: string, 
+                sentenceEn: string, 
+                sentenceCn: string,
+                quote: string, 
+                quoteTrans: string, 
+                author: string 
+              }` }]}],
+              config: {
+                responseMimeType: "application/json"
+              }
+            });
+            const geminiData = JSON.parse(result.text || '{}');
+            
+            await setDoc(userRef, {
+              dailyWord: geminiData.word || "Ethereal",
+              dailyQuote: geminiData.quote || "The stars are not reachable, but they are visible.",
+              dailyWordData: {
+                word: geminiData.word || "Ethereal",
+                pos: geminiData.pos || "adj.",
+                def: geminiData.definition || "Extremely delicate and light in a way that seems too perfect for this world.",
+                sentEn: geminiData.sentenceEn || "The ethereal beauty of the aurora borealis left us speechless.",
+                sentCn: geminiData.sentenceCn || "極光那空靈的美麗讓我們說不出話來。"
+              },
+              dailyQuoteData: {
+                quote: geminiData.quote || "The stars are not reachable, but they are visible.",
+                trans: geminiData.quoteTrans || "星星雖然觸不可及，但清晰可見。",
+                author: geminiData.author || "Unknown"
+              }
             }, { merge: true });
           }
+        } catch (e) {
+          console.error("Inspiration fetch failed", e);
         }
       }
       
-      if (lastCheckIn !== today) {
+      if (isNewDay) {
         setShowCheckIn(true);
       }
       setSessionCheckedIn(true);
@@ -537,8 +637,8 @@ export default function App() {
                   onClick={!user ? handleLogin : () => {}}
                 >
                   <h1 className="flex flex-col items-center whitespace-nowrap">
-                    <span className="text-3xl md:text-4xl font-artistic tracking-[0.2em] title-glow leading-none">Tr. Shirley Du</span>
-                    <span className="text-lg md:text-xl font-zh tracking-widest opacity-90 mt-2 leading-none">英文 Surely DO</span>
+                    <span className="text-3xl md:text-5xl font-artistic tracking-[0.1em] title-glow leading-tight">Tr. Shirley Du</span>
+                    <span className="text-xl md:text-2xl font-zh tracking-[0.2em] opacity-90 mt-1 leading-tight">英文Surely DO</span>
                   </h1>
                   {!user ? (
                     <div className="flex items-center gap-2 text-sm font-medium opacity-60 mt-4">
@@ -723,34 +823,107 @@ export default function App() {
         </AnimatePresence>
       </main>
 
-      {/* Check-in Modal */}
+      {/* Moon Base Card Modal */}
       <AnimatePresence>
-        {showCheckIn && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+        {showCheckIn && userData && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto">
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+              className="fixed inset-0 bg-black/90 backdrop-blur-md"
               onClick={() => setShowCheckIn(false)}
             />
             <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              initial={{ scale: 0.9, opacity: 0, y: 50 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="relative bg-zinc-900 border border-white/10 p-12 rounded-[3rem] max-w-md w-full text-center"
+              exit={{ scale: 0.9, opacity: 0, y: 50 }}
+              className="relative w-full max-w-lg mx-auto"
             >
-              <div className="w-20 h-20 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Trophy className="w-10 h-10 text-yellow-500" />
+              <div className="moon-card relative bg-[#0a0a0c] border-2 border-white/20 rounded-[2rem] overflow-hidden shadow-[0_0_50px_rgba(255,255,255,0.1)] velvet-texture">
+                <div className="card-decoration-top h-2 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+                
+                <div className="p-8 md:p-10">
+                  <div className="flex justify-between items-start mb-8">
+                    <div>
+                      <h4 className="text-[10px] tracking-[0.4em] text-white/40 uppercase font-bold">Moon Base Clearance</h4>
+                      <p className="text-xs text-white/60 font-mono">NO. {new Date().toISOString().split('T')[0].replace(/-/g, '')}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] tracking-widest text-white/40 uppercase">Status</p>
+                      <p className="text-xs text-green-400 font-bold uppercase">Authorized</p>
+                    </div>
+                  </div>
+
+                  <div className="mb-10">
+                    <h3 className="text-2xl font-display font-light text-white/90 mb-1">
+                      Welcome, <span className="font-bold text-white">{user?.displayName?.split(' ')[0] || 'Traveler'}</span>
+                    </h3>
+                    <p className="text-sm text-white/40">
+                      This is your Shirley's Moon Base Card for <span className="text-white/60">{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-center gap-4 mb-10 text-white/20">
+                    <span>✦</span><span>✦</span><span>✦</span>
+                  </div>
+
+                  {/* Word of the Day Section */}
+                  <div className="bg-white/5 rounded-3xl p-6 border border-white/10 mb-6">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 mb-4 font-bold">Word of the Day</p>
+                    <div className="flex items-baseline gap-3 mb-2">
+                      <h2 className="text-3xl font-display font-bold text-white">{userData.dailyWordData?.word || userData.dailyWord}</h2>
+                      <span className="text-sm italic text-white/40">{userData.dailyWordData?.pos}</span>
+                    </div>
+                    <p className="text-sm text-white/80 mb-4 leading-relaxed">{userData.dailyWordData?.def}</p>
+                    <div className="space-y-2 pt-4 border-t border-white/5">
+                      <p className="text-sm text-white/60 italic leading-relaxed">{userData.dailyWordData?.sentEn}</p>
+                      <p className="text-sm text-white/40 font-zh">{userData.dailyWordData?.sentCn}</p>
+                    </div>
+                  </div>
+
+                  {/* Quote Section */}
+                  <div className="bg-white/5 rounded-3xl p-6 border border-white/10 mb-8">
+                    <p className="text-sm text-white/90 italic mb-2 leading-relaxed">"{userData.dailyQuoteData?.quote || userData.dailyQuote}"</p>
+                    <p className="text-xs text-white/40 font-zh mb-3">{userData.dailyQuoteData?.trans}</p>
+                    <p className="text-right text-[10px] uppercase tracking-widest text-white/40">— {userData.dailyQuoteData?.author}</p>
+                  </div>
+
+                  <div className="flex justify-between items-end">
+                    <div className="bg-white/10 px-4 py-2 rounded-full flex items-center gap-2">
+                      <span className="text-lg">🔥</span>
+                      <span className="text-xs font-bold text-white/80">Streak: {userData.streak || 1}</span>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-artistic text-lg text-white/60">Teacher Shirley</p>
+                      <p className="text-[8px] uppercase tracking-[0.3em] text-white/20">Signature of Authority</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[40px] font-bold text-white/[0.02] pointer-events-none select-none tracking-[0.5em]">
+                  MOON BASE
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-tr from-white/5 via-transparent to-white/5 pointer-events-none" />
               </div>
-              <h3 className="text-3xl font-display font-bold mb-2">Daily Check-in!</h3>
-              <p className="text-white/60 mb-8">You've received <span className="text-white font-bold">10 Points</span> for visiting the Moon Base today.</p>
-              <button 
-                onClick={() => setShowCheckIn(false)}
-                className="w-full py-4 bg-white text-black rounded-2xl font-bold hover:bg-white/90 transition-colors"
-              >
-                Continue Journey
-              </button>
+
+              <div className="mt-8 flex flex-col sm:flex-row gap-4">
+                <button 
+                  onClick={() => {
+                    // Placeholder for download logic
+                    alert("Image download feature coming soon! You can take a screenshot for now.");
+                  }}
+                  className="flex-1 py-4 bg-white/10 text-white border border-white/20 rounded-2xl font-bold hover:bg-white/20 transition-all active:scale-95 flex items-center justify-center gap-2"
+                >
+                  📥 Download Image (收藏)
+                </button>
+                <button 
+                  onClick={() => setShowCheckIn(false)}
+                  className="flex-1 py-4 bg-white text-black rounded-2xl font-bold hover:bg-white/90 transition-all active:scale-95 flex items-center justify-center gap-2"
+                >
+                  ✕ Close (放入卡袋)
+                </button>
+              </div>
             </motion.div>
           </div>
         )}
