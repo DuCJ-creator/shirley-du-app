@@ -44,13 +44,13 @@ const STRANDS = {
 
 const GEMS = {
   vocabulary: [
-    { name: 'Wonderland 1', nameZh: '奇幻樂園 1', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/vocab-wonderland.html' },
-    { name: 'Wonderland 2', nameZh: '奇幻樂園 2', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/vocab-wonderland.html' },
-    { name: 'Wonderland 3', nameZh: '奇幻樂園 3', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/vocab-wonderland.html' },
-    { name: 'Wonderland 4', nameZh: '奇幻樂園 4', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/vocab-wonderland.html' },
-    { name: 'Wonderland 5', nameZh: '奇幻樂園 5', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/vocab-wonderland.html' },
-    { name: 'Wonderland 6', nameZh: '奇幻樂園 6', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/vocab-wonderland.html' },
-    { name: 'Wonderland 7', nameZh: '奇幻樂園 7', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/vocab-wonderland.html' },
+    { name: 'Irregular Noun Plural', nameZh: '不規則名詞複數', url: 'https://ducj-creator.github.io/Shirley-Grammar/irregular/nouns/' },
+    { name: 'Irregular Verbs', nameZh: '不規則動詞', url: 'https://ducj-creator.github.io/Shirley-Grammar/irregular/verbs/' },
+    { name: 'Common Polysemes', nameZh: '常用一詞多義', url: 'https://ducj-creator.github.io/Shirley-Grammar/polysemy' },
+    { name: 'Common Phrases & Idioms', nameZh: '常用片語/習語', url: 'https://ducj-creator.github.io/Shirley-Grammar/phrases' },
+    { name: 'Common Collocations', nameZh: '常用搭配', url: 'https://ducj-creator.github.io/Shirley-Grammar/collocations' },
+    { name: 'Buzzwords', nameZh: '流行術語', url: 'https://ducj-creator.github.io/Shirley-Grammar/buzzwords' },
+    { name: 'Roots & Affixes', nameZh: '詞根詞綴', url: 'https://ducj-creator.github.io/Shirley-Grammar/root%20and%20affix/' },
     { name: 'Bilingual Subjects', nameZh: '雙語學科', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/vocab-wonderland.html' },
   ],
   pronunciation: [
@@ -58,8 +58,8 @@ const GEMS = {
     { name: 'International Phonics', nameZh: '國際音標', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/ipa.html' },
   ],
   grammar: [
-    { name: 'Lemon Tree', nameZh: '檸檬樹', url: 'https://ducj-creator.github.io/Shirley-Grammar/' },
-    { name: 'Music Garden', nameZh: '音樂花園', url: 'https://ducj-creator.github.io/Shirley-AI-Music-Studio/learning/index.html' },
+    { name: 'Grammar Lemon Tree', nameZh: '文法檸檬樹', url: 'https://ducj-creator.github.io/Shirley-Grammar/' },
+    { name: 'Grammar Music Garden', nameZh: '文法音樂花園', url: 'https://ducj-creator.github.io/Shirley-AI-Music-Studio/learning/index.html' },
     { name: 'CAP Grammar', nameZh: '會考文法', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/CAP%20grammar.html' },
   ],
   tests: [
@@ -615,7 +615,10 @@ export default function App() {
                 className="mb-12 flex items-center gap-2 text-white/60 hover:text-white transition-colors group"
               >
                 <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" /> 
-                Back to Moon Base
+                <div className="flex flex-col items-start leading-none">
+                  <span className="text-sm font-medium">Back to Moon Base</span>
+                  <span className="text-[10px] opacity-60">回到首頁</span>
+                </div>
               </button>
 
               <div className="flex flex-col md:flex-row items-center md:items-start gap-12 mb-20">
