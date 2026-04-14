@@ -1,14 +1,18 @@
 @import "tailwindcss";
 
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Noto+Sans+TC:wght@700&display=swap');
+
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Outfit", sans-serif;
+  --font-artistic: "Cinzel", serif;
+  --font-zh: "Noto Sans TC", sans-serif;
 }
 
 @layer base {
   body {
     @apply bg-black text-white overflow-x-hidden;
-    background: radial-gradient(circle at center, #1a1a2e 0%, #0f0f1a 50%, #000000 100%);
+    background: radial-gradient(circle at center, #0a0a1a 0%, #05050a 50%, #000000 100%);
   }
 }
 
@@ -20,12 +24,11 @@
   height: 100%;
   z-index: -1;
   background-image: 
-    radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
-    radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
-    radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px);
-  background-size: 550px 550px, 350px 350px, 250px 250px;
-  background-position: 0 0, 40px 60px, 130px 270px;
-  animation: galaxy-move 100s linear infinite;
+    radial-gradient(white, rgba(255,255,255,.2) 1px, transparent 20px),
+    radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 15px);
+  background-size: 400px 400px, 300px 300px;
+  background-position: 0 0, 40px 60px;
+  animation: galaxy-move 150s linear infinite;
 }
 
 @keyframes galaxy-move {
@@ -34,7 +37,7 @@
 }
 
 .moon-glow {
-  box-shadow: 0 0 60px 20px rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 80px 10px rgba(255, 255, 255, 0.15);
 }
 
 .planet-venus { background: radial-gradient(circle at 30% 30%, #ffd700, #b8860b); }
@@ -42,7 +45,59 @@
 .planet-mercury { background: radial-gradient(circle at 30% 30%, #a9a9a9, #696969); }
 .planet-jupiter { background: radial-gradient(circle at 30% 30%, #deb887, #a0522d); }
 
-.gem-glow {
-  filter: drop-shadow(0 0 10px currentColor);
+/* Gem Shapes */
+.gem-shape {
+  width: 40px;
+  height: 40px;
+  position: relative;
+  filter: drop-shadow(0 0 15px currentColor);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.gem-diamond {
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  background: linear-gradient(135deg, #fff 0%, #e0e0e0 100%);
+}
+
+.gem-ruby {
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+  background: linear-gradient(135deg, #ff4d4d 0%, #800000 100%);
+}
+
+.gem-emerald {
+  clip-path: polygon(0% 25%, 25% 0%, 75% 0%, 100% 25%, 100% 75%, 75% 100%, 25% 100%, 0% 75%);
+  background: linear-gradient(135deg, #2ecc71 0%, #145a32 100%);
+}
+
+.gem-sapphire {
+  clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+  background: linear-gradient(135deg, #3498db 0%, #1a5276 100%);
+}
+
+.gem-amethyst {
+  clip-path: polygon(50% 0%, 95% 25%, 95% 75%, 50% 100%, 5% 75%, 5% 25%);
+  background: linear-gradient(135deg, #9b59b6 0%, #4a235a 100%);
+}
+
+.gem-topaz {
+  clip-path: polygon(20% 0%, 80% 0%, 100% 20%, 100% 80%, 80% 100%, 20% 100%, 0% 80%, 0% 20%);
+  background: linear-gradient(135deg, #f39c12 0%, #7e5109 100%);
+}
+
+.gem-opal {
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #fff, #a2d2ff, #ffafbd);
+  background-size: 200% 200%;
+  animation: opal-shimmer 3s ease infinite;
+}
+
+@keyframes opal-shimmer {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.title-glow {
+  text-shadow: 0 0 20px rgba(255,255,255,0.5), 0 0 40px rgba(255,255,255,0.2);
 }
 

@@ -44,34 +44,40 @@ const STRANDS = {
 
 const GEMS = {
   vocabulary: [
-    { name: 'Irregular Noun Plural', nameZh: '不規則名詞複數', url: 'https://ducj-creator.github.io/Shirley-Grammar/irregular/nouns/' },
-    { name: 'Irregular Verbs', nameZh: '不規則動詞', url: 'https://ducj-creator.github.io/Shirley-Grammar/irregular/verbs/' },
-    { name: 'Common Polysemes', nameZh: '常用一詞多義', url: 'https://ducj-creator.github.io/Shirley-Grammar/polysemy' },
-    { name: 'Common Phrases & Idioms', nameZh: '常用片語/習語', url: 'https://ducj-creator.github.io/Shirley-Grammar/phrases' },
-    { name: 'Common Collocations', nameZh: '常用搭配', url: 'https://ducj-creator.github.io/Shirley-Grammar/collocations' },
-    { name: 'Buzzwords', nameZh: '流行術語', url: 'https://ducj-creator.github.io/Shirley-Grammar/buzzwords' },
-    { name: 'Roots & Affixes', nameZh: '詞根詞綴', url: 'https://ducj-creator.github.io/Shirley-Grammar/root%20and%20affix/' },
-    { name: 'Bilingual Subjects', nameZh: '雙語學科', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/vocab-wonderland.html' },
+    { name: 'Irregular Noun Plural', nameZh: '不規則名詞複數', url: 'https://ducj-creator.github.io/Shirley-Grammar/irregular/nouns/', type: 'diamond' },
+    { name: 'Irregular Verbs', nameZh: '不規則動詞', url: 'https://ducj-creator.github.io/Shirley-Grammar/irregular/verbs/', type: 'ruby' },
+    { name: 'Common Polysemes', nameZh: '常用一詞多義', url: 'https://ducj-creator.github.io/Shirley-Grammar/polysemy', type: 'emerald' },
+    { name: 'Common Phrases & Idioms', nameZh: '常用片語/習語', url: 'https://ducj-creator.github.io/Shirley-Grammar/phrases', type: 'sapphire' },
+    { name: 'Common Collocations', nameZh: '常用搭配', url: 'https://ducj-creator.github.io/Shirley-Grammar/collocations', type: 'amethyst' },
+    { name: 'Buzzwords', nameZh: '流行術語', url: 'https://ducj-creator.github.io/Shirley-Grammar/buzzwords', type: 'topaz' },
+    { name: 'Roots & Affixes', nameZh: '詞根詞綴', url: 'https://ducj-creator.github.io/Shirley-Grammar/root%20and%20affix/', type: 'opal' },
+    { name: 'Bilingual Subjects', nameZh: '雙語學科', url: 'subjects', type: 'diamond' },
   ],
   pronunciation: [
-    { name: 'KK Phonics', nameZh: 'KK 音標', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/kk.html' },
-    { name: 'International Phonics', nameZh: '國際音標', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/ipa.html' },
+    { name: 'KK Phonics', nameZh: 'KK 音標', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/kk.html', type: 'sapphire' },
+    { name: 'International Phonics', nameZh: '國際音標', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/ipa.html', type: 'ruby' },
   ],
   grammar: [
-    { name: 'Grammar Lemon Tree', nameZh: '文法檸檬樹', url: 'https://ducj-creator.github.io/Shirley-Grammar/' },
-    { name: 'Grammar Music Garden', nameZh: '文法音樂花園', url: 'https://ducj-creator.github.io/Shirley-AI-Music-Studio/learning/index.html' },
-    { name: 'CAP Grammar', nameZh: '會考文法', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/CAP%20grammar.html' },
+    { name: 'Grammar Lemon Tree', nameZh: '文法檸檬樹', url: 'https://ducj-creator.github.io/Shirley-Grammar/', type: 'emerald' },
+    { name: 'Grammar Music Garden', nameZh: '文法音樂花園', url: 'https://ducj-creator.github.io/Shirley-AI-Music-Studio/learning/index.html', type: 'amethyst' },
+    { name: 'CAP Grammar', nameZh: '會考文法', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/CAP%20grammar.html', type: 'topaz' },
   ],
   tests: [
-    { name: 'CAP Vocab & Grammar', nameZh: '會考單字與文法', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/CAP%20pastpapers.html' },
-    { name: 'CAP Listening', nameZh: '會考聽力', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/cap%20listening.html' },
-    { name: 'CAP Reading', nameZh: '會考閱讀', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/cap%20reading.html' },
-    { name: 'GSAT Vocabulary', nameZh: '學測單字', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/GSAT%20Vocab.html' },
-    { name: 'GSAT Comprehensive', nameZh: '學測綜合測驗', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/GSAT%20Comprehensive.html' },
-    { name: 'GSAT Cloze', nameZh: '學測克漏字', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/GSAT%20cloze.html' },
-    { name: 'GSAT Reading', nameZh: '學測閱讀', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/gsat%20reading.html' },
+    { name: 'CAP Vocab & Grammar', nameZh: '會考單字與文法', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/CAP%20pastpapers.html', type: 'ruby' },
+    { name: 'CAP Listening', nameZh: '會考聽力', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/cap%20listening.html', type: 'sapphire' },
+    { name: 'CAP Reading', nameZh: '會考閱讀', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/cap%20reading.html', type: 'emerald' },
+    { name: 'GSAT Vocabulary', nameZh: '學測單字', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/GSAT%20Vocab.html', type: 'diamond' },
+    { name: 'GSAT Comprehensive', nameZh: '學測綜合測驗', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/GSAT%20Comprehensive.html', type: 'amethyst' },
+    { name: 'GSAT Cloze', nameZh: '學測克漏字', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/GSAT%20cloze.html', type: 'topaz' },
+    { name: 'GSAT Reading', nameZh: '學測閱讀', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/gsat%20reading.html', type: 'opal' },
   ]
 };
+
+const SUBJECT_GEMS = [
+  { name: 'Bilingual Periodic Table', nameZh: '雙語元素週期表', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/periodic.html', type: 'emerald' },
+  { name: 'Bilingual Taxonomy', nameZh: '雙語生物分類', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/taxonomy.html', type: 'ruby' },
+  { name: 'Bilingual Math', nameZh: '雙語數學', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/math.html', type: 'sapphire' },
+];
 
 // --- Components ---
 
@@ -106,26 +112,30 @@ const Planet = ({ strand, info, onClick, disabled }: { strand: Strand, info: any
   </motion.div>
 );
 
-const Gem = ({ name, nameZh, url, color, onVisit }: { name: string, nameZh: string, url: string, color: string, onVisit: () => void, key?: any }) => (
+const Gem = ({ name, nameZh, url, color, type, onVisit, onClick }: { name: string, nameZh: string, url: string, color: string, type: string, onVisit: () => void, onClick?: () => void, key?: any }) => (
   <motion.a
-    href={url}
-    target="_blank"
-    rel="noopener noreferrer"
+    href={url === 'subjects' ? undefined : url}
+    target={url === 'subjects' ? undefined : "_blank"}
+    rel={url === 'subjects' ? undefined : "noopener noreferrer"}
     whileHover={{ scale: 1.05, y: -5 }}
-    onClick={onVisit}
-    className="relative p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center gap-2 group overflow-hidden"
+    onClick={(e) => {
+      if (url === 'subjects') {
+        e.preventDefault();
+        onClick?.();
+      }
+      onVisit();
+    }}
+    className="relative p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center gap-4 group overflow-hidden cursor-pointer"
   >
     <div 
-      className="w-12 h-12 rotate-45 border-2 flex items-center justify-center transition-all duration-300 group-hover:rotate-90"
-      style={{ borderColor: color, color: color, boxShadow: `0 0 15px ${color}44` }}
-    >
-      <Sparkles className="w-6 h-6 -rotate-45 group-hover:-rotate-90 transition-all duration-300" />
-    </div>
+      className={cn("gem-shape", `gem-${type}`)}
+      style={{ color: color }}
+    />
     <div className="text-center flex flex-col gap-0.5">
       <span className="font-medium text-sm text-white/90 group-hover:text-white">{name}</span>
       <span className="text-xs text-white/40 group-hover:text-white/60">{nameZh}</span>
     </div>
-    <ExternalLink className="absolute top-2 right-2 w-3 h-3 text-white/20 group-hover:text-white/60" />
+    {url !== 'subjects' && <ExternalLink className="absolute top-2 right-2 w-3 h-3 text-white/20 group-hover:text-white/60" />}
     <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
   </motion.a>
 );
@@ -137,10 +147,10 @@ const PetSection = ({ points, pet, onFeed, onAdopt }: { points: number, pet: Pet
       <p className="text-white/60 mb-6">Use your hard-earned points to adopt a celestial companion!</p>
       <button 
         onClick={onAdopt}
-        disabled={points < 500}
+        disabled={points < 100}
         className="px-6 py-2 bg-white text-black rounded-full font-medium hover:bg-white/90 transition-colors disabled:opacity-50"
       >
-        Adopt for 500 Points
+        Adopt for 100 Points
       </button>
     </div>
   );
@@ -203,6 +213,7 @@ export default function App() {
   const [currentStrand, setCurrentStrand] = useState<Strand>('home');
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [showCheckIn, setShowCheckIn] = useState(false);
+  const [showSubjects, setShowSubjects] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [dailyChallenge, setDailyChallenge] = useState<any>(null);
   const [isSolvingChallenge, setIsSolvingChallenge] = useState(false);
@@ -368,17 +379,18 @@ export default function App() {
   };
 
   const handleAdoptPet = async () => {
-    if (!user || !userData || userData.points < 500) return;
+    if (!user || !userData || userData.points < 100) return;
     const userRef = doc(db, 'users', user.uid);
-    await updateDoc(userRef, { points: increment(-500) });
+    await updateDoc(userRef, { points: increment(-100) });
     const petRef = doc(db, 'users', user.uid, 'pets', 'main_pet');
     await setDoc(petRef, {
       name: "Luna",
       type: "Cosmic Cat",
-      hunger: 80,
+      hunger: 100,
       happiness: 100,
       level: 1,
-      ownerId: user.uid
+      ownerId: user.uid,
+      lastFed: serverTimestamp()
     });
   };
 
@@ -489,8 +501,9 @@ export default function App() {
                   className="w-48 h-48 md:w-64 md:h-64 rounded-full bg-white moon-glow flex flex-col items-center justify-center text-black p-8 text-center cursor-pointer"
                   onClick={!user ? handleLogin : () => {}}
                 >
-                  <h1 className="text-xl md:text-2xl font-display font-bold leading-tight mb-2">
-                    Teacher Shirley Du<br/>英文 Surely Do
+                  <h1 className="flex flex-col items-center gap-1">
+                    <span className="text-2xl md:text-3xl font-artistic tracking-widest title-glow">Tr. Shirley Du</span>
+                    <span className="text-xl md:text-2xl font-zh tracking-tight opacity-80">英文 Surely DO</span>
                   </h1>
                   {!user ? (
                     <div className="flex items-center gap-2 text-sm font-medium opacity-60">
@@ -611,13 +624,16 @@ export default function App() {
               className="max-w-6xl mx-auto"
             >
               <button 
-                onClick={() => setCurrentStrand('home')}
+                onClick={() => {
+                  if (showSubjects) setShowSubjects(false);
+                  else setCurrentStrand('home');
+                }}
                 className="mb-12 flex items-center gap-2 text-white/60 hover:text-white transition-colors group"
               >
                 <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" /> 
                 <div className="flex flex-col items-start leading-none">
-                  <span className="text-sm font-medium">Back to Moon Base</span>
-                  <span className="text-[10px] opacity-60">回到首頁</span>
+                  <span className="text-sm font-medium">{showSubjects ? "Back to Vocabulary" : "Back to Moon Base"}</span>
+                  <span className="text-[10px] opacity-60">{showSubjects ? "回到單字區" : "回到首頁"}</span>
                 </div>
               </button>
 
@@ -637,16 +653,32 @@ export default function App() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {GEMS[currentStrand as keyof typeof GEMS].map((gem, idx) => (
-                  <Gem 
-                    key={idx} 
-                    name={gem.name} 
-                    nameZh={gem.nameZh}
-                    url={gem.url} 
-                    color={STRANDS[currentStrand as keyof typeof STRANDS].color}
-                    onVisit={handleVisitGem}
-                  />
-                ))}
+                {showSubjects ? (
+                  SUBJECT_GEMS.map((gem, idx) => (
+                    <Gem 
+                      key={idx} 
+                      name={gem.name} 
+                      nameZh={gem.nameZh}
+                      url={gem.url} 
+                      type={gem.type}
+                      color={STRANDS[currentStrand as keyof typeof STRANDS].color}
+                      onVisit={handleVisitGem}
+                    />
+                  ))
+                ) : (
+                  GEMS[currentStrand as keyof typeof GEMS].map((gem, idx) => (
+                    <Gem 
+                      key={idx} 
+                      name={gem.name} 
+                      nameZh={gem.nameZh}
+                      url={gem.url} 
+                      type={gem.type || 'diamond'}
+                      color={STRANDS[currentStrand as keyof typeof STRANDS].color}
+                      onVisit={handleVisitGem}
+                      onClick={() => gem.url === 'subjects' && setShowSubjects(true)}
+                    />
+                  ))
+                )}
               </div>
             </motion.div>
           )}
