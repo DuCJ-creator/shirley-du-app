@@ -1,0 +1,46 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile and progress data",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "points": { "type": "number" },
+        "lastCheckIn": { "type": "string", "format": "date-time" },
+        "dailyWord": { "type": "string" },
+        "dailyQuote": { "type": "string" },
+        "studyTimeTotal": { "type": "number" },
+        "lastActivity": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email"]
+    },
+    "Pet": {
+      "title": "Pet",
+      "description": "User's adopted pet",
+      "type": "object",
+      "properties": {
+        "ownerId": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "type": "string" },
+        "hunger": { "type": "number" },
+        "happiness": { "type": "number" },
+        "level": { "type": "number" },
+        "lastFed": { "type": "string", "format": "date-time" }
+      },
+      "required": ["ownerId", "name"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile data"
+    },
+    "/users/{userId}/pets/{petId}": {
+      "schema": "Pet",
+      "description": "User's pets"
+    }
+  }
+}
