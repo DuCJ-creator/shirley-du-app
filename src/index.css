@@ -50,23 +50,24 @@
   position: absolute;
   top: 0;
   left: 0;
-  width: 200%;
-  height: 200%;
+  width: 100%;
+  height: 100%;
   background-image: 
-    radial-gradient(1.5px 1.5px at 50px 60px, #fff, rgba(0,0,0,0)),
-    radial-gradient(2px 2px at 150px 150px, #fff, rgba(0,0,0,0)),
-    radial-gradient(1.5px 1.5px at 250px 50px, #fff, rgba(0,0,0,0)),
-    radial-gradient(2px 2px at 350px 250px, #fff, rgba(0,0,0,0));
+    radial-gradient(1px 1px at 50px 60px, #fff, rgba(0,0,0,0)),
+    radial-gradient(1.5px 1.5px at 150px 150px, #fff, rgba(0,0,0,0)),
+    radial-gradient(1px 1px at 250px 50px, #fff, rgba(0,0,0,0)),
+    radial-gradient(1.5px 1.5px at 350px 250px, #fff, rgba(0,0,0,0));
   background-repeat: repeat;
-  background-size: 500px 500px;
-  animation: stars-twinkle 5s infinite;
-  opacity: 0.4;
+  background-size: 400px 400px;
+  animation: stars-twinkle 4s ease-in-out infinite;
+  opacity: 0.3;
+  will-change: opacity;
 }
 
 .galaxy-bg::after {
-  background-size: 700px 700px;
-  animation: stars-twinkle 8s infinite reverse;
-  opacity: 0.3;
+  background-size: 600px 600px;
+  animation: stars-twinkle 6s ease-in-out infinite reverse;
+  opacity: 0.2;
 }
 
 /* Shooting Star */
@@ -78,9 +79,10 @@
   height: 2px;
   background: #fff;
   border-radius: 50%;
-  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1), 0 0 0 8px rgba(255, 255, 255, 0.1), 0 0 20px rgba(255, 255, 255, 1);
-  animation: shooting 10s linear infinite;
+  box-shadow: 0 0 10px #fff;
+  animation: shooting 12s linear infinite;
   opacity: 0;
+  will-change: transform, opacity;
 }
 
 .shooting-star::before {
@@ -88,28 +90,21 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 100px;
+  width: 60px;
   height: 1px;
   background: linear-gradient(90deg, #fff, transparent);
 }
 
 @keyframes shooting {
-  0% { transform: rotate(315deg) translateX(0); opacity: 1; }
-  70% { opacity: 1; }
-  100% { transform: rotate(315deg) translateX(-1000px); opacity: 0; }
+  0% { transform: rotate(315deg) translateX(0); opacity: 0; }
+  10% { opacity: 1; }
+  30% { transform: rotate(315deg) translateX(-600px); opacity: 0; }
+  100% { transform: rotate(315deg) translateX(-600px); opacity: 0; }
 }
 
 @keyframes stars-twinkle {
-  0%, 100% { 
-    opacity: 0.3; 
-    transform: scale(1); 
-    filter: blur(0px);
-  }
-  50% { 
-    opacity: 1; 
-    transform: scale(1.2); 
-    filter: drop-shadow(0 0 8px #fff) brightness(1.5);
-  }
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.6; }
 }
 
 @keyframes galaxy-move {
