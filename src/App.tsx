@@ -505,8 +505,8 @@ export default function App() {
 
             if (rawQuoteData) {
               quoteData = {
-                Quote: rawQuoteData.quote || rawQuoteData.text || rawQuoteData.content || rawQuoteData.sentence || '',
-                Translation: rawQuoteData.translation || rawQuoteData.trans || rawQuoteData.chinese || rawQuoteData.meaning || rawQuoteData.translationcn || rawQuoteData.quotecn || '',
+                Quote: rawQuoteData.quotee || rawQuoteData.quote || rawQuoteData.text || rawQuoteData.content || rawQuoteData.sentence || '',
+                Translation: rawQuoteData.quotec || rawQuoteData.translation || rawQuoteData.trans || rawQuoteData.chinese || rawQuoteData.meaning || rawQuoteData.translationcn || rawQuoteData.quotecn || '',
                 Author: rawQuoteData.author || rawQuoteData.by || rawQuoteData.writer || 'Unknown'
               };
             }
@@ -850,33 +850,33 @@ export default function App() {
           {currentStrand === 'home' ? (
             <motion.div
               key="home"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="flex flex-col items-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="relative min-h-[80vh] w-full"
             >
-              {/* Moon / Check-in */}
-              <div className="relative mb-24 flex flex-col items-center">
+              {/* Moon / Check-in - Positioned under stats on the left */}
+              <div className="md:absolute md:top-0 md:left-0 z-20 flex flex-col items-center md:items-start gap-6">
                 <motion.div
                   animate={{ 
-                    boxShadow: ["0 0 60px 20px rgba(255, 255, 255, 0.1)", "0 0 80px 30px rgba(255, 255, 255, 0.2)", "0 0 60px 20px rgba(255, 255, 255, 0.1)"]
+                    boxShadow: ["0 0 40px 10px rgba(255, 255, 255, 0.05)", "0 0 60px 20px rgba(255, 255, 255, 0.15)", "0 0 40px 10px rgba(255, 255, 255, 0.05)"]
                   }}
                   transition={{ duration: 4, repeat: Infinity }}
-                  className="w-48 h-48 md:w-64 md:h-64 rounded-full bg-white moon-glow flex flex-col items-center justify-center text-black p-4 text-center cursor-pointer overflow-hidden relative"
+                  className="w-40 h-40 md:w-52 md:h-52 rounded-full bg-white moon-glow flex flex-col items-center justify-center text-black p-4 text-center cursor-pointer overflow-hidden relative shadow-2xl"
                   onClick={!user ? handleLogin : () => setShowCheckIn(true)}
                 >
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/[0.02] to-black/[0.05] pointer-events-none" />
                   <h1 className="flex flex-col items-center w-full px-2 z-10">
-                    <span className="text-2xl md:text-3xl font-artistic tracking-[0.05em] title-glow leading-tight break-words max-w-full">Tr. Shirley Du</span>
-                    <span className="text-lg md:text-xl font-zh tracking-[0.1em] opacity-80 mt-1 leading-tight break-words max-w-full">英文Surely DO</span>
+                    <span className="text-xl md:text-2xl font-artistic tracking-[0.05em] leading-tight break-words max-w-full">Tr. Shirley Du</span>
+                    <span className="text-sm md:text-base font-zh tracking-[0.1em] opacity-80 mt-1 leading-tight break-words max-w-full">英文Surely DO</span>
                   </h1>
                   {!user ? (
-                    <div className="flex items-center gap-2 text-[10px] md:text-xs font-medium opacity-50 mt-2 z-10">
-                      <LogIn className="w-3 h-3" /> Click to Check-in
+                    <div className="flex items-center gap-2 text-[10px] font-medium opacity-50 mt-2 z-10">
+                      <LogIn className="w-3 h-3" /> Check-in
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2 text-[10px] md:text-xs font-medium text-green-600 mt-2 z-10">
-                      <Zap className="w-3 h-3" /> Checked In
+                    <div className="flex items-center gap-2 text-[10px] font-medium text-green-600 mt-2 z-10">
+                      <Zap className="w-3 h-3" /> Active
                     </div>
                   )}
                 </motion.div>
@@ -888,16 +888,16 @@ export default function App() {
                     animate={{ 
                       scale: 1, 
                       opacity: 1,
-                      y: [0, -10, 0]
+                      y: [0, -5, 0]
                     }}
                     transition={{ 
                       scale: { duration: 0.5 },
                       opacity: { duration: 0.5 },
                       y: { duration: 4, repeat: Infinity, ease: "easeInOut" }
                     }}
-                    whileHover={{ scale: 1.05, y: -15 }}
+                    whileHover={{ scale: 1.05, y: -10 }}
                     onClick={() => setShowCheckIn(true)}
-                    className="mt-12 md:absolute md:mt-0 md:top-10 md:-right-72 bg-white/[0.03] backdrop-blur-3xl border border-white/10 p-4 rounded-[1.5rem] max-w-[160px] md:max-w-[200px] cursor-pointer transition-all shadow-[0_0_40px_rgba(255,255,255,0.05)] hover:shadow-[0_0_50px_rgba(100,200,255,0.15)] group z-20"
+                    className="bg-white/[0.03] backdrop-blur-3xl border border-white/10 p-4 rounded-[1.5rem] w-full max-w-[200px] cursor-pointer transition-all shadow-[0_0_40px_rgba(255,255,255,0.05)] hover:shadow-[0_0_50px_rgba(100,200,255,0.15)] group z-20"
                   >
                     <div className="flex items-center gap-2 mb-2">
                       <div className="w-1 h-1 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
@@ -919,22 +919,24 @@ export default function App() {
                 )}
               </div>
 
-              {/* Planets Grid / Solar System Layout */}
-              <div className="relative w-full min-h-[500px] md:min-h-[700px] flex items-center justify-center">
-                {/* Orbital Rings (Desktop Only) */}
-                <div className="hidden md:block absolute inset-0 pointer-events-none">
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[220px] h-[220px] border border-white/5 rounded-full" />
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] h-[340px] border border-white/5 rounded-full" />
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[460px] h-[460px] border border-white/5 rounded-full" />
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[580px] h-[580px] border border-white/5 rounded-full" />
+              {/* Planets Grid / Solar System Layout - Centered */}
+              <div className="relative w-full min-h-[600px] flex items-center justify-center pt-20 md:pt-0">
+                {/* Central Star Glow */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-blue-500/10 blur-[80px] rounded-full pointer-events-none" />
+                
+                {/* Orbital Rings */}
+                <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                  <div className="absolute w-[200px] h-[200px] border border-white/5 rounded-full" />
+                  <div className="absolute w-[320px] h-[320px] border border-white/5 rounded-full" />
+                  <div className="absolute w-[440px] h-[440px] border border-white/5 rounded-full" />
+                  <div className="absolute w-[560px] h-[560px] border border-white/5 rounded-full" />
                 </div>
 
-                {/* Mobile: Grid, Desktop: Scattered */}
-                <div className="grid grid-cols-2 gap-8 md:block md:absolute md:inset-0">
+                {/* Planets */}
+                <div className="relative w-full h-full flex items-center justify-center">
                   {Object.entries(STRANDS).map(([key, info], index) => {
-                    // Desktop positioning logic - More compact and organic
-                    const angles = [35, 145, 215, 325];
-                    const distances = [110, 170, 230, 290];
+                    const angles = [45, 135, 225, 315];
+                    const distances = [100, 160, 220, 280];
                     const angle = angles[index];
                     const distance = distances[index];
                     const x = Math.cos((angle * Math.PI) / 180) * distance;
@@ -943,9 +945,9 @@ export default function App() {
                     return (
                       <div 
                         key={key}
-                        className="md:absolute md:top-1/2 md:left-1/2"
+                        className="absolute"
                         style={{ 
-                          transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`
+                          transform: `translate(${x}px, ${y}px)`
                         }}
                       >
                         <Planet 
