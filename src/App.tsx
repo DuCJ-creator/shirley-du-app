@@ -62,6 +62,7 @@ interface PetData {
   hunger: number;
   happiness: number;
   level: number;
+  isPlaying?: boolean;
 }
 
 // --- Constants ---
@@ -268,6 +269,133 @@ const Gem = ({ name, nameZh, url, color, type, onVisit, onClick }: { name: strin
   </motion.a>
 );
 
+const PetAvatar = ({ type, isPlaying, isRolling }: { type: string, isPlaying?: boolean, isRolling?: boolean }) => {
+  const color = type.includes('Cat') ? '#ff9ff3' : 
+                type.includes('Dog') ? '#feca57' : 
+                type.includes('Fox') ? '#ff9f43' : 
+                type.includes('Bear') ? '#54a0ff' : 
+                type.includes('Bunny') ? '#ee5253' : 
+                type.includes('Owl') ? '#0abde3' : 
+                type.includes('Dragon') ? '#1dd1a1' : '#c8d6e5';
+
+  return (
+    <motion.div
+      animate={isPlaying ? {
+        y: [0, -10, 0],
+        scale: [1, 1.05, 1],
+      } : isRolling ? {
+        rotate: 360,
+        scale: [1, 1.2, 1],
+      } : {
+        y: [0, -5, 0],
+      }}
+      transition={{
+        duration: isPlaying ? 1.5 : 3,
+        repeat: Infinity,
+        ease: "easeInOut"
+      }}
+      className="relative w-full h-full flex items-center justify-center"
+    >
+      {/* Cartoon Body */}
+      <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-lg">
+        <motion.circle 
+          cx="50" cy="50" r="40" 
+          fill={color} 
+          animate={isPlaying ? { r: [40, 42, 40] } : {}}
+          transition={{ duration: 1, repeat: Infinity }}
+        />
+        
+        {/* Eyes */}
+        <motion.g
+          animate={{ scaleY: [1, 1, 0.1, 1, 1] }}
+          transition={{ duration: 3, repeat: Infinity, times: [0, 0.4, 0.5, 0.6, 1] }}
+        >
+          <circle cx="35" cy="45" r="5" fill="white" />
+          <circle cx="65" cy="45" r="5" fill="white" />
+          <circle cx="35" cy="45" r="2" fill="black" />
+          <circle cx="65" cy="45" r="2" fill="black" />
+        </motion.g>
+
+        {/* Mouth */}
+        <motion.path
+          d={isPlaying ? "M 40 65 Q 50 75 60 65" : "M 40 65 Q 50 70 60 65"}
+          stroke="white"
+          strokeWidth="3"
+          fill="none"
+          strokeLinecap="round"
+          animate={isPlaying ? { d: ["M 40 65 Q 50 75 60 65", "M 40 60 Q 50 80 60 60", "M 40 65 Q 50 75 60 65"] } : {}}
+          transition={{ duration: 1, repeat: Infinity }}
+        />
+
+        {/* Ears/Features based on type */}
+        {type.includes('Cat') && (
+          <g fill={color}>
+            <path d="M 20 30 L 35 40 L 15 50 Z" />
+            <path d="M 80 30 L 65 40 L 85 50 Z" />
+          </g>
+        )}
+        {type.includes('Dog') && (
+          <g fill={color}>
+            <ellipse cx="20" cy="40" rx="8" ry="15" />
+            <ellipse cx="80" cy="40" rx="8" ry="15" />
+          </g>
+        )}
+        {type.includes('Bunny') && (
+          <g fill={color}>
+            <ellipse cx="35" cy="15" rx="8" ry="25" />
+            <ellipse cx="65" cy="15" rx="8" ry="25" />
+          </g>
+        )}
+      </svg>
+      
+      {/* Sparkles when playing */}
+      {isPlaying && (
+        <div className="absolute inset-0">
+          <motion.div
+            animate={{ scale: [0, 1, 0], opacity: [0, 1, 0] }}
+            transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
+            className="absolute top-0 left-0"
+          >
+            <Sparkles className="w-4 h-4 text-yellow-300" />
+          </motion.div>
+          <motion.div
+            animate={{ scale: [0, 1, 0], opacity: [0, 1, 0] }}
+            transition={{ duration: 1, repeat: Infinity, delay: 0.5 }}
+            className="absolute bottom-0 right-0"
+          >
+            <Sparkles className="w-4 h-4 text-yellow-300" />
+          </motion.div>
+        </div>
+      )}
+    </motion.div>
+  );
+};
+
+const FloatingPet = ({ pet, onReturn }: { pet: PetData, onReturn: () => void }) => {
+  return (
+    <motion.div
+      drag
+      dragMomentum={false}
+      onDoubleClick={onReturn}
+      initial={{ x: window.innerWidth - 100, y: window.innerHeight - 100 }}
+      animate={{
+        y: [0, -20, 0],
+      }}
+      transition={{
+        y: { duration: 2, repeat: Infinity, ease: "easeInOut" }
+      }}
+      className="fixed z-[200] w-20 h-20 cursor-grab active:cursor-grabbing group"
+      style={{ touchAction: 'none' }}
+    >
+      <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+        <p className="text-[8px] text-white font-bold uppercase tracking-widest">{pet.name} is playing!</p>
+        <p className="text-[6px] text-white/60 text-center">Double-tap to dock</p>
+      </div>
+      <PetAvatar type={pet.type} isPlaying={true} />
+    </motion.div>
+  );
+};
+
 const PetSection = ({ points, pet, onFeed, onPlay, onAdopt, isRolling }: { points: number, pet: PetData | null, onFeed: () => void, onPlay: () => void, onAdopt: () => void, isRolling: boolean }) => {
   if (!pet) return (
     <div className="p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md text-center">
@@ -286,38 +414,27 @@ const PetSection = ({ points, pet, onFeed, onPlay, onAdopt, isRolling }: { point
   return (
     <div className="p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md">
       <div className="flex items-center gap-6">
-        <motion.div 
-          drag
-          dragConstraints={{ left: -50, right: 50, top: -50, bottom: 50 }}
-          animate={isRolling ? { rotate: 360 } : { rotate: 0 }}
-          transition={isRolling ? { duration: 0.5, ease: "linear", repeat: 2 } : { duration: 0.3 }}
-          className="w-24 h-24 rounded-full overflow-hidden border-2 border-white/20 moon-glow cursor-grab active:cursor-grabbing z-10"
-        >
-          <img 
-            src={pet.image || "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=400&h=400&q=80"} 
-            alt={pet.name}
-            className="w-full h-full object-cover"
-            referrerPolicy="no-referrer"
-          />
-        </motion.div>
+        <div className="w-24 h-24 rounded-full border-2 border-white/20 moon-glow relative">
+          <PetAvatar type={pet.type} isRolling={isRolling} />
+        </div>
         <div className="flex-1">
           <h3 className="text-2xl font-display">{pet.name}</h3>
           <p className="text-white/40 text-sm uppercase tracking-widest">Level {pet.level} {pet.type}</p>
           <div className="mt-4 space-y-2">
             <div className="flex justify-between text-xs uppercase tracking-tighter">
               <span>Hunger</span>
-              <span>{pet.hunger}%</span>
+              <span>{Math.round(pet.hunger)}%</span>
             </div>
             <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
               <motion.div 
                 initial={{ width: 0 }}
                 animate={{ width: `${pet.hunger}%` }}
-                className="h-full bg-orange-500"
+                className={cn("h-full transition-colors", pet.hunger < 20 ? "bg-red-500" : "bg-orange-500")}
               />
             </div>
             <div className="flex justify-between text-xs uppercase tracking-tighter mt-2">
               <span>Happiness</span>
-              <span>{pet.happiness}%</span>
+              <span>{Math.round(pet.happiness)}%</span>
             </div>
             <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
               <motion.div 
@@ -339,12 +456,18 @@ const PetSection = ({ points, pet, onFeed, onPlay, onAdopt, isRolling }: { point
         </button>
         <button 
           onClick={onPlay}
-          className="flex-1 py-3 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center gap-2 transition-colors group"
+          className={cn(
+            "flex-1 py-3 rounded-xl flex items-center justify-center gap-2 transition-all group",
+            pet.isPlaying ? "bg-pink-500 text-white" : "bg-white/10 hover:bg-white/20"
+          )}
         >
-          <Heart className="w-4 h-4 group-hover:scale-110 transition-transform text-pink-500" /> Play
+          <Heart className={cn("w-4 h-4 group-hover:scale-110 transition-transform", pet.isPlaying ? "text-white" : "text-pink-500")} /> 
+          {pet.isPlaying ? "Playing..." : "Play"}
         </button>
       </div>
-      <p className="text-[10px] text-white/20 text-center mt-4">Tip: You can drag your pet around!</p>
+      <p className="text-[10px] text-white/20 text-center mt-4">
+        {pet.isPlaying ? "Your pet is accompanying you! Double-tap it to return." : "Tip: Click Play to have your pet accompany you!"}
+      </p>
     </div>
   );
 };
@@ -457,15 +580,24 @@ export default function App() {
           newStreak = 1;
         }
 
+        // Daily Pet Drain (5 points)
+        const petRef = doc(db, 'users', u.uid, 'pets', 'main_pet');
+        const petSnap = await getDoc(petRef);
+        let petDrain = 0;
+        if (petSnap.exists()) {
+          petDrain = 5;
+          await addPointLog(u.uid, 'pet-drain', -5, 'Daily Pet Care Cost');
+        }
+
         await updateDoc(userRef, {
-          points: increment(10),
+          points: increment(10 - petDrain),
           lastCheckIn: serverTimestamp(),
           streak: newStreak
         }).catch(async () => {
           await setDoc(userRef, {
             email: u.email,
             displayName: u.displayName,
-            points: 10,
+            points: 10 - petDrain,
             lastCheckIn: serverTimestamp(),
             studyTimeTotal: 0,
             streak: 1
@@ -804,19 +936,44 @@ export default function App() {
   const handlePlayWithPet = async () => {
     if (!user || !petData) return;
     
-    setIsRolling(true);
-    setTimeout(() => setIsRolling(false), 1000);
-
-    // Playing is free but gives happiness
     const petRef = doc(db, 'users', user.uid, 'pets', 'main_pet');
-    const petSnap = await getDoc(petRef);
-    if (petSnap.exists()) {
-      await updateDoc(petRef, {
-        happiness: Math.min(100, (petSnap.data().happiness || 0) + 20),
-        hunger: Math.max(0, (petSnap.data().hunger || 0) - 5) // Playing makes them a bit hungry
-      });
+    const newIsPlaying = !petData.isPlaying;
+
+    if (newIsPlaying) {
+      setIsRolling(true);
+      setTimeout(() => setIsRolling(false), 1000);
     }
+
+    await updateDoc(petRef, {
+      isPlaying: newIsPlaying,
+      happiness: Math.min(100, (petData.happiness || 0) + 10)
+    });
   };
+
+  const handleReturnPet = async () => {
+    if (!user || !petData) return;
+    const petRef = doc(db, 'users', user.uid, 'pets', 'main_pet');
+    await updateDoc(petRef, { isPlaying: false });
+  };
+
+  // Hunger drain effect
+  useEffect(() => {
+    if (!user || !petData) return;
+    
+    const interval = setInterval(async () => {
+      const petRef = doc(db, 'users', user.uid, 'pets', 'main_pet');
+      // Drain faster if playing (2% vs 0.5% per 5 mins)
+      const drainAmount = petData.isPlaying ? 2 : 0.5;
+      const happinessDrain = petData.isPlaying ? 0 : 0.2; // Playing keeps them happy
+
+      await updateDoc(petRef, {
+        hunger: Math.max(0, (petData.hunger || 0) - drainAmount),
+        happiness: Math.max(0, (petData.happiness || 0) - happinessDrain)
+      });
+    }, 300000); // Every 5 minutes
+
+    return () => clearInterval(interval);
+  }, [user?.uid, petData?.hunger, petData?.isPlaying]);
 
   if (!isAuthReady) return <div className="h-screen flex items-center justify-center"><Star className="animate-spin" /></div>;
 
@@ -1252,6 +1409,13 @@ export default function App() {
           )}
         </AnimatePresence>
       </main>
+
+      {/* Floating Pet when playing */}
+      <AnimatePresence>
+        {petData?.isPlaying && (
+          <FloatingPet pet={petData} onReturn={handleReturnPet} />
+        )}
+      </AnimatePresence>
 
       {/* Moon Base Card Modal */}
       <AnimatePresence>
