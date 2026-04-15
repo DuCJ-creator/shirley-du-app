@@ -92,6 +92,7 @@ const GEMS = {
     { name: 'Common Collocations', nameZh: '常用搭配', url: 'https://ducj-creator.github.io/Shirley-Grammar/collocations', type: 'amethyst' },
     { name: 'Buzzwords', nameZh: '流行術語', url: 'https://ducj-creator.github.io/Shirley-Grammar/buzzwords', type: 'topaz' },
     { name: 'Roots & Affixes', nameZh: '詞根詞綴', url: 'https://ducj-creator.github.io/Shirley-Grammar/root%20and%20affix/', type: 'opal' },
+    { name: 'TOEIC Core Vocab', nameZh: 'TOEIC 多益核心單字', url: 'https://ducj-creator.github.io/Shirley-Grammar/TOEIC%20vocab', type: 'ruby' },
     { name: 'Bilingual Subjects', nameZh: '雙語學科', url: 'subjects', type: 'diamond' },
   ],
   pronunciation: [
@@ -403,7 +404,9 @@ export default function App() {
       }
 
       // Fetch Daily Inspiration from CSVs or Gemini
-      if (!data?.dailyWordData || isNewDay) {
+      const needsUpdate = !data?.dailyWordData?.sentCn || !data?.dailyQuoteData?.trans || isNewDay;
+      
+      if (needsUpdate) {
         try {
           // Try fetching CSVs first
           const wordRes = await fetch("https://ducj-creator.github.io/Teacher-Shirley/assets/word%20of%20the%20day.csv");
@@ -439,7 +442,7 @@ export default function App() {
                 return result;
               };
 
-              const headers = splitCsvLine(lines[0]).map(h => h.toLowerCase().replace(/[\s_]/g, ''));
+              const headers = splitCsvLine(lines[0].replace(/^\uFEFF/, '')).map(h => h.toLowerCase().replace(/[\s_-]/g, ''));
               return lines.slice(1).map(line => {
                 const values = splitCsvLine(line);
                 return headers.reduce((obj: any, header, i) => {
@@ -457,7 +460,21 @@ export default function App() {
 
             // Match by date with normalization
             const dateStr = getLocalDateString();
-            const normalizeDate = (d: string) => d.replace(/\//g, '-').split('-').map(p => p.padStart(2, '0')).join('-');
+            const normalizeDate = (d: string) => {
+              if (!d) return '';
+              const parts = d.replace(/\//g, '-').split('-');
+              if (parts.length !== 3) return '';
+              // Handle YYYY-MM-DD
+              if (parts[0].length === 4) return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+              // Handle MM-DD-YYYY or DD-MM-YYYY (assume MM-DD-YYYY if first part <= 12)
+              if (parts[2].length === 4) {
+                const p0 = parseInt(parts[0]);
+                const p1 = parseInt(parts[1]);
+                if (p0 > 12) return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`; // DD-MM-YYYY
+                return `${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`; // MM-DD-YYYY
+              }
+              return parts.map(p => p.padStart(2, '0')).join('-');
+            };
             
             const rawWordData = words.find(w => {
               const wDate = w.date ? normalizeDate(w.date) : '';
@@ -473,16 +490,16 @@ export default function App() {
               wordData = {
                 Word: rawWordData.word || '',
                 POS: rawWordData.pos || '',
-                Definition: rawWordData.definition || rawWordData.def || rawWordData.meaning || '',
-                Sentence_EN: rawWordData.sentenceen || rawWordData.sentence_en || rawWordData.example || '',
-                Sentence_CN: rawWordData.sentencecn || rawWordData.sentence_cn || rawWordData.chinese || rawWordData.meaningcn || ''
+                Definition: rawWordData.definition || rawWordData.def || rawWordData.meaning || rawWordData.meaningcn || '',
+                Sentence_EN: rawWordData.sentenceen || rawWordData.sentence_en || rawWordData.example || rawWordData.exampleen || '',
+                Sentence_CN: rawWordData.sentencecn || rawWordData.sentence_cn || rawWordData.chinese || rawWordData.meaningcn || rawWordData.translation || rawWordData.examplecn || ''
               };
             }
 
             if (rawQuoteData) {
               quoteData = {
                 Quote: rawQuoteData.quote || '',
-                Translation: rawQuoteData.translation || rawQuoteData.trans || rawQuoteData.chinese || '',
+                Translation: rawQuoteData.translation || rawQuoteData.trans || rawQuoteData.chinese || rawQuoteData.meaning || '',
                 Author: rawQuoteData.author || rawQuoteData.by || 'Unknown'
               };
             }
@@ -504,9 +521,9 @@ export default function App() {
                   config: { responseMimeType: "application/json" }
                 });
                 const trans = JSON.parse(translateResult.text || '{}');
-                if (!wordData.Sentence_CN) wordData.Sentence_CN = trans.sentenceCn;
-                if (!quoteData.Translation) quoteData.Translation = trans.quoteCn;
-                if (!wordData.Definition) wordData.Definition = trans.defCn;
+                if (!wordData.Sentence_CN) wordData.Sentence_CN = trans.sentenceCn || trans.wordCn || "";
+                if (!quoteData.Translation) quoteData.Translation = trans.quoteCn || trans.translation || "";
+                if (!wordData.Definition) wordData.Definition = trans.defCn || trans.definition || "";
               } catch (e) {
                 console.error("Gemini translation fallback failed", e);
               }
@@ -1159,7 +1176,7 @@ export default function App() {
                       </p>
                       <div className="bg-white/[0.03] p-2 rounded-lg">
                         <p className="text-[11px] text-white/80 font-zh font-medium leading-relaxed">
-                          {selectedCard ? (selectedCard.wordData?.sentCn || "載入中...") : (userData.dailyWordData?.sentCn || "載入中...")}
+                          {selectedCard ? (selectedCard.wordData?.sentCn || "") : (userData.dailyWordData?.sentCn || "")}
                         </p>
                       </div>
                     </div>
@@ -1172,7 +1189,7 @@ export default function App() {
                     </p>
                     <div className="bg-white/[0.03] p-2 rounded-lg mb-2">
                       <p className="text-[11px] text-white/80 font-zh font-medium leading-relaxed">
-                        {selectedCard ? (selectedCard.quoteData?.trans || "載入中...") : (userData.dailyQuoteData?.trans || "載入中...")}
+                        {selectedCard ? (selectedCard.quoteData?.trans || "") : (userData.dailyQuoteData?.trans || "")}
                       </p>
                     </div>
                     <p className="text-right text-[7px] uppercase tracking-widest text-blue-200/30 font-bold">— {selectedCard ? selectedCard.quoteData?.author : userData.dailyQuoteData?.author}</p>
