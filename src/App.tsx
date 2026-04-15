@@ -58,7 +58,7 @@ interface UserData {
 interface PetData {
   name: string;
   type: string;
-  emoji: string;
+  image: string;
   hunger: number;
   happiness: number;
   level: number;
@@ -66,14 +66,14 @@ interface PetData {
 
 // --- Constants ---
 const PET_TYPES = [
-  { name: "Luna", type: "Cosmic Cat", emoji: "🐱" },
-  { name: "Astro", type: "Space Dog", emoji: "🐶" },
-  { name: "Nebula", type: "Galaxy Fox", emoji: "🦊" },
-  { name: "Orion", type: "Star Bear", emoji: "🐻" },
-  { name: "Nova", type: "Comet Bunny", emoji: "🐰" },
-  { name: "Cosmo", type: "Solar Owl", emoji: "🦉" },
-  { name: "Stellar", type: "Void Dragon", emoji: "🐲" },
-  { name: "Pulsar", type: "Moon Hamster", emoji: "🐹" },
+  { name: "Luna", type: "Cosmic Cat", image: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=400&h=400&q=80" },
+  { name: "Astro", type: "Space Dog", image: "https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?auto=format&fit=crop&w=400&h=400&q=80" },
+  { name: "Nebula", type: "Galaxy Fox", image: "https://images.unsplash.com/photo-1516934024742-b461fba47600?auto=format&fit=crop&w=400&h=400&q=80" },
+  { name: "Orion", type: "Star Bear", image: "https://images.unsplash.com/photo-1589656966895-2f33e7653819?auto=format&fit=crop&w=400&h=400&q=80" },
+  { name: "Nova", type: "Comet Bunny", image: "https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?auto=format&fit=crop&w=400&h=400&q=80" },
+  { name: "Cosmo", type: "Solar Owl", image: "https://images.unsplash.com/photo-1543549710-1f02f909d828?auto=format&fit=crop&w=400&h=400&q=80" },
+  { name: "Stellar", type: "Void Dragon", image: "https://images.unsplash.com/photo-1577493340887-b7bfff550145?auto=format&fit=crop&w=400&h=400&q=80" },
+  { name: "Pulsar", type: "Moon Hamster", image: "https://images.unsplash.com/photo-1425082661705-1834bfd09dca?auto=format&fit=crop&w=400&h=400&q=80" },
 ];
 
 const STRANDS = {
@@ -220,9 +220,14 @@ const PetSection = ({ points, pet, onFeed, onPlay, onAdopt, isRolling }: { point
           dragConstraints={{ left: -50, right: 50, top: -50, bottom: 50 }}
           animate={isRolling ? { rotate: 360 } : { rotate: 0 }}
           transition={isRolling ? { duration: 0.5, ease: "linear", repeat: 2 } : { duration: 0.3 }}
-          className="w-24 h-24 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 flex items-center justify-center text-4xl moon-glow cursor-grab active:cursor-grabbing z-10"
+          className="w-24 h-24 rounded-full overflow-hidden border-2 border-white/20 moon-glow cursor-grab active:cursor-grabbing z-10"
         >
-          {pet.emoji || '🐱'}
+          <img 
+            src={pet.image || "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=400&h=400&q=80"} 
+            alt={pet.name}
+            className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
+          />
         </motion.div>
         <div className="flex-1">
           <h3 className="text-2xl font-display">{pet.name}</h3>
@@ -567,7 +572,7 @@ export default function App() {
     await setDoc(petRef, {
       name: randomPet.name,
       type: randomPet.type,
-      emoji: randomPet.emoji,
+      image: randomPet.image,
       hunger: 100,
       happiness: 100,
       level: 1,
@@ -1014,75 +1019,79 @@ export default function App() {
               exit={{ scale: 0.9, opacity: 0, y: 50 }}
               className="relative w-full max-w-md mx-auto"
             >
-              <div className="moon-card relative bg-[#0a0a0c] border-2 border-white/30 rounded-[2rem] overflow-hidden shadow-[0_0_50px_rgba(255,255,255,0.2)] velvet-texture">
-                <div className="card-decoration-top h-2 bg-gradient-to-r from-transparent via-white/60 to-transparent" />
+              <div className="moon-card relative bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] border-2 border-white/30 rounded-[2rem] overflow-hidden shadow-[0_0_50px_rgba(100,100,255,0.3)] velvet-texture">
+                <div className="card-decoration-top h-2 bg-gradient-to-r from-transparent via-blue-400/60 to-transparent" />
                 
-                <div className="p-6 md:p-8">
+                {/* Nebula Overlay */}
+                <div className="absolute inset-0 opacity-30 pointer-events-none">
+                  <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_20%_30%,rgba(255,0,255,0.2),transparent_50%)]" />
+                  <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_80%_70%,rgba(0,255,255,0.2),transparent_50%)]" />
+                </div>
+
+                <div className="p-6 md:p-8 relative z-10">
                   <div className="flex justify-between items-start mb-6">
                     <div>
-                      <h4 className="text-[9px] tracking-[0.3em] text-white/50 uppercase font-bold">Moon Base Clearance</h4>
-                      <p className="text-[10px] text-white/70 font-mono">NO. {selectedCard?.id || new Date().toISOString().split('T')[0].replace(/-/g, '')}</p>
+                      <h4 className="text-[9px] tracking-[0.3em] text-blue-200/60 uppercase font-bold">Moon Base Clearance</h4>
+                      <p className="text-[10px] text-blue-100/70 font-mono">NO. {selectedCard?.id || getLocalDateString().replace(/-/g, '')}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-[9px] tracking-widest text-white/50 uppercase">Status</p>
-                      <p className="text-[10px] text-green-400 font-bold uppercase">Authorized</p>
+                      <p className="text-[9px] tracking-widest text-blue-200/60 uppercase">Status</p>
+                      <p className="text-[10px] text-cyan-400 font-bold uppercase drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]">Authorized</p>
                     </div>
                   </div>
 
                   <div className="mb-6">
-                    <h3 className="text-xl font-display font-light text-white/95 mb-1">
-                      Welcome, <span className="font-bold text-white">{user?.displayName?.split(' ')[0] || 'Traveler'}</span>
+                    <h3 className="text-xl font-display font-light text-white mb-1">
+                      Welcome, <span className="font-bold text-white drop-shadow-md">{user?.displayName?.split(' ')[0] || 'Traveler'}</span>
                     </h3>
-                    <p className="text-xs text-white/50">
-                      Shirley's Moon Base Card • <span className="text-white/70">{selectedCard?.date || new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                    <p className="text-xs text-blue-100/50">
+                      Shirley's Moon Base Card • <span className="text-blue-100/70">{selectedCard?.date || new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                     </p>
                   </div>
 
-                  <div className="flex items-center justify-center gap-3 mb-6 text-white/30">
+                  <div className="flex items-center justify-center gap-3 mb-6 text-blue-300/30">
                     <span className="text-xs">✦</span><span className="text-xs">✦</span><span className="text-xs">✦</span>
                   </div>
 
                   {/* Word of the Day Section */}
-                  <div className="bg-white/10 rounded-2xl p-5 border border-white/20 mb-4 shadow-inner">
-                    <p className="text-[9px] uppercase tracking-[0.2em] text-white/60 mb-3 font-bold">Word of the Day</p>
+                  <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20 mb-4 shadow-xl">
+                    <p className="text-[9px] uppercase tracking-[0.2em] text-blue-200/70 mb-3 font-bold">Word of the Day</p>
                     <div className="flex items-baseline gap-2 mb-2">
-                      <h2 className="text-2xl font-display font-bold text-white leading-none">
+                      <h2 className="text-3xl font-display font-bold text-white leading-none tracking-tight">
                         {selectedCard ? selectedCard.word : (userData.dailyWordData?.word || userData.dailyWord)}
                       </h2>
-                      <span className="text-xs italic text-white/50">
+                      <span className="text-xs italic text-blue-200/50">
                         {selectedCard ? selectedCard.wordData?.pos : userData.dailyWordData?.pos}
                       </span>
                     </div>
-                    <p className="text-xs text-white/90 mb-3 leading-relaxed font-medium">
+                    <p className="text-sm text-white mb-3 leading-relaxed font-medium">
                       {selectedCard ? selectedCard.wordData?.def : userData.dailyWordData?.def}
                     </p>
-                    <div className="space-y-1.5 pt-3 border-t border-white/10">
-                      <p className="text-xs text-white/70 italic leading-relaxed">
+                    <div className="space-y-2 pt-3 border-t border-white/10">
+                      <p className="text-xs text-blue-100/80 italic leading-relaxed">
                         "{selectedCard ? selectedCard.wordData?.sentEn : userData.dailyWordData?.sentEn}"
                       </p>
-                      <p className="text-xs text-white/60 font-zh">
+                      <p className="text-sm text-white font-zh font-medium bg-white/5 p-2 rounded-lg">
                         {selectedCard ? selectedCard.wordData?.sentCn : userData.dailyWordData?.sentCn}
                       </p>
                     </div>
                   </div>
 
                   {/* Quote Section */}
-                  <div className="bg-white/10 rounded-2xl p-5 border border-white/20 mb-6 shadow-inner">
-                    <p className="text-xs text-white font-medium italic mb-2 leading-relaxed">
+                  <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20 mb-6 shadow-xl">
+                    <p className="text-sm text-white font-medium italic mb-3 leading-relaxed">
                       "{selectedCard ? selectedCard.quote : (userData.dailyQuoteData?.quote || userData.dailyQuote)}"
                     </p>
-                    <p className="text-xs text-white/60 font-zh mb-2">
+                    <p className="text-sm text-white font-zh mb-3 bg-white/5 p-2 rounded-lg font-medium">
                       {selectedCard ? selectedCard.quoteData?.trans : userData.dailyQuoteData?.trans}
                     </p>
-                    <p className="text-right text-[9px] uppercase tracking-widest text-white/60 font-bold">
-                      — {selectedCard ? selectedCard.quoteData?.author : userData.dailyQuoteData?.author}
-                    </p>
+                    <p className="text-right text-[9px] uppercase tracking-widest text-blue-200/70 font-bold">— {selectedCard ? selectedCard.quoteData?.author : userData.dailyQuoteData?.author}</p>
                   </div>
 
                   <div className="flex justify-end items-end">
                     <div className="text-right">
-                      <p className="font-artistic text-base text-white/80">Teacher Shirley</p>
-                      <p className="text-[7px] uppercase tracking-[0.3em] text-white/30">Signature of Authority</p>
+                      <p className="font-artistic text-base text-blue-100/80">Teacher Shirley</p>
+                      <p className="text-[7px] uppercase tracking-[0.3em] text-blue-100/30">Signature of Authority</p>
                     </div>
                   </div>
                 </div>
