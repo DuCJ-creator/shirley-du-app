@@ -11,12 +11,13 @@
 
 @layer base {
   body {
-    @apply bg-[#050510] text-white overflow-x-hidden;
+    @apply bg-[#030308] text-white overflow-x-hidden;
     background: 
-      radial-gradient(circle at 50% 0%, rgba(40, 20, 80, 0.4) 0%, transparent 70%),
-      radial-gradient(circle at 0% 100%, rgba(20, 40, 100, 0.3) 0%, transparent 70%),
-      radial-gradient(circle at 100% 100%, rgba(60, 20, 60, 0.3) 0%, transparent 70%),
-      linear-gradient(to bottom, #0a0a1a, #050510);
+      radial-gradient(circle at 50% 0%, rgba(30, 10, 60, 0.5) 0%, transparent 80%),
+      radial-gradient(circle at 0% 100%, rgba(10, 20, 80, 0.4) 0%, transparent 80%),
+      radial-gradient(circle at 100% 100%, rgba(40, 10, 40, 0.4) 0%, transparent 80%),
+      radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.6) 100%),
+      linear-gradient(to bottom, #050510, #030308);
     background-attachment: fixed;
   }
 }
@@ -26,7 +27,7 @@
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  opacity: 0.05;
+  opacity: 0.08;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
   mix-blend-mode: overlay;
 }
