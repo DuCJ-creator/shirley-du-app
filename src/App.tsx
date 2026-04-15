@@ -330,20 +330,40 @@ const PetAvatar = ({ type, isPlaying, isRolling }: { type: string, isPlaying?: b
         {/* Ears/Features based on type */}
         {type.includes('Cat') && (
           <g fill={color}>
-            <path d="M 20 30 L 35 40 L 15 50 Z" />
-            <path d="M 80 30 L 65 40 L 85 50 Z" />
+            {/* Left Ear */}
+            <path d="M 20 25 L 40 20 L 25 5 Z" stroke={color} strokeWidth="2" strokeLinejoin="round" />
+            {/* Right Ear */}
+            <path d="M 80 25 L 60 20 L 75 5 Z" stroke={color} strokeWidth="2" strokeLinejoin="round" />
+            {/* Whiskers */}
+            <g stroke="white" strokeWidth="1.5" opacity="0.6">
+              <path d="M 30 55 L 10 50" />
+              <path d="M 30 60 L 10 60" />
+              <path d="M 70 55 L 90 50" />
+              <path d="M 70 60 L 90 60" />
+            </g>
+            {/* Nose */}
+            <path d="M 47 53 L 53 53 L 50 57 Z" fill="#ff4d4d" />
           </g>
         )}
         {type.includes('Dog') && (
           <g fill={color}>
-            <ellipse cx="20" cy="40" rx="8" ry="15" />
-            <ellipse cx="80" cy="40" rx="8" ry="15" />
+            <ellipse cx="20" cy="40" rx="10" ry="20" />
+            <ellipse cx="80" cy="40" rx="10" ry="20" />
+            <circle cx="50" cy="55" r="4" fill="#3d3d3d" />
           </g>
         )}
         {type.includes('Bunny') && (
           <g fill={color}>
-            <ellipse cx="35" cy="15" rx="8" ry="25" />
-            <ellipse cx="65" cy="15" rx="8" ry="25" />
+            <ellipse cx="35" cy="15" rx="8" ry="30" />
+            <ellipse cx="65" cy="15" rx="8" ry="30" />
+            <circle cx="50" cy="55" r="3" fill="#ff9ff3" />
+          </g>
+        )}
+        {type.includes('Fox') && (
+          <g fill={color}>
+            <path d="M 15 30 L 35 15 L 10 10 Z" />
+            <path d="M 85 30 L 65 15 L 90 10 Z" />
+            <circle cx="50" cy="55" r="4" fill="#3d3d3d" />
           </g>
         )}
       </svg>
@@ -372,24 +392,80 @@ const PetAvatar = ({ type, isPlaying, isRolling }: { type: string, isPlaying?: b
 };
 
 const FloatingPet = ({ pet, onReturn }: { pet: PetData, onReturn: () => void }) => {
+  const [pos, setPos] = useState({ x: window.innerWidth - 120, y: window.innerHeight - 120 });
+  const [thought, setThought] = useState<string | null>(null);
+  const isDragging = useRef(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (isDragging.current) return;
+      
+      // Random wandering logic
+      setPos(prev => {
+        const dx = (Math.random() - 0.5) * 300;
+        const dy = (Math.random() - 0.5) * 300;
+        
+        let newX = prev.x + dx;
+        let newY = prev.y + dy;
+        
+        // Keep within bounds
+        newX = Math.max(50, Math.min(window.innerWidth - 100, newX));
+        newY = Math.max(50, Math.min(window.innerHeight - 100, newY));
+        
+        return { x: newX, y: newY };
+      });
+
+      // Random thoughts
+      if (Math.random() > 0.6) {
+        const thoughts = ['✨', '🌟', '🛸', '🪐', '❤️', '🐾', '🌈', '🚀', '💎', '🌙'];
+        setThought(thoughts[Math.floor(Math.random() * thoughts.length)]);
+        setTimeout(() => setThought(null), 2500);
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <motion.div
       drag
       dragMomentum={false}
-      onDoubleClick={onReturn}
-      initial={{ x: window.innerWidth - 100, y: window.innerHeight - 100 }}
-      animate={{
-        y: [0, -20, 0],
+      onDragStart={() => isDragging.current = true}
+      onDragEnd={(_, info) => {
+        isDragging.current = false;
+        setPos({ x: info.point.x, y: info.point.y });
       }}
-      transition={{
-        y: { duration: 2, repeat: Infinity, ease: "easeInOut" }
+      onDoubleClick={onReturn}
+      animate={{ 
+        x: pos.x, 
+        y: pos.y,
+        rotate: thought ? [0, 10, -10, 0] : 0
+      }}
+      transition={{ 
+        x: { type: 'spring', stiffness: 40, damping: 15 },
+        y: { type: 'spring', stiffness: 40, damping: 15 },
+        rotate: { duration: 0.5 }
       }}
       className="fixed z-[200] w-20 h-20 cursor-grab active:cursor-grabbing group"
-      style={{ touchAction: 'none' }}
+      style={{ touchAction: 'none', left: 0, top: 0 }}
     >
-      <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-        <p className="text-[8px] text-white font-bold uppercase tracking-widest">{pet.name} is playing!</p>
-        <p className="text-[6px] text-white/60 text-center">Double-tap to dock</p>
+      <AnimatePresence>
+        {thought && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0, y: 0 }}
+            animate={{ opacity: 1, scale: 1, y: -45 }}
+            exit={{ opacity: 0, scale: 0 }}
+            className="absolute -top-4 left-1/2 -translate-x-1/2 bg-white/10 backdrop-blur-md w-10 h-10 rounded-full flex items-center justify-center border border-white/20 shadow-[0_0_15px_rgba(255,255,255,0.2)]"
+          >
+            <span className="text-lg">{thought}</span>
+            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-white/10 rotate-45 border-r border-b border-white/20" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-white/10">
+        <p className="text-[9px] text-white font-bold uppercase tracking-widest">{pet.name} is wandering...</p>
+        <p className="text-[7px] text-white/60 text-center">Double-tap to dock</p>
       </div>
       <PetAvatar type={pet.type} isPlaying={true} />
     </motion.div>
