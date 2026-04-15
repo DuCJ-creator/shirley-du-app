@@ -756,15 +756,19 @@ export default function App() {
                   <motion.div
                     initial={{ scale: 0, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
+                    whileHover={{ scale: 1.05, y: -5 }}
                     onClick={() => setShowCheckIn(true)}
-                    className="mt-8 md:absolute md:mt-0 md:-top-12 md:-right-40 bg-white/10 backdrop-blur-xl border border-white/20 p-6 rounded-3xl max-w-[200px] md:max-w-[250px] cursor-pointer hover:scale-105 transition-transform group"
+                    className="mt-12 md:absolute md:mt-0 md:top-0 md:-right-64 bg-white/5 backdrop-blur-2xl border border-white/10 p-5 rounded-[2rem] max-w-[180px] md:max-w-[220px] cursor-pointer transition-all shadow-[0_0_30px_rgba(255,255,255,0.05)] hover:shadow-[0_0_40px_rgba(255,255,255,0.1)] group"
                   >
-                    <p className="text-[10px] uppercase tracking-widest text-white/40 mb-2">Daily Inspiration</p>
-                    <p className="text-lg font-display font-medium mb-1 group-hover:text-white transition-colors">"{userData.dailyWord}"</p>
-                    <p className="text-xs text-white/60 italic leading-relaxed line-clamp-3">"{userData.dailyQuote}"</p>
-                    <div className="mt-4 pt-2 border-t border-white/5 flex items-center justify-between">
-                      <span className="text-[8px] uppercase tracking-tighter text-white/20">Click to view card</span>
-                      <Sparkles className="w-3 h-3 text-white/20" />
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                      <p className="text-[9px] uppercase tracking-[0.2em] text-white/30 font-bold">Inspiration</p>
+                    </div>
+                    <p className="text-base font-display font-bold mb-1 text-white/90 group-hover:text-white transition-colors">"{userData.dailyWord}"</p>
+                    <p className="text-[10px] text-white/50 italic leading-relaxed line-clamp-2 mb-3">"{userData.dailyQuote}"</p>
+                    <div className="pt-2 border-t border-white/5 flex items-center justify-between">
+                      <span className="text-[7px] uppercase tracking-widest text-white/20">View Card</span>
+                      <Sparkles className="w-2.5 h-2.5 text-white/20" />
                     </div>
                   </motion.div>
                 )}
@@ -1016,88 +1020,83 @@ export default function App() {
               initial={{ scale: 0.9, opacity: 0, y: 50 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 50 }}
-              className="relative w-full max-w-md mx-auto"
+              className="relative w-full max-w-sm mx-auto"
             >
-              <div className="moon-card relative bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] border-2 border-white/30 rounded-[2rem] overflow-hidden shadow-[0_0_50px_rgba(100,100,255,0.3)] velvet-texture">
-                <div className="card-decoration-top h-2 bg-gradient-to-r from-transparent via-blue-400/60 to-transparent" />
-                
+              <div className="moon-card relative bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] border border-white/20 rounded-[2.5rem] overflow-hidden shadow-[0_0_60px_rgba(0,0,0,0.5)] velvet-texture">
                 {/* Nebula Overlay */}
-                <div className="absolute inset-0 opacity-30 pointer-events-none">
-                  <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_20%_30%,rgba(255,0,255,0.2),transparent_50%)]" />
-                  <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_80%_70%,rgba(0,255,255,0.2),transparent_50%)]" />
+                <div className="absolute inset-0 opacity-40 pointer-events-none">
+                  <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_20%_30%,rgba(255,0,255,0.15),transparent_50%)]" />
+                  <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_80%_70%,rgba(0,255,255,0.15),transparent_50%)]" />
                 </div>
 
-                <div className="p-6 md:p-8 relative z-10">
-                  <div className="flex justify-between items-start mb-6">
-                    <div>
-                      <h4 className="text-[9px] tracking-[0.3em] text-blue-200/60 uppercase font-bold">Moon Base Clearance</h4>
-                      <p className="text-[10px] text-blue-100/70 font-mono">NO. {selectedCard?.id || getLocalDateString().replace(/-/g, '')}</p>
+                <div className="p-6 md:p-7 relative z-10">
+                  <div className="flex justify-between items-center mb-6">
+                    <div className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+                      <h4 className="text-[8px] tracking-[0.3em] text-blue-200/40 uppercase font-bold">Clearance Authorized</h4>
                     </div>
-                    <div className="text-right">
-                      <p className="text-[9px] tracking-widest text-blue-200/60 uppercase">Status</p>
-                      <p className="text-[10px] text-cyan-400 font-bold uppercase drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]">Authorized</p>
-                    </div>
+                    <p className="text-[9px] text-blue-100/30 font-mono">#{selectedCard?.id || getLocalDateString().replace(/-/g, '')}</p>
                   </div>
 
-                  <div className="mb-6">
-                    <h3 className="text-xl font-display font-light text-white mb-1">
-                      Welcome, <span className="font-bold text-white drop-shadow-md">{user?.displayName?.split(' ')[0] || 'Traveler'}</span>
+                  <div className="mb-6 text-center">
+                    <h3 className="text-lg font-display font-light text-white/80 mb-0.5">
+                      Welcome, <span className="font-bold text-white">{user?.displayName?.split(' ')[0] || 'Traveler'}</span>
                     </h3>
-                    <p className="text-xs text-blue-100/50">
-                      Shirley's Moon Base Card • <span className="text-blue-100/70">{selectedCard?.date || new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                    <p className="text-[9px] tracking-widest text-blue-200/40 uppercase">
+                      {selectedCard?.date || new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                     </p>
                   </div>
 
-                  <div className="flex items-center justify-center gap-3 mb-6 text-blue-300/30">
-                    <span className="text-xs">✦</span><span className="text-xs">✦</span><span className="text-xs">✦</span>
-                  </div>
-
-                  {/* Word of the Day Section */}
-                  <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20 mb-4 shadow-xl">
-                    <p className="text-[9px] uppercase tracking-[0.2em] text-blue-200/70 mb-3 font-bold">Word of the Day</p>
-                    <div className="flex items-baseline gap-2 mb-2">
-                      <h2 className="text-3xl font-display font-bold text-white leading-none tracking-tight">
-                        {selectedCard ? selectedCard.word : (userData.dailyWordData?.word || userData.dailyWord)}
-                      </h2>
-                      <span className="text-xs italic text-blue-200/50">
+                  {/* Word Section */}
+                  <div className="bg-white/5 backdrop-blur-2xl rounded-3xl p-5 border border-white/10 mb-4 shadow-xl">
+                    <div className="flex justify-between items-start mb-3">
+                      <p className="text-[8px] uppercase tracking-[0.2em] text-blue-200/40 font-bold">Daily Word</p>
+                      <span className="text-[10px] italic text-blue-200/30">
                         {selectedCard ? selectedCard.wordData?.pos : userData.dailyWordData?.pos}
                       </span>
                     </div>
-                    <p className="text-sm text-white mb-3 leading-relaxed font-medium">
+                    
+                    <h2 className="text-3xl font-display font-bold text-white mb-2 tracking-tight">
+                      {selectedCard ? selectedCard.word : (userData.dailyWordData?.word || userData.dailyWord)}
+                    </h2>
+                    
+                    <p className="text-xs text-white/70 mb-4 leading-relaxed font-medium">
                       {selectedCard ? selectedCard.wordData?.def : userData.dailyWordData?.def}
                     </p>
-                    <div className="space-y-2 pt-3 border-t border-white/10">
-                      <p className="text-xs text-blue-100/80 italic leading-relaxed">
+                    
+                    <div className="space-y-2 pt-3 border-t border-white/5">
+                      <p className="text-[11px] text-blue-100/60 italic leading-relaxed">
                         "{selectedCard ? selectedCard.wordData?.sentEn : userData.dailyWordData?.sentEn}"
                       </p>
-                      <p className="text-sm text-white font-zh font-medium bg-white/5 p-2 rounded-lg">
-                        {selectedCard ? selectedCard.wordData?.sentCn : userData.dailyWordData?.sentCn}
-                      </p>
+                      <div className="bg-white/5 p-2.5 rounded-xl">
+                        <p className="text-xs text-white font-zh font-medium leading-relaxed">
+                          {selectedCard ? selectedCard.wordData?.sentCn : userData.dailyWordData?.sentCn}
+                        </p>
+                      </div>
                     </div>
                   </div>
 
                   {/* Quote Section */}
-                  <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20 mb-6 shadow-xl">
-                    <p className="text-sm text-white font-medium italic mb-3 leading-relaxed">
+                  <div className="bg-white/5 backdrop-blur-2xl rounded-3xl p-5 border border-white/10 mb-6 shadow-xl">
+                    <p className="text-xs text-white/80 font-medium italic mb-3 leading-relaxed">
                       "{selectedCard ? selectedCard.quote : (userData.dailyQuoteData?.quote || userData.dailyQuote)}"
                     </p>
-                    <p className="text-sm text-white font-zh mb-3 bg-white/5 p-2 rounded-lg font-medium">
-                      {selectedCard ? selectedCard.quoteData?.trans : userData.dailyQuoteData?.trans}
-                    </p>
-                    <p className="text-right text-[9px] uppercase tracking-widest text-blue-200/70 font-bold">— {selectedCard ? selectedCard.quoteData?.author : userData.dailyQuoteData?.author}</p>
+                    <div className="bg-white/5 p-2.5 rounded-xl mb-3">
+                      <p className="text-xs text-white font-zh font-medium leading-relaxed">
+                        {selectedCard ? selectedCard.quoteData?.trans : userData.dailyQuoteData?.trans}
+                      </p>
+                    </div>
+                    <p className="text-right text-[8px] uppercase tracking-widest text-blue-200/40 font-bold">— {selectedCard ? selectedCard.quoteData?.author : userData.dailyQuoteData?.author}</p>
                   </div>
 
-                  <div className="flex justify-end items-end">
-                    <div className="text-right">
-                      <p className="font-artistic text-base text-blue-100/80">Teacher Shirley</p>
-                      <p className="text-[7px] uppercase tracking-[0.3em] text-blue-100/30">Signature of Authority</p>
+                  <div className="flex justify-center">
+                    <div className="text-center">
+                      <p className="font-artistic text-sm text-blue-100/60">Teacher Shirley</p>
+                      <div className="h-px w-12 bg-gradient-to-r from-transparent via-blue-100/20 to-transparent mx-auto mt-1" />
                     </div>
                   </div>
                 </div>
 
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[40px] font-bold text-white/[0.02] pointer-events-none select-none tracking-[0.5em]">
-                  MOON BASE
-                </div>
                 <div className="absolute inset-0 bg-gradient-to-tr from-white/5 via-transparent to-white/5 pointer-events-none" />
               </div>
 
