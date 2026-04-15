@@ -131,13 +131,13 @@ const getLocalDateString = (date: Date = new Date()) => {
 
 // --- Components ---
 
-const GalaxyBackground = () => (
+const GalaxyBackground = React.memo(() => (
   <div className="galaxy-bg">
     <div className="shooting-star" style={{ top: '10%', left: '80%', animationDelay: '0s' }} />
     <div className="shooting-star" style={{ top: '30%', left: '90%', animationDelay: '4s' }} />
     <div className="shooting-star" style={{ top: '50%', left: '70%', animationDelay: '7s' }} />
   </div>
-);
+));
 
 const Planet = ({ strand, info, onClick, disabled }: { strand: Strand, info: any, onClick: () => void, disabled: boolean, key?: any }) => (
   <motion.div
@@ -417,12 +417,34 @@ export default function App() {
             const quoteCsv = await quoteRes.text();
             
             const parseCsv = (csv: string) => {
-              const lines = csv.split('\n').filter(l => l.trim());
-              const headers = lines[0].split(',').map(h => h.trim());
+              const lines = csv.split(/\r?\n/).filter(l => l.trim());
+              if (lines.length < 2) return [];
+              
+              // Robust CSV splitting that handles quotes
+              const splitCsvLine = (line: string) => {
+                const result = [];
+                let current = '';
+                let inQuotes = false;
+                for (let i = 0; i < line.length; i++) {
+                  const char = line[i];
+                  if (char === '"') {
+                    inQuotes = !inQuotes;
+                  } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                  } else {
+                    current += char;
+                  }
+                }
+                result.push(current.trim());
+                return result;
+              };
+
+              const headers = splitCsvLine(lines[0]).map(h => h.toLowerCase().replace(/_/g, ''));
               return lines.slice(1).map(line => {
-                const values = line.split(',').map(v => v.trim());
+                const values = splitCsvLine(line);
                 return headers.reduce((obj: any, header, i) => {
-                  obj[header] = values[i];
+                  obj[header] = values[i] || '';
                   return obj;
                 }, {});
               });
@@ -433,11 +455,52 @@ export default function App() {
 
             // Match by date
             const dateStr = getLocalDateString();
-            wordData = words.find(w => w.Date === dateStr) || words[new Date().getDate() % words.length];
-            quoteData = quotes.find(q => q.Date === dateStr) || quotes[new Date().getDate() % quotes.length];
+            const rawWordData = words.find(w => w.date === dateStr) || words[new Date().getDate() % words.length];
+            const rawQuoteData = quotes.find(q => q.date === dateStr) || quotes[new Date().getDate() % quotes.length];
+
+            if (rawWordData) {
+              wordData = {
+                Word: rawWordData.word || '',
+                POS: rawWordData.pos || '',
+                Definition: rawWordData.definition || '',
+                Sentence_EN: rawWordData.sentenceen || rawWordData.sentence_en || '',
+                Sentence_CN: rawWordData.sentencecn || rawWordData.sentence_cn || ''
+              };
+            }
+
+            if (rawQuoteData) {
+              quoteData = {
+                Quote: rawQuoteData.quote || '',
+                Translation: rawQuoteData.translation || '',
+                Author: rawQuoteData.author || 'Unknown'
+              };
+            }
           }
 
           if (wordData && quoteData) {
+            // If CSV data is missing Chinese, try to fill it with Gemini
+            if (!wordData.Sentence_CN || !quoteData.Translation) {
+              try {
+                const translateResult = await ai.models.generateContent({
+                  model: "gemini-2.0-flash-exp",
+                  contents: [{ parts: [{ text: `Translate the following to Traditional Chinese (Taiwan style). 
+                  Word: ${wordData.Word}
+                  Definition: ${wordData.Definition}
+                  Sentence: ${wordData.Sentence_EN}
+                  Quote: ${quoteData.Quote}
+                  
+                  Return as JSON: { wordCn: string, defCn: string, sentenceCn: string, quoteCn: string }` }]}],
+                  config: { responseMimeType: "application/json" }
+                });
+                const trans = JSON.parse(translateResult.text || '{}');
+                if (!wordData.Sentence_CN) wordData.Sentence_CN = trans.sentenceCn;
+                if (!quoteData.Translation) quoteData.Translation = trans.quoteCn;
+                if (!wordData.Definition) wordData.Definition = trans.defCn;
+              } catch (e) {
+                console.error("Gemini translation fallback failed", e);
+              }
+            }
+
             await setDoc(userRef, {
               dailyWord: wordData.Word,
               dailyQuote: quoteData.Quote,
@@ -1020,111 +1083,108 @@ export default function App() {
               initial={{ scale: 0.9, opacity: 0, y: 50 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 50 }}
-              className="relative w-full max-w-sm mx-auto"
+              className="relative w-full max-w-[320px] mx-auto"
             >
-              <div className="moon-card relative bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] border border-white/20 rounded-[2.5rem] overflow-hidden shadow-[0_0_60px_rgba(0,0,0,0.5)] velvet-texture">
+              <div className="moon-card relative bg-gradient-to-br from-[#0f0c29] via-[#1a1a4e] to-[#090a0f] border border-white/10 rounded-[2rem] overflow-hidden shadow-2xl velvet-texture">
                 {/* Nebula Overlay */}
-                <div className="absolute inset-0 opacity-40 pointer-events-none">
-                  <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_20%_30%,rgba(255,0,255,0.15),transparent_50%)]" />
-                  <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_80%_70%,rgba(0,255,255,0.15),transparent_50%)]" />
+                <div className="absolute inset-0 opacity-20 pointer-events-none">
+                  <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_20%_30%,rgba(100,40,255,0.15),transparent_50%)]" />
+                  <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_80%_70%,rgba(0,200,255,0.15),transparent_50%)]" />
                 </div>
 
-                <div className="p-6 md:p-7 relative z-10">
-                  <div className="flex justify-between items-center mb-6">
-                    <div className="flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
-                      <h4 className="text-[8px] tracking-[0.3em] text-blue-200/40 uppercase font-bold">Clearance Authorized</h4>
+                <div className="p-5 md:p-6 relative z-10">
+                  <div className="flex justify-between items-center mb-4">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-1 h-1 rounded-full bg-cyan-400 shadow-[0_0_5px_rgba(34,211,238,0.8)]" />
+                      <h4 className="text-[7px] tracking-[0.3em] text-blue-200/30 uppercase font-bold">Clearance Authorized</h4>
                     </div>
-                    <p className="text-[9px] text-blue-100/30 font-mono">#{selectedCard?.id || getLocalDateString().replace(/-/g, '')}</p>
+                    <p className="text-[8px] text-blue-100/20 font-mono">#{selectedCard?.id || getLocalDateString().replace(/-/g, '')}</p>
                   </div>
 
-                  <div className="mb-6 text-center">
-                    <h3 className="text-lg font-display font-light text-white/80 mb-0.5">
+                  <div className="mb-4 text-center">
+                    <h3 className="text-base font-display font-light text-white/80 mb-0.5">
                       Welcome, <span className="font-bold text-white">{user?.displayName?.split(' ')[0] || 'Traveler'}</span>
                     </h3>
-                    <p className="text-[9px] tracking-widest text-blue-200/40 uppercase">
+                    <p className="text-[8px] tracking-widest text-blue-200/30 uppercase">
                       {selectedCard?.date || new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                     </p>
                   </div>
 
                   {/* Word Section */}
-                  <div className="bg-white/5 backdrop-blur-2xl rounded-3xl p-5 border border-white/10 mb-4 shadow-xl">
-                    <div className="flex justify-between items-start mb-3">
-                      <p className="text-[8px] uppercase tracking-[0.2em] text-blue-200/40 font-bold">Daily Word</p>
-                      <span className="text-[10px] italic text-blue-200/30">
+                  <div className="bg-white/[0.03] backdrop-blur-xl rounded-2xl p-4 border border-white/5 mb-3">
+                    <div className="flex justify-between items-start mb-2">
+                      <p className="text-[7px] uppercase tracking-[0.2em] text-blue-200/30 font-bold">Daily Word</p>
+                      <span className="text-[9px] italic text-blue-200/20">
                         {selectedCard ? selectedCard.wordData?.pos : userData.dailyWordData?.pos}
                       </span>
                     </div>
                     
-                    <h2 className="text-3xl font-display font-bold text-white mb-2 tracking-tight">
+                    <h2 className="text-2xl font-display font-bold text-white mb-1 tracking-tight">
                       {selectedCard ? selectedCard.word : (userData.dailyWordData?.word || userData.dailyWord)}
                     </h2>
                     
-                    <p className="text-xs text-white/70 mb-4 leading-relaxed font-medium">
+                    <p className="text-[11px] text-white/60 mb-3 leading-relaxed font-medium">
                       {selectedCard ? selectedCard.wordData?.def : userData.dailyWordData?.def}
                     </p>
                     
                     <div className="space-y-2 pt-3 border-t border-white/5">
-                      <p className="text-[11px] text-blue-100/60 italic leading-relaxed">
+                      <p className="text-[10px] text-blue-100/40 italic leading-relaxed">
                         "{selectedCard ? selectedCard.wordData?.sentEn : userData.dailyWordData?.sentEn}"
                       </p>
-                      <div className="bg-white/5 p-2.5 rounded-xl">
-                        <p className="text-xs text-white font-zh font-medium leading-relaxed">
-                          {selectedCard ? selectedCard.wordData?.sentCn : userData.dailyWordData?.sentCn}
+                      <div className="bg-white/[0.03] p-2 rounded-lg">
+                        <p className="text-[11px] text-white/80 font-zh font-medium leading-relaxed">
+                          {selectedCard ? (selectedCard.wordData?.sentCn || "載入中...") : (userData.dailyWordData?.sentCn || "載入中...")}
                         </p>
                       </div>
                     </div>
                   </div>
 
                   {/* Quote Section */}
-                  <div className="bg-white/5 backdrop-blur-2xl rounded-3xl p-5 border border-white/10 mb-6 shadow-xl">
-                    <p className="text-xs text-white/80 font-medium italic mb-3 leading-relaxed">
+                  <div className="bg-white/[0.03] backdrop-blur-xl rounded-2xl p-4 border border-white/5 mb-5">
+                    <p className="text-[11px] text-white/70 font-medium italic mb-2 leading-relaxed">
                       "{selectedCard ? selectedCard.quote : (userData.dailyQuoteData?.quote || userData.dailyQuote)}"
                     </p>
-                    <div className="bg-white/5 p-2.5 rounded-xl mb-3">
-                      <p className="text-xs text-white font-zh font-medium leading-relaxed">
-                        {selectedCard ? selectedCard.quoteData?.trans : userData.dailyQuoteData?.trans}
+                    <div className="bg-white/[0.03] p-2 rounded-lg mb-2">
+                      <p className="text-[11px] text-white/80 font-zh font-medium leading-relaxed">
+                        {selectedCard ? (selectedCard.quoteData?.trans || "載入中...") : (userData.dailyQuoteData?.trans || "載入中...")}
                       </p>
                     </div>
-                    <p className="text-right text-[8px] uppercase tracking-widest text-blue-200/40 font-bold">— {selectedCard ? selectedCard.quoteData?.author : userData.dailyQuoteData?.author}</p>
+                    <p className="text-right text-[7px] uppercase tracking-widest text-blue-200/30 font-bold">— {selectedCard ? selectedCard.quoteData?.author : userData.dailyQuoteData?.author}</p>
                   </div>
 
                   <div className="flex justify-center">
                     <div className="text-center">
-                      <p className="font-artistic text-sm text-blue-100/60">Teacher Shirley</p>
-                      <div className="h-px w-12 bg-gradient-to-r from-transparent via-blue-100/20 to-transparent mx-auto mt-1" />
+                      <p className="font-artistic text-xs text-blue-100/40">Teacher Shirley</p>
                     </div>
                   </div>
                 </div>
-
-                <div className="absolute inset-0 bg-gradient-to-tr from-white/5 via-transparent to-white/5 pointer-events-none" />
               </div>
 
-              <div className="mt-8 flex flex-col sm:flex-row gap-4">
+              <div className="mt-6 flex flex-col sm:flex-row gap-3">
                 <button 
                   onClick={() => {
                     alert("Image download feature coming soon! You can take a screenshot for now.");
                   }}
-                  className="flex-1 py-4 bg-white/10 text-white border border-white/20 rounded-2xl font-bold hover:bg-white/20 transition-all active:scale-95 flex items-center justify-center gap-2"
+                  className="flex-1 py-3 bg-white/5 text-white border border-white/10 rounded-2xl font-bold hover:bg-white/10 transition-all active:scale-95 flex items-center justify-center gap-2 text-xs"
                 >
-                  📥 Download Image
+                  📥 Download
                 </button>
                 {selectedCard ? (
                   <button 
                     onClick={() => setSelectedCard(null)}
-                    className="flex-1 py-4 bg-white text-black rounded-2xl font-bold hover:bg-white/90 transition-all active:scale-95 flex items-center justify-center gap-2"
+                    className="flex-1 py-3 bg-white text-black rounded-2xl font-bold hover:bg-white/90 transition-all active:scale-95 flex items-center justify-center gap-2 text-xs"
                   >
                     ✕ Close
                   </button>
                 ) : (
                   <button 
-                  onClick={handleCollectCard}
-                  className="flex-1 py-4 bg-white text-black rounded-2xl font-bold hover:bg-white/90 transition-all active:scale-95 flex items-center justify-center gap-2"
-                >
-                  {userData?.collectedCards?.some(c => c.id === getLocalDateString().replace(/-/g, '')) 
-                    ? "✓ Collected (Close)" 
-                    : "✕ Collect (放入卡袋)"}
-                </button>
+                    onClick={handleCollectCard}
+                    className="flex-1 py-3 bg-white text-black rounded-2xl font-bold hover:bg-white/90 transition-all active:scale-95 flex items-center justify-center gap-2 text-xs"
+                  >
+                    {userData?.collectedCards?.some(c => c.id === getLocalDateString().replace(/-/g, '')) 
+                      ? "✓ Collected" 
+                      : "✕ Collect (放入卡袋)"}
+                  </button>
                 )}
               </div>
             </motion.div>
