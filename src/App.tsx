@@ -132,8 +132,79 @@ const getLocalDateString = (date: Date = new Date()) => {
 
 // --- Components ---
 
+const MobiusRing = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animationFrameId: number;
+    let time = 0;
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+
+    window.addEventListener('resize', resize);
+    resize();
+
+    const render = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      time += 0.005;
+
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const scale = Math.min(canvas.width, canvas.height) * 0.35;
+
+      ctx.beginPath();
+      ctx.strokeStyle = 'rgba(100, 150, 255, 0.15)';
+      ctx.lineWidth = 1;
+
+      // Draw Mobius Ring particles
+      for (let u = 0; u < Math.PI * 2; u += 0.05) {
+        for (let v = -0.5; v <= 0.5; v += 0.5) {
+          const x = (1 + v * Math.cos(u / 2 + time)) * Math.cos(u + time * 0.5);
+          const y = (1 + v * Math.cos(u / 2 + time)) * Math.sin(u + time * 0.5);
+          const z = v * Math.sin(u / 2 + time);
+
+          // Simple 3D to 2D projection
+          const perspective = 1 / (2 - z);
+          const px = centerX + x * scale * perspective;
+          const py = centerY + y * scale * perspective;
+
+          const size = (1 + z) * 1.5;
+          const alpha = (1 + z) * 0.3;
+
+          ctx.fillStyle = `rgba(200, 220, 255, ${alpha})`;
+          ctx.beginPath();
+          ctx.arc(px, py, size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      animationFrameId = requestAnimationFrame(render);
+    };
+
+    render();
+
+    return () => {
+      window.removeEventListener('resize', resize);
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, []);
+
+  return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-[-1]" />;
+};
+
 const GalaxyBackground = React.memo(() => (
   <div className="galaxy-bg">
+    <div className="velvet-texture" />
+    <div className="galaxy-bg-extra" />
+    <MobiusRing />
     <div className="shooting-star" style={{ top: '10%', left: '80%', animationDelay: '0s' }} />
     <div className="shooting-star" style={{ top: '30%', left: '90%', animationDelay: '4s' }} />
     <div className="shooting-star" style={{ top: '50%', left: '70%', animationDelay: '7s' }} />
@@ -497,9 +568,9 @@ export default function App() {
               wordData = {
                 Word: rawWordData.word || rawWordData.vocabulary || rawWordData.term || '',
                 POS: rawWordData.pos || rawWordData.partofspeech || rawWordData.type || '',
-                Definition: rawWordData.definition || rawWordData.def || rawWordData.meaning || rawWordData.meaningen || rawWordData.explanation || '',
-                Sentence_EN: rawWordData.sentenceen || rawWordData.sentence_en || rawWordData.example || rawWordData.exampleen || rawWordData.sentence || rawWordData.examplesentence || '',
-                Sentence_CN: rawWordData.sentencecn || rawWordData.sentence_cn || rawWordData.chinese || rawWordData.meaningcn || rawWordData.translation || rawWordData.examplecn || rawWordData.translationcn || rawWordData.chinesemeaning || ''
+                Definition: rawWordData.meaning || rawWordData.definition || rawWordData.def || rawWordData.meaningen || rawWordData.explanation || '',
+                Sentence_EN: rawWordData.sentencee || rawWordData.sentenceen || rawWordData.sentence_en || rawWordData.example || rawWordData.exampleen || rawWordData.sentence || rawWordData.examplesentence || '',
+                Sentence_CN: rawWordData.sentencec || rawWordData.sentencecn || rawWordData.sentence_cn || rawWordData.chinese || rawWordData.meaningcn || rawWordData.translation || rawWordData.examplecn || rawWordData.translationcn || rawWordData.chinesemeaning || ''
               };
             }
 
