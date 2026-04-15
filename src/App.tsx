@@ -58,12 +58,24 @@ interface UserData {
 interface PetData {
   name: string;
   type: string;
+  emoji: string;
   hunger: number;
   happiness: number;
   level: number;
 }
 
 // --- Constants ---
+const PET_TYPES = [
+  { name: "Luna", type: "Cosmic Cat", emoji: "🐱" },
+  { name: "Astro", type: "Space Dog", emoji: "🐶" },
+  { name: "Nebula", type: "Galaxy Fox", emoji: "🦊" },
+  { name: "Orion", type: "Star Bear", emoji: "🐻" },
+  { name: "Nova", type: "Comet Bunny", emoji: "🐰" },
+  { name: "Cosmo", type: "Solar Owl", emoji: "🦉" },
+  { name: "Stellar", type: "Void Dragon", emoji: "🐲" },
+  { name: "Pulsar", type: "Moon Hamster", emoji: "🐹" },
+];
+
 const STRANDS = {
   vocabulary: { name: 'Vocabulary', nameZh: '單字', planet: 'Venus', color: '#ffd700', icon: BookOpen, class: 'planet-venus' },
   pronunciation: { name: 'Pronunciation', nameZh: '發音', planet: 'Mars', color: '#ff4500', icon: Mic2, class: 'planet-mars' },
@@ -177,11 +189,11 @@ const Gem = ({ name, nameZh, url, color, type, onVisit, onClick }: { name: strin
   </motion.a>
 );
 
-const PetSection = ({ points, pet, onFeed, onAdopt }: { points: number, pet: PetData | null, onFeed: () => void, onAdopt: () => void }) => {
+const PetSection = ({ points, pet, onFeed, onPlay, onAdopt }: { points: number, pet: PetData | null, onFeed: () => void, onPlay: () => void, onAdopt: () => void }) => {
   if (!pet) return (
     <div className="p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md text-center">
       <h3 className="text-xl font-display mb-4">Adopt a Space Pet</h3>
-      <p className="text-white/60 mb-6">Use your hard-earned points to adopt a celestial companion!</p>
+      <p className="text-white/60 mb-6">Use your hard-earned points to adopt a random celestial companion!</p>
       <button 
         onClick={onAdopt}
         disabled={points < 100}
@@ -195,8 +207,8 @@ const PetSection = ({ points, pet, onFeed, onAdopt }: { points: number, pet: Pet
   return (
     <div className="p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md">
       <div className="flex items-center gap-6">
-        <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 flex items-center justify-center text-4xl">
-          🐱
+        <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 flex items-center justify-center text-4xl moon-glow">
+          {pet.emoji || '🐱'}
         </div>
         <div className="flex-1">
           <h3 className="text-2xl font-display">{pet.name}</h3>
@@ -231,12 +243,15 @@ const PetSection = ({ points, pet, onFeed, onAdopt }: { points: number, pet: Pet
         <button 
           onClick={onFeed}
           disabled={points < 10}
-          className="flex-1 py-3 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+          className="flex-1 py-3 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-50 group"
         >
-          <Coffee className="w-4 h-4" /> Feed (10 pts)
+          <Coffee className="w-4 h-4 group-hover:scale-110 transition-transform" /> Feed (10 pts)
         </button>
-        <button className="flex-1 py-3 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center gap-2 transition-colors">
-          <Heart className="w-4 h-4" /> Play
+        <button 
+          onClick={onPlay}
+          className="flex-1 py-3 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center gap-2 transition-colors group"
+        >
+          <Heart className="w-4 h-4 group-hover:scale-110 transition-transform text-pink-500" /> Play
         </button>
       </div>
     </div>
@@ -528,11 +543,16 @@ export default function App() {
     if (!user || !userData || userData.points < 100) return;
     const userRef = doc(db, 'users', user.uid);
     await updateDoc(userRef, { points: increment(-100) });
-    await addPointLog(user.uid, 'pet', -100, 'Adopted Luna the Cosmic Cat');
+    
+    // Pick a random pet
+    const randomPet = PET_TYPES[Math.floor(Math.random() * PET_TYPES.length)];
+    
+    await addPointLog(user.uid, 'pet', -100, `Adopted ${randomPet.name} the ${randomPet.type}`);
     const petRef = doc(db, 'users', user.uid, 'pets', 'main_pet');
     await setDoc(petRef, {
-      name: "Luna",
-      type: "Cosmic Cat",
+      name: randomPet.name,
+      type: randomPet.type,
+      emoji: randomPet.emoji,
       hunger: 100,
       happiness: 100,
       level: 1,
@@ -544,15 +564,29 @@ export default function App() {
   const handleFeedPet = async () => {
     if (!user || !userData || userData.points < 10) return;
     const userRef = doc(db, 'users', user.uid);
-    // Update points and pet hunger
     await updateDoc(userRef, { points: increment(-10) });
-    await addPointLog(user.uid, 'pet', -10, 'Fed Luna');
-    // Assuming one pet for now
-    const petSnap = await getDoc(doc(db, 'users', user.uid, 'pets', 'main_pet'));
+    await addPointLog(user.uid, 'pet', -10, `Fed ${petData?.name || 'Pet'}`);
+    
+    const petRef = doc(db, 'users', user.uid, 'pets', 'main_pet');
+    const petSnap = await getDoc(petRef);
     if (petSnap.exists()) {
-      await updateDoc(doc(db, 'users', user.uid, 'pets', 'main_pet'), {
-        hunger: Math.min(100, (petSnap.data().hunger || 0) + 10),
+      await updateDoc(petRef, {
+        hunger: Math.min(100, (petSnap.data().hunger || 0) + 15),
         happiness: Math.min(100, (petSnap.data().happiness || 0) + 5)
+      });
+    }
+  };
+
+  const handlePlayWithPet = async () => {
+    if (!user || !petData) return;
+    
+    // Playing is free but gives happiness
+    const petRef = doc(db, 'users', user.uid, 'pets', 'main_pet');
+    const petSnap = await getDoc(petRef);
+    if (petSnap.exists()) {
+      await updateDoc(petRef, {
+        happiness: Math.min(100, (petSnap.data().happiness || 0) + 20),
+        hunger: Math.max(0, (petSnap.data().hunger || 0) - 5) // Playing makes them a bit hungry
       });
     }
   };
@@ -736,7 +770,13 @@ export default function App() {
               className="max-w-2xl mx-auto pt-12"
             >
               <h2 className="text-4xl font-display font-bold mb-8 text-center">Your Space Companion</h2>
-              <PetSection points={userData?.points || 0} pet={petData} onFeed={handleFeedPet} onAdopt={handleAdoptPet} />
+              <PetSection 
+                points={userData?.points || 0} 
+                pet={petData} 
+                onFeed={handleFeedPet} 
+                onPlay={handlePlayWithPet}
+                onAdopt={handleAdoptPet} 
+              />
             </motion.div>
           ) : currentStrand === 'logs' ? (
             <motion.div
