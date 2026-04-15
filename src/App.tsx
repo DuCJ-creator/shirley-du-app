@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   Moon, Star, Sparkles, BookOpen, Mic2, PenTool, GraduationCap, 
   Home, User, Trophy, Heart, Coffee, ChevronLeft, ExternalLink,
-  LogIn, LogOut, Clock, Zap
+  LogIn, LogOut, Clock, Zap, RefreshCw
 } from 'lucide-react';
 import { cn } from './lib/utils';
 import { 
@@ -122,6 +122,14 @@ const SUBJECT_GEMS = [
   { name: 'Bilingual Math', nameZh: '雙語數學', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/math.html', type: 'sapphire' },
 ];
 
+// --- Helpers ---
+const getLocalDateString = (date: Date = new Date()) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 // --- Components ---
 
 const GalaxyBackground = () => (
@@ -189,7 +197,7 @@ const Gem = ({ name, nameZh, url, color, type, onVisit, onClick }: { name: strin
   </motion.a>
 );
 
-const PetSection = ({ points, pet, onFeed, onPlay, onAdopt }: { points: number, pet: PetData | null, onFeed: () => void, onPlay: () => void, onAdopt: () => void }) => {
+const PetSection = ({ points, pet, onFeed, onPlay, onAdopt, isRolling }: { points: number, pet: PetData | null, onFeed: () => void, onPlay: () => void, onAdopt: () => void, isRolling: boolean }) => {
   if (!pet) return (
     <div className="p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md text-center">
       <h3 className="text-xl font-display mb-4">Adopt a Space Pet</h3>
@@ -207,9 +215,15 @@ const PetSection = ({ points, pet, onFeed, onPlay, onAdopt }: { points: number, 
   return (
     <div className="p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md">
       <div className="flex items-center gap-6">
-        <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 flex items-center justify-center text-4xl moon-glow">
+        <motion.div 
+          drag
+          dragConstraints={{ left: -50, right: 50, top: -50, bottom: 50 }}
+          animate={isRolling ? { rotate: 360 } : { rotate: 0 }}
+          transition={isRolling ? { duration: 0.5, ease: "linear", repeat: 2 } : { duration: 0.3 }}
+          className="w-24 h-24 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 flex items-center justify-center text-4xl moon-glow cursor-grab active:cursor-grabbing z-10"
+        >
           {pet.emoji || '🐱'}
-        </div>
+        </motion.div>
         <div className="flex-1">
           <h3 className="text-2xl font-display">{pet.name}</h3>
           <p className="text-white/40 text-sm uppercase tracking-widest">Level {pet.level} {pet.type}</p>
@@ -254,6 +268,7 @@ const PetSection = ({ points, pet, onFeed, onPlay, onAdopt }: { points: number, 
           <Heart className="w-4 h-4 group-hover:scale-110 transition-transform text-pink-500" /> Play
         </button>
       </div>
+      <p className="text-[10px] text-white/20 text-center mt-4">Tip: You can drag your pet around!</p>
     </div>
   );
 };
@@ -264,6 +279,7 @@ export default function App() {
   const [petData, setPetData] = useState<PetData | null>(null);
   const [currentStrand, setCurrentStrand] = useState<Strand>('home');
   const [logTab, setLogTab] = useState<'points' | 'cards'>('points');
+  const [isRolling, setIsRolling] = useState(false);
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [showCheckIn, setShowCheckIn] = useState(false);
   const [sessionCheckedIn, setSessionCheckedIn] = useState(false);
@@ -346,21 +362,20 @@ export default function App() {
       const userRef = doc(db, 'users', u.uid);
       const snap = await getDoc(userRef);
       
-      const todayDate = new Date();
-      const today = todayDate.toLocaleDateString();
+      const today = getLocalDateString();
       const data = snap.data() as UserData | undefined;
-      const lastCheckIn = snap.exists() ? data?.lastCheckIn?.toDate?.()?.toLocaleDateString() : null;
+      const lastCheckIn = snap.exists() ? (data?.lastCheckIn ? getLocalDateString(data.lastCheckIn.toDate()) : null) : null;
 
       let newStreak = data?.streak || 0;
       let isNewDay = lastCheckIn !== today;
 
       if (isNewDay) {
         // Calculate streak
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayStr = yesterday.toLocaleDateString();
+        const yesterdayDate = new Date();
+        yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+        const yesterday = getLocalDateString(yesterdayDate);
         
-        if (lastCheckIn === yesterdayStr) {
+        if (lastCheckIn === yesterday) {
           newStreak += 1;
         } else {
           newStreak = 1;
@@ -412,10 +427,10 @@ export default function App() {
             const words = parseCsv(wordCsv);
             const quotes = parseCsv(quoteCsv);
 
-            // Match by date (assuming YYYY-MM-DD or similar in first column)
-            const dateStr = todayDate.toISOString().split('T')[0];
-            wordData = words.find(w => w.Date === dateStr) || words[todayDate.getDate() % words.length];
-            quoteData = quotes.find(q => q.Date === dateStr) || quotes[todayDate.getDate() % quotes.length];
+            // Match by date
+            const dateStr = getLocalDateString();
+            wordData = words.find(w => w.Date === dateStr) || words[new Date().getDate() % words.length];
+            quoteData = quotes.find(q => q.Date === dateStr) || quotes[new Date().getDate() % quotes.length];
           }
 
           if (wordData && quoteData) {
@@ -580,6 +595,9 @@ export default function App() {
   const handlePlayWithPet = async () => {
     if (!user || !petData) return;
     
+    setIsRolling(true);
+    setTimeout(() => setIsRolling(false), 1000);
+
     // Playing is free but gives happiness
     const petRef = doc(db, 'users', user.uid, 'pets', 'main_pet');
     const petSnap = await getDoc(petRef);
@@ -605,7 +623,7 @@ export default function App() {
   const handleCollectCard = async () => {
     if (!user || !userData) return;
     const userRef = doc(db, 'users', user.uid);
-    const cardId = new Date().toISOString().split('T')[0].replace(/-/g, '');
+    const cardId = getLocalDateString().replace(/-/g, '');
     
     // Check if already collected
     if (userData.collectedCards?.some(c => c.id === cardId)) {
@@ -776,6 +794,7 @@ export default function App() {
                 onFeed={handleFeedPet} 
                 onPlay={handlePlayWithPet}
                 onAdopt={handleAdoptPet} 
+                isRolling={isRolling}
               />
             </motion.div>
           ) : currentStrand === 'logs' ? (
@@ -814,7 +833,15 @@ export default function App() {
                   <div className="bg-white/5 border border-white/10 rounded-[2rem] overflow-hidden backdrop-blur-xl">
                     <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
                       <span className="text-white/40 uppercase tracking-widest text-xs">Activity</span>
-                      <span className="text-white/40 uppercase tracking-widest text-xs">Points</span>
+                      <div className="flex items-center gap-4">
+                        <button 
+                          onClick={() => user && handleCheckIn(user)}
+                          className="text-[10px] text-white/20 hover:text-white flex items-center gap-1 transition-colors"
+                        >
+                          <RefreshCw className="w-3 h-3" /> Sync Data
+                        </button>
+                        <span className="text-white/40 uppercase tracking-widest text-xs">Points</span>
+                      </div>
                     </div>
                     <div className="max-h-[500px] overflow-y-auto">
                       {logs.length === 0 ? (
@@ -1084,13 +1111,13 @@ export default function App() {
                   </button>
                 ) : (
                   <button 
-                    onClick={handleCollectCard}
-                    className="flex-1 py-4 bg-white text-black rounded-2xl font-bold hover:bg-white/90 transition-all active:scale-95 flex items-center justify-center gap-2"
-                  >
-                    {userData?.collectedCards?.some(c => c.id === new Date().toISOString().split('T')[0].replace(/-/g, '')) 
-                      ? "✓ Collected (Close)" 
-                      : "✕ Collect (放入卡袋)"}
-                  </button>
+                  onClick={handleCollectCard}
+                  className="flex-1 py-4 bg-white text-black rounded-2xl font-bold hover:bg-white/90 transition-all active:scale-95 flex items-center justify-center gap-2"
+                >
+                  {userData?.collectedCards?.some(c => c.id === getLocalDateString().replace(/-/g, '')) 
+                    ? "✓ Collected (Close)" 
+                    : "✕ Collect (放入卡袋)"}
+                </button>
                 )}
               </div>
             </motion.div>
