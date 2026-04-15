@@ -522,7 +522,7 @@ export default function App() {
                   model: "gemini-2.0-flash-exp",
                   contents: [{ parts: [{ text: `You are an expert English teacher. Complete the following language learning data for a "Daily English" feature.
                   
-                  Current Data (some fields may be empty):
+                  Current Data (some fields may be empty or missing):
                   Word: ${wordData.Word || ''}
                   POS: ${wordData.POS || ''}
                   Definition: ${wordData.Definition || ''}
@@ -533,10 +533,12 @@ export default function App() {
                   Quote Author: ${quoteData.Author || ''}
                   
                   Instructions:
-                  1. If a field is provided and accurate, KEEP IT.
-                  2. If a field is empty or "Unknown", GENERATE a high-quality, educational value for it.
+                  1. If a field is provided and accurate, KEEP IT EXACTLY AS IS.
+                  2. If a field is empty, "Unknown", or missing, GENERATE a high-quality, educational value for it.
                   3. Ensure the Chinese translation is in Traditional Chinese (Taiwan style).
-                  4. The example sentence should be clear and use the word correctly.
+                  4. The example sentence should be clear, natural, and use the word correctly.
+                  5. The quote should be inspirational and relevant to learning or growth.
+                  6. IMPORTANT: Do not return empty strings for any field.
                   
                   Return ONLY a JSON object:
                   {
@@ -553,14 +555,14 @@ export default function App() {
                 });
                 const filled = JSON.parse(fillResult.text || '{}');
                 
-                if (!wordData.Word) wordData.Word = filled.word;
-                if (!wordData.POS) wordData.POS = filled.pos;
-                if (!wordData.Definition) wordData.Definition = filled.def;
-                if (!wordData.Sentence_EN) wordData.Sentence_EN = filled.sentenceEn;
-                if (!wordData.Sentence_CN) wordData.Sentence_CN = filled.sentenceCn;
-                if (!quoteData.Quote) quoteData.Quote = filled.quote;
-                if (!quoteData.Translation) quoteData.Translation = filled.quoteTrans;
-                if (!quoteData.Author || quoteData.Author === 'Unknown') quoteData.Author = filled.author;
+                if (!wordData.Word) wordData.Word = filled.word || wordData.Word;
+                if (!wordData.POS) wordData.POS = filled.pos || "n.";
+                if (!wordData.Definition) wordData.Definition = filled.def || "No definition available.";
+                if (!wordData.Sentence_EN) wordData.Sentence_EN = filled.sentenceEn || "No example sentence available.";
+                if (!wordData.Sentence_CN) wordData.Sentence_CN = filled.sentenceCn || "無翻譯資料";
+                if (!quoteData.Quote) quoteData.Quote = filled.quote || "Keep moving forward.";
+                if (!quoteData.Translation) quoteData.Translation = filled.quoteTrans || "持續前進。";
+                if (!quoteData.Author || quoteData.Author === 'Unknown') quoteData.Author = filled.author || "Anonymous";
               } catch (e) {
                 console.error("Gemini data filling failed", e);
               }
@@ -921,18 +923,18 @@ export default function App() {
               <div className="relative w-full min-h-[500px] md:min-h-[700px] flex items-center justify-center">
                 {/* Orbital Rings (Desktop Only) */}
                 <div className="hidden md:block absolute inset-0 pointer-events-none">
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[240px] h-[240px] border border-white/5 rounded-full" />
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] border border-white/5 rounded-full" />
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[560px] h-[560px] border border-white/5 rounded-full" />
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[720px] h-[720px] border border-white/5 rounded-full" />
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[220px] h-[220px] border border-white/5 rounded-full" />
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] h-[340px] border border-white/5 rounded-full" />
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[460px] h-[460px] border border-white/5 rounded-full" />
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[580px] h-[580px] border border-white/5 rounded-full" />
                 </div>
 
                 {/* Mobile: Grid, Desktop: Scattered */}
                 <div className="grid grid-cols-2 gap-8 md:block md:absolute md:inset-0">
                   {Object.entries(STRANDS).map(([key, info], index) => {
-                    // Desktop positioning logic
-                    const angles = [45, 135, 225, 315];
-                    const distances = [120, 200, 280, 360];
+                    // Desktop positioning logic - More compact and organic
+                    const angles = [35, 145, 215, 325];
+                    const distances = [110, 170, 230, 290];
                     const angle = angles[index];
                     const distance = distances[index];
                     const x = Math.cos((angle * Math.PI) / 180) * distance;
@@ -1251,7 +1253,7 @@ export default function App() {
                     
                     <div className="space-y-2 pt-3 border-t border-white/5">
                       <p className="text-[10px] text-blue-100/40 italic leading-relaxed">
-                        "{selectedCard ? selectedCard.wordData?.sentEn : userData.dailyWordData?.sentEn}"
+                        "{selectedCard ? selectedCard.wordData?.sentEn : (userData.dailyWordData?.sentEn || 'The journey of a thousand miles begins with a single step.')}"
                       </p>
                       <div className="bg-white/[0.03] p-2 rounded-lg">
                         <p className="text-[11px] text-white/80 font-zh font-medium leading-relaxed">
@@ -1264,7 +1266,7 @@ export default function App() {
                   {/* Quote Section */}
                   <div className="bg-white/[0.03] backdrop-blur-xl rounded-2xl p-4 border border-white/5 mb-5">
                     <p className="text-[11px] text-white/70 font-medium italic mb-2 leading-relaxed">
-                      "{selectedCard ? selectedCard.quote : (userData.dailyQuoteData?.quote || userData.dailyQuote)}"
+                      "{selectedCard ? selectedCard.quote : (userData.dailyQuoteData?.quote || 'The stars are not reachable, but they are visible.')}"
                     </p>
                     <div className="bg-white/[0.03] p-2 rounded-lg mb-2">
                       <p className="text-[11px] text-white/80 font-zh font-medium leading-relaxed">
