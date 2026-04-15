@@ -583,7 +583,11 @@ export default function App() {
             }
           }
 
-          if (wordData && quoteData) {
+          // Ensure we have at least empty objects to avoid crashes
+          wordData = wordData || { Word: '', POS: '', Definition: '', Sentence_EN: '', Sentence_CN: '' };
+          quoteData = quoteData || { Quote: '', Translation: '', Author: '' };
+
+          if (wordData.Word || quoteData.Quote) {
             // If CSV data is missing critical fields, try to fill them with Gemini
             const isMissingFields = !wordData.Definition || !wordData.Sentence_EN || !wordData.Sentence_CN || !quoteData.Quote || !quoteData.Translation;
             
@@ -658,7 +662,7 @@ export default function App() {
           } else {
             // Fallback to Gemini
             const result = await ai.models.generateContent({
-              model: "gemini-3-flash-preview",
+              model: "gemini-2.0-flash-exp",
               contents: [{ parts: [{ text: `Generate a unique 'Daily English Word' and an 'Inspirational Quote' for an English learning app. 
               Return as JSON: { 
                 word: string, 
@@ -1250,7 +1254,7 @@ export default function App() {
 
       {/* Moon Base Card Modal */}
       <AnimatePresence>
-        {(showCheckIn || selectedCard) && (userData || selectedCard) && (
+        {(showCheckIn || selectedCard) && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto">
             <motion.div 
               initial={{ opacity: 0 }}
@@ -1317,20 +1321,20 @@ export default function App() {
                     </div>
                     
                     <h2 className="text-2xl font-display font-bold text-white mb-1 tracking-tight">
-                      {selectedCard ? selectedCard.word : (userData.dailyWordData?.word || userData.dailyWord)}
+                      {selectedCard ? selectedCard.word : (userData?.dailyWordData?.word || userData?.dailyWord || 'Inspiration')}
                     </h2>
                     
                     <p className="text-[11px] text-white/60 mb-3 leading-relaxed font-medium">
-                      {selectedCard ? selectedCard.wordData?.def : userData.dailyWordData?.def}
+                      {selectedCard ? selectedCard.wordData?.def : userData?.dailyWordData?.def}
                     </p>
                     
                     <div className="space-y-2 pt-3 border-t border-white/5">
                       <p className="text-[10px] text-blue-100/40 italic leading-relaxed">
-                        "{selectedCard ? selectedCard.wordData?.sentEn : (userData.dailyWordData?.sentEn || 'The journey of a thousand miles begins with a single step.')}"
+                        "{selectedCard ? selectedCard.wordData?.sentEn : (userData?.dailyWordData?.sentEn || 'The journey of a thousand miles begins with a single step.')}"
                       </p>
                       <div className="bg-white/[0.03] p-2 rounded-lg">
                         <p className="text-[11px] text-white/80 font-zh font-medium leading-relaxed">
-                          {selectedCard ? (selectedCard.wordData?.sentCn || "") : (userData.dailyWordData?.sentCn || "")}
+                          {selectedCard ? (selectedCard.wordData?.sentCn || "") : (userData?.dailyWordData?.sentCn || "")}
                         </p>
                       </div>
                     </div>
@@ -1339,14 +1343,14 @@ export default function App() {
                   {/* Quote Section */}
                   <div className="bg-white/[0.03] backdrop-blur-xl rounded-2xl p-4 border border-white/5 mb-5">
                     <p className="text-[11px] text-white/70 font-medium italic mb-2 leading-relaxed">
-                      "{selectedCard ? selectedCard.quote : (userData.dailyQuoteData?.quote || 'The stars are not reachable, but they are visible.')}"
+                      "{selectedCard ? selectedCard.quote : (userData?.dailyQuoteData?.quote || 'The stars are not reachable, but they are visible.')}"
                     </p>
                     <div className="bg-white/[0.03] p-2 rounded-lg mb-2">
                       <p className="text-[11px] text-white/80 font-zh font-medium leading-relaxed">
-                        {selectedCard ? (selectedCard.quoteData?.trans || "") : (userData.dailyQuoteData?.trans || "")}
+                        {selectedCard ? (selectedCard.quoteData?.trans || "") : (userData?.dailyQuoteData?.trans || "")}
                       </p>
                     </div>
-                    <p className="text-right text-[7px] uppercase tracking-widest text-blue-200/30 font-bold">— {selectedCard ? selectedCard.quoteData?.author : userData.dailyQuoteData?.author}</p>
+                    <p className="text-right text-[7px] uppercase tracking-widest text-blue-200/30 font-bold">— {selectedCard ? selectedCard.quoteData?.author : (userData?.dailyQuoteData?.author || 'Unknown')}</p>
                   </div>
 
                   <div className="flex justify-center">
