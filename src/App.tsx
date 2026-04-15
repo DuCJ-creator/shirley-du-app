@@ -102,7 +102,6 @@ const GEMS = {
   ],
   grammar: [
     { name: 'Grammar Lemon Tree', nameZh: '文法檸檬樹', url: 'https://ducj-creator.github.io/Shirley-Grammar/', type: 'emerald' },
-    { name: 'Grammar Music Garden', nameZh: '文法音樂花園', url: 'https://ducj-creator.github.io/Shirley-AI-Music-Studio/learning/index.html', type: 'amethyst' },
     { name: 'CAP Grammar', nameZh: '會考文法', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/CAP%20grammar.html', type: 'topaz' },
   ],
   tests: [
