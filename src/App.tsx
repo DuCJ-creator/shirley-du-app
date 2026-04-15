@@ -202,7 +202,7 @@ const MobiusRing = () => {
 
 const GalaxyBackground = React.memo(() => (
   <div className="galaxy-bg">
-    <div className="velvet-texture" />
+    <div className="velvet-texture-fixed" />
     <div className="galaxy-bg-extra" />
     <MobiusRing />
     <div className="shooting-star" style={{ top: '10%', left: '80%', animationDelay: '0s' }} />
@@ -1155,7 +1155,8 @@ export default function App() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   {userData?.collectedCards && userData.collectedCards.length > 0 ? (
                     userData.collectedCards.map((card) => (
-                      <div key={card.id} className="bg-white/5 border border-white/10 rounded-3xl p-6 backdrop-blur-xl velvet-texture overflow-hidden relative group">
+                      <div key={card.id} className="bg-white/5 border border-white/10 rounded-3xl p-6 backdrop-blur-xl overflow-hidden relative group">
+                        <div className="velvet-texture" />
                         <div className="flex justify-between items-start mb-4">
                           <span className="text-[10px] uppercase tracking-widest text-white/40">NO. {card.id}</span>
                           <span className="text-[10px] uppercase tracking-widest text-white/40">{card.date}</span>
@@ -1272,7 +1273,8 @@ export default function App() {
               exit={{ scale: 0.9, opacity: 0, y: 50 }}
               className="relative w-full max-w-[320px] mx-auto"
             >
-              <div className="moon-card relative bg-gradient-to-br from-[#0f0c29] via-[#1a1a4e] to-[#090a0f] border border-white/10 rounded-[2rem] overflow-hidden shadow-2xl velvet-texture">
+              <div className="moon-card relative bg-gradient-to-br from-[#0f0c29] via-[#1a1a4e] to-[#090a0f] border border-white/10 rounded-[2rem] overflow-hidden shadow-2xl">
+                <div className="velvet-texture" />
                 {/* Nebula Overlay */}
                 <div className="absolute inset-0 opacity-20 pointer-events-none">
                   <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_20%_30%,rgba(100,40,255,0.15),transparent_50%)]" />
@@ -1316,7 +1318,7 @@ export default function App() {
                     <div className="flex justify-between items-start mb-2">
                       <p className="text-[7px] uppercase tracking-[0.2em] text-blue-200/30 font-bold">Daily Word</p>
                       <span className="text-[9px] italic text-blue-200/20">
-                        {selectedCard ? selectedCard.wordData?.pos : userData.dailyWordData?.pos}
+                        {selectedCard ? selectedCard.wordData?.pos : userData?.dailyWordData?.pos}
                       </span>
                     </div>
                     
