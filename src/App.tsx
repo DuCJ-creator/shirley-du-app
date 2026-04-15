@@ -45,6 +45,14 @@ interface UserData {
     trans: string;
     author: string;
   };
+  collectedCards?: Array<{
+    id: string;
+    date: string;
+    word: string;
+    quote: string;
+    wordData: any;
+    quoteData: any;
+  }>;
 }
 
 interface PetData {
@@ -104,7 +112,13 @@ const SUBJECT_GEMS = [
 
 // --- Components ---
 
-const GalaxyBackground = () => <div className="galaxy-bg" />;
+const GalaxyBackground = () => (
+  <div className="galaxy-bg">
+    <div className="shooting-star" style={{ top: '10%', left: '80%', animationDelay: '0s' }} />
+    <div className="shooting-star" style={{ top: '30%', left: '90%', animationDelay: '4s' }} />
+    <div className="shooting-star" style={{ top: '50%', left: '70%', animationDelay: '7s' }} />
+  </div>
+);
 
 const Planet = ({ strand, info, onClick, disabled }: { strand: Strand, info: any, onClick: () => void, disabled: boolean, key?: any }) => (
   <motion.div
@@ -234,10 +248,12 @@ export default function App() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [petData, setPetData] = useState<PetData | null>(null);
   const [currentStrand, setCurrentStrand] = useState<Strand>('home');
+  const [logTab, setLogTab] = useState<'points' | 'cards'>('points');
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [showCheckIn, setShowCheckIn] = useState(false);
   const [sessionCheckedIn, setSessionCheckedIn] = useState(false);
   const [showSubjects, setShowSubjects] = useState(false);
+  const [selectedCard, setSelectedCard] = useState<any>(null);
   const [authError, setAuthError] = useState<string | null>(null);
   const [logs, setLogs] = useState<PointLog[]>([]);
   const [sessionStudyTime, setSessionStudyTime] = useState(0);
@@ -316,9 +332,9 @@ export default function App() {
       const snap = await getDoc(userRef);
       
       const todayDate = new Date();
-      const today = todayDate.toDateString();
+      const today = todayDate.toLocaleDateString();
       const data = snap.data() as UserData | undefined;
-      const lastCheckIn = snap.exists() ? data?.lastCheckIn?.toDate?.()?.toDateString() : null;
+      const lastCheckIn = snap.exists() ? data?.lastCheckIn?.toDate?.()?.toLocaleDateString() : null;
 
       let newStreak = data?.streak || 0;
       let isNewDay = lastCheckIn !== today;
@@ -327,7 +343,7 @@ export default function App() {
         // Calculate streak
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayStr = yesterday.toDateString();
+        const yesterdayStr = yesterday.toLocaleDateString();
         
         if (lastCheckIn === yesterdayStr) {
           newStreak += 1;
@@ -552,6 +568,33 @@ export default function App() {
     await addPointLog(user.uid, 'quiz', 5, `Completed Activity: ${gemName}`);
   };
 
+  const handleCollectCard = async () => {
+    if (!user || !userData) return;
+    const userRef = doc(db, 'users', user.uid);
+    const cardId = new Date().toISOString().split('T')[0].replace(/-/g, '');
+    
+    // Check if already collected
+    if (userData.collectedCards?.some(c => c.id === cardId)) {
+      setShowCheckIn(false);
+      return;
+    }
+
+    const newCard = {
+      id: cardId,
+      date: new Date().toLocaleDateString(),
+      word: userData.dailyWord,
+      quote: userData.dailyQuote,
+      wordData: userData.dailyWordData || null,
+      quoteData: userData.dailyQuoteData || null
+    };
+
+    await updateDoc(userRef, {
+      collectedCards: [...(userData.collectedCards || []), newCard]
+    });
+    
+    setShowCheckIn(false);
+  };
+
   return (
     <div className="min-h-screen relative">
       <GalaxyBackground />
@@ -633,20 +676,21 @@ export default function App() {
                     boxShadow: ["0 0 60px 20px rgba(255, 255, 255, 0.1)", "0 0 80px 30px rgba(255, 255, 255, 0.2)", "0 0 60px 20px rgba(255, 255, 255, 0.1)"]
                   }}
                   transition={{ duration: 4, repeat: Infinity }}
-                  className="w-48 h-48 md:w-64 md:h-64 rounded-full bg-white moon-glow flex flex-col items-center justify-center text-black p-8 text-center cursor-pointer"
+                  className="w-48 h-48 md:w-64 md:h-64 rounded-full bg-white moon-glow flex flex-col items-center justify-center text-black p-4 text-center cursor-pointer overflow-hidden relative"
                   onClick={!user ? handleLogin : () => {}}
                 >
-                  <h1 className="flex flex-col items-center whitespace-nowrap">
-                    <span className="text-3xl md:text-5xl font-artistic tracking-[0.1em] title-glow leading-tight">Tr. Shirley Du</span>
-                    <span className="text-xl md:text-2xl font-zh tracking-[0.2em] opacity-90 mt-1 leading-tight">英文Surely DO</span>
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/[0.02] to-black/[0.05] pointer-events-none" />
+                  <h1 className="flex flex-col items-center w-full px-2 z-10">
+                    <span className="text-2xl md:text-3xl font-artistic tracking-[0.05em] title-glow leading-tight break-words max-w-full">Tr. Shirley Du</span>
+                    <span className="text-lg md:text-xl font-zh tracking-[0.1em] opacity-80 mt-1 leading-tight break-words max-w-full">英文Surely DO</span>
                   </h1>
                   {!user ? (
-                    <div className="flex items-center gap-2 text-sm font-medium opacity-60 mt-4">
-                      <LogIn className="w-4 h-4" /> Click to Check-in
+                    <div className="flex items-center gap-2 text-[10px] md:text-xs font-medium opacity-50 mt-2 z-10">
+                      <LogIn className="w-3 h-3" /> Click to Check-in
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2 text-sm font-medium text-green-600 mt-4">
-                      <Zap className="w-4 h-4" /> Checked In
+                    <div className="flex items-center gap-2 text-[10px] md:text-xs font-medium text-green-600 mt-2 z-10">
+                      <Zap className="w-3 h-3" /> Checked In
                     </div>
                   )}
                 </motion.div>
@@ -697,61 +741,116 @@ export default function App() {
               exit={{ opacity: 0, scale: 0.95 }}
               className="max-w-3xl mx-auto pt-12"
             >
-              <h2 className="text-4xl font-display font-bold mb-8 text-center">Points History</h2>
-              <div className="bg-white/5 border border-white/10 rounded-[2rem] overflow-hidden backdrop-blur-xl">
-                <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
-                  <span className="text-white/40 uppercase tracking-widest text-xs">Activity</span>
-                  <span className="text-white/40 uppercase tracking-widest text-xs">Points</span>
-                </div>
-                <div className="max-h-[500px] overflow-y-auto">
-                  {logs.length === 0 ? (
-                    <div className="p-12 text-center">
-                      <p className="text-white/20 italic mb-4">No logs found yet. Start studying to earn points!</p>
-                      <button 
-                        onClick={() => user && handleCheckIn(user)}
-                        className="text-xs text-white/40 hover:text-white underline"
-                      >
-                        Sync Points & Inspiration
-                      </button>
+              <h2 className="text-4xl font-display font-bold mb-8 text-center">Points & Collection</h2>
+              
+              <div className="flex gap-4 mb-8 justify-center">
+                <button 
+                  onClick={() => setLogTab('points')}
+                  className={cn(
+                    "px-6 py-2 rounded-full font-medium transition-all",
+                    logTab === 'points' ? "bg-white text-black" : "bg-white/5 text-white/60 hover:bg-white/10"
+                  )}
+                >
+                  Points History
+                </button>
+                <button 
+                  onClick={() => setLogTab('cards')}
+                  className={cn(
+                    "px-6 py-2 rounded-full font-medium transition-all",
+                    logTab === 'cards' ? "bg-white text-black" : "bg-white/5 text-white/60 hover:bg-white/10"
+                  )}
+                >
+                  Card Collection ({userData?.collectedCards?.length || 0})
+                </button>
+              </div>
+
+              {logTab === 'points' ? (
+                <>
+                  <div className="bg-white/5 border border-white/10 rounded-[2rem] overflow-hidden backdrop-blur-xl">
+                    <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
+                      <span className="text-white/40 uppercase tracking-widest text-xs">Activity</span>
+                      <span className="text-white/40 uppercase tracking-widest text-xs">Points</span>
                     </div>
-                  ) : (
-                    logs.map((log) => (
-                      <div key={log.id} className="p-6 border-b border-white/5 flex justify-between items-center hover:bg-white/5 transition-colors">
-                        <div>
-                          <p className="font-medium text-white/90">{log.description}</p>
-                          <p className="text-[10px] text-white/30 uppercase tracking-wider mt-1">
-                            {log.timestamp?.toDate?.()?.toLocaleString() || 'Just now'}
-                          </p>
+                    <div className="max-h-[500px] overflow-y-auto">
+                      {logs.length === 0 ? (
+                        <div className="p-12 text-center">
+                          <p className="text-white/20 italic mb-4">No logs found yet. Start studying to earn points!</p>
+                          <button 
+                            onClick={() => user && handleCheckIn(user)}
+                            className="text-xs text-white/40 hover:text-white underline"
+                          >
+                            Sync Points & Inspiration
+                          </button>
                         </div>
-                        <div className={cn(
-                          "text-lg font-display font-bold",
-                          log.points > 0 ? "text-green-400" : "text-red-400"
-                        )}>
-                          {log.points > 0 ? `+${log.points}` : log.points}
+                      ) : (
+                        logs.map((log) => (
+                          <div key={log.id} className="p-6 border-b border-white/5 flex justify-between items-center hover:bg-white/5 transition-colors">
+                            <div>
+                              <p className="font-medium text-white/90">{log.description}</p>
+                              <p className="text-[10px] text-white/30 uppercase tracking-wider mt-1">
+                                {log.timestamp?.toDate?.()?.toLocaleString() || 'Just now'}
+                              </p>
+                            </div>
+                            <div className={cn(
+                              "text-lg font-display font-bold",
+                              log.points > 0 ? "text-green-400" : "text-red-400"
+                            )}>
+                              {log.points > 0 ? `+${log.points}` : log.points}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="p-6 rounded-2xl bg-white/5 border border-white/10 text-center">
+                      <Trophy className="w-6 h-6 text-yellow-500 mx-auto mb-3" />
+                      <p className="text-xs text-white/40 uppercase tracking-widest mb-1">Check-in</p>
+                      <p className="text-xl font-bold">+10 pts</p>
+                    </div>
+                    <div className="p-6 rounded-2xl bg-white/5 border border-white/10 text-center">
+                      <Clock className="w-6 h-6 text-blue-400 mx-auto mb-3" />
+                      <p className="text-xs text-white/40 uppercase tracking-widest mb-1">10m Study</p>
+                      <p className="text-xl font-bold">+5 pts</p>
+                    </div>
+                    <div className="p-6 rounded-2xl bg-white/5 border border-white/10 text-center">
+                      <Zap className="w-6 h-6 text-green-400 mx-auto mb-3" />
+                      <p className="text-xs text-white/40 uppercase tracking-widest mb-1">Correct Answer</p>
+                      <p className="text-xl font-bold">+5 pts</p>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  {userData?.collectedCards && userData.collectedCards.length > 0 ? (
+                    userData.collectedCards.map((card) => (
+                      <div key={card.id} className="bg-white/5 border border-white/10 rounded-3xl p-6 backdrop-blur-xl velvet-texture overflow-hidden relative group">
+                        <div className="flex justify-between items-start mb-4">
+                          <span className="text-[10px] uppercase tracking-widest text-white/40">NO. {card.id}</span>
+                          <span className="text-[10px] uppercase tracking-widest text-white/40">{card.date}</span>
                         </div>
+                        <h4 className="text-xl font-bold text-white mb-1">{card.word}</h4>
+                        <p className="text-xs text-white/60 italic mb-4 line-clamp-2">"{card.quote}"</p>
+                        <button 
+                          onClick={() => {
+                            setSelectedCard(card);
+                          }}
+                          className="w-full py-2 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold transition-colors"
+                        >
+                          View Full Card
+                        </button>
+                        <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                       </div>
                     ))
+                  ) : (
+                    <div className="col-span-full p-20 text-center bg-white/5 border border-white/10 rounded-[2rem]">
+                      <Sparkles className="w-12 h-12 text-white/20 mx-auto mb-4" />
+                      <p className="text-white/40 italic">Your card pouch is empty. Check in daily to collect cards!</p>
+                    </div>
                   )}
                 </div>
-              </div>
-              
-              <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="p-6 rounded-2xl bg-white/5 border border-white/10 text-center">
-                  <Trophy className="w-6 h-6 text-yellow-500 mx-auto mb-3" />
-                  <p className="text-xs text-white/40 uppercase tracking-widest mb-1">Check-in</p>
-                  <p className="text-xl font-bold">+10 pts</p>
-                </div>
-                <div className="p-6 rounded-2xl bg-white/5 border border-white/10 text-center">
-                  <Clock className="w-6 h-6 text-blue-400 mx-auto mb-3" />
-                  <p className="text-xs text-white/40 uppercase tracking-widest mb-1">10m Study</p>
-                  <p className="text-xl font-bold">+5 pts</p>
-                </div>
-                <div className="p-6 rounded-2xl bg-white/5 border border-white/10 text-center">
-                  <Zap className="w-6 h-6 text-green-400 mx-auto mb-3" />
-                  <p className="text-xs text-white/40 uppercase tracking-widest mb-1">Correct Answer</p>
-                  <p className="text-xl font-bold">+5 pts</p>
-                </div>
-              </div>
+              )}
             </motion.div>
           ) : (
             <motion.div
@@ -825,78 +924,93 @@ export default function App() {
 
       {/* Moon Base Card Modal */}
       <AnimatePresence>
-        {showCheckIn && userData && (
+        {(showCheckIn || selectedCard) && (userData || selectedCard) && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto">
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 bg-black/90 backdrop-blur-md"
-              onClick={() => setShowCheckIn(false)}
+              onClick={() => {
+                setShowCheckIn(false);
+                setSelectedCard(null);
+              }}
             />
             <motion.div
               initial={{ scale: 0.9, opacity: 0, y: 50 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 50 }}
-              className="relative w-full max-w-lg mx-auto"
+              className="relative w-full max-w-md mx-auto"
             >
-              <div className="moon-card relative bg-[#0a0a0c] border-2 border-white/20 rounded-[2rem] overflow-hidden shadow-[0_0_50px_rgba(255,255,255,0.1)] velvet-texture">
-                <div className="card-decoration-top h-2 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+              <div className="moon-card relative bg-[#0a0a0c] border-2 border-white/30 rounded-[2rem] overflow-hidden shadow-[0_0_50px_rgba(255,255,255,0.2)] velvet-texture">
+                <div className="card-decoration-top h-2 bg-gradient-to-r from-transparent via-white/60 to-transparent" />
                 
-                <div className="p-8 md:p-10">
-                  <div className="flex justify-between items-start mb-8">
+                <div className="p-6 md:p-8">
+                  <div className="flex justify-between items-start mb-6">
                     <div>
-                      <h4 className="text-[10px] tracking-[0.4em] text-white/40 uppercase font-bold">Moon Base Clearance</h4>
-                      <p className="text-xs text-white/60 font-mono">NO. {new Date().toISOString().split('T')[0].replace(/-/g, '')}</p>
+                      <h4 className="text-[9px] tracking-[0.3em] text-white/50 uppercase font-bold">Moon Base Clearance</h4>
+                      <p className="text-[10px] text-white/70 font-mono">NO. {selectedCard?.id || new Date().toISOString().split('T')[0].replace(/-/g, '')}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-[10px] tracking-widest text-white/40 uppercase">Status</p>
-                      <p className="text-xs text-green-400 font-bold uppercase">Authorized</p>
+                      <p className="text-[9px] tracking-widest text-white/50 uppercase">Status</p>
+                      <p className="text-[10px] text-green-400 font-bold uppercase">Authorized</p>
                     </div>
                   </div>
 
-                  <div className="mb-10">
-                    <h3 className="text-2xl font-display font-light text-white/90 mb-1">
+                  <div className="mb-6">
+                    <h3 className="text-xl font-display font-light text-white/95 mb-1">
                       Welcome, <span className="font-bold text-white">{user?.displayName?.split(' ')[0] || 'Traveler'}</span>
                     </h3>
-                    <p className="text-sm text-white/40">
-                      This is your Shirley's Moon Base Card for <span className="text-white/60">{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                    <p className="text-xs text-white/50">
+                      Shirley's Moon Base Card • <span className="text-white/70">{selectedCard?.date || new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                     </p>
                   </div>
 
-                  <div className="flex items-center justify-center gap-4 mb-10 text-white/20">
-                    <span>✦</span><span>✦</span><span>✦</span>
+                  <div className="flex items-center justify-center gap-3 mb-6 text-white/30">
+                    <span className="text-xs">✦</span><span className="text-xs">✦</span><span className="text-xs">✦</span>
                   </div>
 
                   {/* Word of the Day Section */}
-                  <div className="bg-white/5 rounded-3xl p-6 border border-white/10 mb-6">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 mb-4 font-bold">Word of the Day</p>
-                    <div className="flex items-baseline gap-3 mb-2">
-                      <h2 className="text-3xl font-display font-bold text-white">{userData.dailyWordData?.word || userData.dailyWord}</h2>
-                      <span className="text-sm italic text-white/40">{userData.dailyWordData?.pos}</span>
+                  <div className="bg-white/10 rounded-2xl p-5 border border-white/20 mb-4 shadow-inner">
+                    <p className="text-[9px] uppercase tracking-[0.2em] text-white/60 mb-3 font-bold">Word of the Day</p>
+                    <div className="flex items-baseline gap-2 mb-2">
+                      <h2 className="text-2xl font-display font-bold text-white leading-none">
+                        {selectedCard ? selectedCard.word : (userData.dailyWordData?.word || userData.dailyWord)}
+                      </h2>
+                      <span className="text-xs italic text-white/50">
+                        {selectedCard ? selectedCard.wordData?.pos : userData.dailyWordData?.pos}
+                      </span>
                     </div>
-                    <p className="text-sm text-white/80 mb-4 leading-relaxed">{userData.dailyWordData?.def}</p>
-                    <div className="space-y-2 pt-4 border-t border-white/5">
-                      <p className="text-sm text-white/60 italic leading-relaxed">{userData.dailyWordData?.sentEn}</p>
-                      <p className="text-sm text-white/40 font-zh">{userData.dailyWordData?.sentCn}</p>
+                    <p className="text-xs text-white/90 mb-3 leading-relaxed font-medium">
+                      {selectedCard ? selectedCard.wordData?.def : userData.dailyWordData?.def}
+                    </p>
+                    <div className="space-y-1.5 pt-3 border-t border-white/10">
+                      <p className="text-xs text-white/70 italic leading-relaxed">
+                        "{selectedCard ? selectedCard.wordData?.sentEn : userData.dailyWordData?.sentEn}"
+                      </p>
+                      <p className="text-xs text-white/60 font-zh">
+                        {selectedCard ? selectedCard.wordData?.sentCn : userData.dailyWordData?.sentCn}
+                      </p>
                     </div>
                   </div>
 
                   {/* Quote Section */}
-                  <div className="bg-white/5 rounded-3xl p-6 border border-white/10 mb-8">
-                    <p className="text-sm text-white/90 italic mb-2 leading-relaxed">"{userData.dailyQuoteData?.quote || userData.dailyQuote}"</p>
-                    <p className="text-xs text-white/40 font-zh mb-3">{userData.dailyQuoteData?.trans}</p>
-                    <p className="text-right text-[10px] uppercase tracking-widest text-white/40">— {userData.dailyQuoteData?.author}</p>
+                  <div className="bg-white/10 rounded-2xl p-5 border border-white/20 mb-6 shadow-inner">
+                    <p className="text-xs text-white font-medium italic mb-2 leading-relaxed">
+                      "{selectedCard ? selectedCard.quote : (userData.dailyQuoteData?.quote || userData.dailyQuote)}"
+                    </p>
+                    <p className="text-xs text-white/60 font-zh mb-2">
+                      {selectedCard ? selectedCard.quoteData?.trans : userData.dailyQuoteData?.trans}
+                    </p>
+                    <p className="text-right text-[9px] uppercase tracking-widest text-white/60 font-bold">
+                      — {selectedCard ? selectedCard.quoteData?.author : userData.dailyQuoteData?.author}
+                    </p>
                   </div>
 
-                  <div className="flex justify-between items-end">
-                    <div className="bg-white/10 px-4 py-2 rounded-full flex items-center gap-2">
-                      <span className="text-lg">🔥</span>
-                      <span className="text-xs font-bold text-white/80">Streak: {userData.streak || 1}</span>
-                    </div>
+                  <div className="flex justify-end items-end">
                     <div className="text-right">
-                      <p className="font-artistic text-lg text-white/60">Teacher Shirley</p>
-                      <p className="text-[8px] uppercase tracking-[0.3em] text-white/20">Signature of Authority</p>
+                      <p className="font-artistic text-base text-white/80">Teacher Shirley</p>
+                      <p className="text-[7px] uppercase tracking-[0.3em] text-white/30">Signature of Authority</p>
                     </div>
                   </div>
                 </div>
@@ -910,18 +1024,20 @@ export default function App() {
               <div className="mt-8 flex flex-col sm:flex-row gap-4">
                 <button 
                   onClick={() => {
-                    // Placeholder for download logic
                     alert("Image download feature coming soon! You can take a screenshot for now.");
                   }}
                   className="flex-1 py-4 bg-white/10 text-white border border-white/20 rounded-2xl font-bold hover:bg-white/20 transition-all active:scale-95 flex items-center justify-center gap-2"
                 >
-                  📥 Download Image (收藏)
+                  📥 Download Image
                 </button>
                 <button 
-                  onClick={() => setShowCheckIn(false)}
+                  onClick={() => {
+                    if (selectedCard) setSelectedCard(null);
+                    else handleCollectCard();
+                  }}
                   className="flex-1 py-4 bg-white text-black rounded-2xl font-bold hover:bg-white/90 transition-all active:scale-95 flex items-center justify-center gap-2"
                 >
-                  ✕ Close (放入卡袋)
+                  {selectedCard ? "✕ Close" : "✕ Collect (放入卡袋)"}
                 </button>
               </div>
             </motion.div>
