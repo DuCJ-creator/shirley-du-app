@@ -420,7 +420,6 @@ export default function App() {
               const lines = csv.split(/\r?\n/).filter(l => l.trim());
               if (lines.length < 2) return [];
               
-              // Robust CSV splitting that handles quotes
               const splitCsvLine = (line: string) => {
                 const result = [];
                 let current = '';
@@ -440,11 +439,14 @@ export default function App() {
                 return result;
               };
 
-              const headers = splitCsvLine(lines[0]).map(h => h.toLowerCase().replace(/_/g, ''));
+              const headers = splitCsvLine(lines[0]).map(h => h.toLowerCase().replace(/[\s_]/g, ''));
               return lines.slice(1).map(line => {
                 const values = splitCsvLine(line);
                 return headers.reduce((obj: any, header, i) => {
-                  obj[header] = values[i] || '';
+                  let val = values[i] || '';
+                  // Clean up quotes if they still exist
+                  if (val.startsWith('"') && val.endsWith('"')) val = val.slice(1, -1);
+                  obj[header] = val;
                   return obj;
                 }, {});
               });
@@ -453,26 +455,35 @@ export default function App() {
             const words = parseCsv(wordCsv);
             const quotes = parseCsv(quoteCsv);
 
-            // Match by date
+            // Match by date with normalization
             const dateStr = getLocalDateString();
-            const rawWordData = words.find(w => w.date === dateStr) || words[new Date().getDate() % words.length];
-            const rawQuoteData = quotes.find(q => q.date === dateStr) || quotes[new Date().getDate() % quotes.length];
+            const normalizeDate = (d: string) => d.replace(/\//g, '-').split('-').map(p => p.padStart(2, '0')).join('-');
+            
+            const rawWordData = words.find(w => {
+              const wDate = w.date ? normalizeDate(w.date) : '';
+              return wDate === dateStr || wDate.includes(dateStr) || dateStr.includes(wDate);
+            }) || words[new Date().getDate() % words.length];
+
+            const rawQuoteData = quotes.find(q => {
+              const qDate = q.date ? normalizeDate(q.date) : '';
+              return qDate === dateStr || qDate.includes(dateStr) || dateStr.includes(qDate);
+            }) || quotes[new Date().getDate() % quotes.length];
 
             if (rawWordData) {
               wordData = {
                 Word: rawWordData.word || '',
                 POS: rawWordData.pos || '',
-                Definition: rawWordData.definition || '',
-                Sentence_EN: rawWordData.sentenceen || rawWordData.sentence_en || '',
-                Sentence_CN: rawWordData.sentencecn || rawWordData.sentence_cn || ''
+                Definition: rawWordData.definition || rawWordData.def || rawWordData.meaning || '',
+                Sentence_EN: rawWordData.sentenceen || rawWordData.sentence_en || rawWordData.example || '',
+                Sentence_CN: rawWordData.sentencecn || rawWordData.sentence_cn || rawWordData.chinese || rawWordData.meaningcn || ''
               };
             }
 
             if (rawQuoteData) {
               quoteData = {
                 Quote: rawQuoteData.quote || '',
-                Translation: rawQuoteData.translation || '',
-                Author: rawQuoteData.author || 'Unknown'
+                Translation: rawQuoteData.translation || rawQuoteData.trans || rawQuoteData.chinese || '',
+                Author: rawQuoteData.author || rawQuoteData.by || 'Unknown'
               };
             }
           }
@@ -818,20 +829,35 @@ export default function App() {
                 {user && userData && (
                   <motion.div
                     initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    whileHover={{ scale: 1.05, y: -5 }}
+                    animate={{ 
+                      scale: 1, 
+                      opacity: 1,
+                      y: [0, -10, 0]
+                    }}
+                    transition={{ 
+                      scale: { duration: 0.5 },
+                      opacity: { duration: 0.5 },
+                      y: { duration: 4, repeat: Infinity, ease: "easeInOut" }
+                    }}
+                    whileHover={{ scale: 1.05, y: -15 }}
                     onClick={() => setShowCheckIn(true)}
-                    className="mt-12 md:absolute md:mt-0 md:top-0 md:-right-64 bg-white/5 backdrop-blur-2xl border border-white/10 p-5 rounded-[2rem] max-w-[180px] md:max-w-[220px] cursor-pointer transition-all shadow-[0_0_30px_rgba(255,255,255,0.05)] hover:shadow-[0_0_40px_rgba(255,255,255,0.1)] group"
+                    className="mt-12 md:absolute md:mt-0 md:top-10 md:-right-72 bg-white/[0.03] backdrop-blur-3xl border border-white/10 p-4 rounded-[1.5rem] max-w-[160px] md:max-w-[200px] cursor-pointer transition-all shadow-[0_0_40px_rgba(255,255,255,0.05)] hover:shadow-[0_0_50px_rgba(100,200,255,0.15)] group z-20"
                   >
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-                      <p className="text-[9px] uppercase tracking-[0.2em] text-white/30 font-bold">Inspiration</p>
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-1 h-1 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+                      <p className="text-[7px] uppercase tracking-[0.3em] text-blue-200/40 font-bold">Daily Inspiration</p>
                     </div>
-                    <p className="text-base font-display font-bold mb-1 text-white/90 group-hover:text-white transition-colors">"{userData.dailyWord}"</p>
-                    <p className="text-[10px] text-white/50 italic leading-relaxed line-clamp-2 mb-3">"{userData.dailyQuote}"</p>
-                    <div className="pt-2 border-t border-white/5 flex items-center justify-between">
-                      <span className="text-[7px] uppercase tracking-widest text-white/20">View Card</span>
-                      <Sparkles className="w-2.5 h-2.5 text-white/20" />
+                    <div className="space-y-1">
+                      <p className="text-sm font-display font-bold text-white/90 group-hover:text-white transition-colors leading-tight">
+                        {userData.dailyWord}
+                      </p>
+                      <p className="text-[9px] text-white/40 italic leading-relaxed line-clamp-2">
+                        "{userData.dailyQuote}"
+                      </p>
+                    </div>
+                    <div className="mt-3 pt-2 border-t border-white/5 flex items-center justify-between">
+                      <span className="text-[6px] uppercase tracking-[0.2em] text-blue-200/20 font-bold">Open Pass</span>
+                      <Sparkles className="w-2 h-2 text-blue-200/20" />
                     </div>
                   </motion.div>
                 )}
