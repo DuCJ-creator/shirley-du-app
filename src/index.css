@@ -41,23 +41,75 @@
   width: 100%;
   height: 100%;
   z-index: -1;
-  opacity: 0.4;
-  background-image: 
-    radial-gradient(white, rgba(255,255,255,.2) 1px, transparent 20px),
-    radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 15px);
-  background-size: 400px 400px, 300px 300px;
-  background-position: 0 0, 40px 60px;
-  animation: galaxy-move 150s linear infinite;
+  background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
+  overflow: hidden;
 }
 
-/* Velvet Texture Overlay */
-.galaxy-bg::after {
+.galaxy-bg::before, .galaxy-bg::after {
   content: "";
   position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3%3Ffilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-  opacity: 0.05;
-  mix-blend-mode: overlay;
+  top: 0;
+  left: 0;
+  width: 200%;
+  height: 200%;
+  background-image: 
+    radial-gradient(1.5px 1.5px at 50px 60px, #fff, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 150px 150px, #fff, rgba(0,0,0,0)),
+    radial-gradient(1.5px 1.5px at 250px 50px, #fff, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 350px 250px, #fff, rgba(0,0,0,0));
+  background-repeat: repeat;
+  background-size: 500px 500px;
+  animation: stars-twinkle 5s infinite;
+  opacity: 0.4;
+}
+
+.galaxy-bg::after {
+  background-size: 700px 700px;
+  animation: stars-twinkle 8s infinite reverse;
+  opacity: 0.3;
+}
+
+/* Shooting Star */
+.shooting-star {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 2px;
+  height: 2px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1), 0 0 0 8px rgba(255, 255, 255, 0.1), 0 0 20px rgba(255, 255, 255, 1);
+  animation: shooting 10s linear infinite;
+  opacity: 0;
+}
+
+.shooting-star::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 100px;
+  height: 1px;
+  background: linear-gradient(90deg, #fff, transparent);
+}
+
+@keyframes shooting {
+  0% { transform: rotate(315deg) translateX(0); opacity: 1; }
+  70% { opacity: 1; }
+  100% { transform: rotate(315deg) translateX(-1000px); opacity: 0; }
+}
+
+@keyframes stars-twinkle {
+  0%, 100% { 
+    opacity: 0.3; 
+    transform: scale(1); 
+    filter: blur(0px);
+  }
+  50% { 
+    opacity: 1; 
+    transform: scale(1.2); 
+    filter: drop-shadow(0 0 8px #fff) brightness(1.5);
+  }
 }
 
 @keyframes galaxy-move {
