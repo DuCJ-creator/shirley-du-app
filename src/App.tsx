@@ -404,7 +404,7 @@ export default function App() {
       }
 
       // Fetch Daily Inspiration from CSVs or Gemini
-      const needsUpdate = !data?.dailyWordData?.sentCn || !data?.dailyQuoteData?.trans || isNewDay;
+      const needsUpdate = !data?.dailyWordData?.sentEn || !data?.dailyWordData?.sentCn || !data?.dailyQuoteData?.quote || !data?.dailyQuoteData?.trans || isNewDay;
       
       if (needsUpdate) {
         try {
@@ -430,7 +430,12 @@ export default function App() {
                 for (let i = 0; i < line.length; i++) {
                   const char = line[i];
                   if (char === '"') {
-                    inQuotes = !inQuotes;
+                    if (inQuotes && line[i + 1] === '"') {
+                      current += '"';
+                      i++;
+                    } else {
+                      inQuotes = !inQuotes;
+                    }
                   } else if (char === ',' && !inQuotes) {
                     result.push(current.trim());
                     current = '';
@@ -442,7 +447,7 @@ export default function App() {
                 return result;
               };
 
-              const headers = splitCsvLine(lines[0].replace(/^\uFEFF/, '')).map(h => h.toLowerCase().replace(/[\s_-]/g, ''));
+              const headers = splitCsvLine(lines[0].replace(/^\uFEFF/, '')).map(h => h.toLowerCase().replace(/[^a-z0-9]/g, ''));
               return lines.slice(1).map(line => {
                 const values = splitCsvLine(line);
                 return headers.reduce((obj: any, header, i) => {
@@ -488,44 +493,74 @@ export default function App() {
 
             if (rawWordData) {
               wordData = {
-                Word: rawWordData.word || '',
-                POS: rawWordData.pos || '',
-                Definition: rawWordData.definition || rawWordData.def || rawWordData.meaning || rawWordData.meaningcn || '',
-                Sentence_EN: rawWordData.sentenceen || rawWordData.sentence_en || rawWordData.example || rawWordData.exampleen || '',
-                Sentence_CN: rawWordData.sentencecn || rawWordData.sentence_cn || rawWordData.chinese || rawWordData.meaningcn || rawWordData.translation || rawWordData.examplecn || ''
+                Word: rawWordData.word || rawWordData.vocabulary || '',
+                POS: rawWordData.pos || rawWordData.partofspeech || '',
+                Definition: rawWordData.definition || rawWordData.def || rawWordData.meaning || rawWordData.meaningen || '',
+                Sentence_EN: rawWordData.sentenceen || rawWordData.sentence_en || rawWordData.example || rawWordData.exampleen || rawWordData.sentence || '',
+                Sentence_CN: rawWordData.sentencecn || rawWordData.sentence_cn || rawWordData.chinese || rawWordData.meaningcn || rawWordData.translation || rawWordData.examplecn || rawWordData.translationcn || ''
               };
             }
 
             if (rawQuoteData) {
               quoteData = {
-                Quote: rawQuoteData.quote || '',
-                Translation: rawQuoteData.translation || rawQuoteData.trans || rawQuoteData.chinese || rawQuoteData.meaning || '',
-                Author: rawQuoteData.author || rawQuoteData.by || 'Unknown'
+                Quote: rawQuoteData.quote || rawQuoteData.text || rawQuoteData.content || '',
+                Translation: rawQuoteData.translation || rawQuoteData.trans || rawQuoteData.chinese || rawQuoteData.meaning || rawQuoteData.translationcn || '',
+                Author: rawQuoteData.author || rawQuoteData.by || rawQuoteData.writer || 'Unknown'
               };
             }
           }
 
           if (wordData && quoteData) {
-            // If CSV data is missing Chinese, try to fill it with Gemini
-            if (!wordData.Sentence_CN || !quoteData.Translation) {
+            // If CSV data is missing critical fields, try to fill them with Gemini
+            const isMissingFields = !wordData.Definition || !wordData.Sentence_EN || !wordData.Sentence_CN || !quoteData.Quote || !quoteData.Translation;
+            
+            if (isMissingFields) {
               try {
-                const translateResult = await ai.models.generateContent({
+                const fillResult = await ai.models.generateContent({
                   model: "gemini-2.0-flash-exp",
-                  contents: [{ parts: [{ text: `Translate the following to Traditional Chinese (Taiwan style). 
-                  Word: ${wordData.Word}
-                  Definition: ${wordData.Definition}
-                  Sentence: ${wordData.Sentence_EN}
-                  Quote: ${quoteData.Quote}
+                  contents: [{ parts: [{ text: `You are an expert English teacher. Complete the following language learning data for a "Daily English" feature.
                   
-                  Return as JSON: { wordCn: string, defCn: string, sentenceCn: string, quoteCn: string }` }]}],
+                  Current Data (some fields may be empty):
+                  Word: ${wordData.Word || ''}
+                  POS: ${wordData.POS || ''}
+                  Definition: ${wordData.Definition || ''}
+                  Example Sentence (EN): ${wordData.Sentence_EN || ''}
+                  Example Sentence (CN): ${wordData.Sentence_CN || ''}
+                  Inspirational Quote (EN): ${quoteData.Quote || ''}
+                  Quote Translation (CN): ${quoteData.Translation || ''}
+                  Quote Author: ${quoteData.Author || ''}
+                  
+                  Instructions:
+                  1. If a field is provided and accurate, KEEP IT.
+                  2. If a field is empty or "Unknown", GENERATE a high-quality, educational value for it.
+                  3. Ensure the Chinese translation is in Traditional Chinese (Taiwan style).
+                  4. The example sentence should be clear and use the word correctly.
+                  
+                  Return ONLY a JSON object:
+                  {
+                    "word": "string",
+                    "pos": "string",
+                    "def": "string",
+                    "sentenceEn": "string",
+                    "sentenceCn": "string",
+                    "quote": "string",
+                    "quoteTrans": "string",
+                    "author": "string"
+                  }` }]}],
                   config: { responseMimeType: "application/json" }
                 });
-                const trans = JSON.parse(translateResult.text || '{}');
-                if (!wordData.Sentence_CN) wordData.Sentence_CN = trans.sentenceCn || trans.wordCn || "";
-                if (!quoteData.Translation) quoteData.Translation = trans.quoteCn || trans.translation || "";
-                if (!wordData.Definition) wordData.Definition = trans.defCn || trans.definition || "";
+                const filled = JSON.parse(fillResult.text || '{}');
+                
+                if (!wordData.Word) wordData.Word = filled.word;
+                if (!wordData.POS) wordData.POS = filled.pos;
+                if (!wordData.Definition) wordData.Definition = filled.def;
+                if (!wordData.Sentence_EN) wordData.Sentence_EN = filled.sentenceEn;
+                if (!wordData.Sentence_CN) wordData.Sentence_CN = filled.sentenceCn;
+                if (!quoteData.Quote) quoteData.Quote = filled.quote;
+                if (!quoteData.Translation) quoteData.Translation = filled.quoteTrans;
+                if (!quoteData.Author || quoteData.Author === 'Unknown') quoteData.Author = filled.author;
               } catch (e) {
-                console.error("Gemini translation fallback failed", e);
+                console.error("Gemini data filling failed", e);
               }
             }
 
@@ -1141,7 +1176,21 @@ export default function App() {
                       <div className="w-1 h-1 rounded-full bg-cyan-400 shadow-[0_0_5px_rgba(34,211,238,0.8)]" />
                       <h4 className="text-[7px] tracking-[0.3em] text-blue-200/30 uppercase font-bold">Clearance Authorized</h4>
                     </div>
-                    <p className="text-[8px] text-blue-100/20 font-mono">#{selectedCard?.id || getLocalDateString().replace(/-/g, '')}</p>
+                    <div className="flex items-center gap-3">
+                      {(!selectedCard && (!userData?.dailyWordData?.sentEn || !userData?.dailyQuoteData?.quote)) && (
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            user && handleCheckIn(user);
+                          }}
+                          className="text-[8px] text-blue-200/40 hover:text-white flex items-center gap-1 transition-colors"
+                          title="Refresh Data"
+                        >
+                          <RefreshCw className="w-2.5 h-2.5" />
+                        </button>
+                      )}
+                      <p className="text-[8px] text-blue-100/20 font-mono">#{selectedCard?.id || getLocalDateString().replace(/-/g, '')}</p>
+                    </div>
                   </div>
 
                   <div className="mb-4 text-center">
