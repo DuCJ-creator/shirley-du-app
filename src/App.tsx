@@ -9,7 +9,7 @@ import { cn } from './lib/utils';
 import { 
   auth, db, googleProvider, signInWithPopup, signOut, onAuthStateChanged,
   doc, getDoc, setDoc, updateDoc, increment, serverTimestamp, onSnapshot,
-  collection, query, where
+  collection, query, where, arrayUnion
 } from './firebase';
 import { GoogleGenAI } from "@google/genai";
 
@@ -589,7 +589,7 @@ export default function App() {
     };
 
     await updateDoc(userRef, {
-      collectedCards: [...(userData.collectedCards || []), newCard]
+      collectedCards: arrayUnion(newCard)
     });
     
     setShowCheckIn(false);
@@ -670,14 +670,14 @@ export default function App() {
               className="flex flex-col items-center"
             >
               {/* Moon / Check-in */}
-              <div className="relative mb-24">
+              <div className="relative mb-24 flex flex-col items-center">
                 <motion.div
                   animate={{ 
                     boxShadow: ["0 0 60px 20px rgba(255, 255, 255, 0.1)", "0 0 80px 30px rgba(255, 255, 255, 0.2)", "0 0 60px 20px rgba(255, 255, 255, 0.1)"]
                   }}
                   transition={{ duration: 4, repeat: Infinity }}
                   className="w-48 h-48 md:w-64 md:h-64 rounded-full bg-white moon-glow flex flex-col items-center justify-center text-black p-4 text-center cursor-pointer overflow-hidden relative"
-                  onClick={!user ? handleLogin : () => {}}
+                  onClick={!user ? handleLogin : () => setShowCheckIn(true)}
                 >
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/[0.02] to-black/[0.05] pointer-events-none" />
                   <h1 className="flex flex-col items-center w-full px-2 z-10">
@@ -700,11 +700,16 @@ export default function App() {
                   <motion.div
                     initial={{ scale: 0, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    className="absolute -top-12 -right-12 md:-right-24 bg-white/10 backdrop-blur-xl border border-white/20 p-6 rounded-3xl max-w-[200px] md:max-w-[250px]"
+                    onClick={() => setShowCheckIn(true)}
+                    className="mt-8 md:absolute md:mt-0 md:-top-12 md:-right-40 bg-white/10 backdrop-blur-xl border border-white/20 p-6 rounded-3xl max-w-[200px] md:max-w-[250px] cursor-pointer hover:scale-105 transition-transform group"
                   >
                     <p className="text-[10px] uppercase tracking-widest text-white/40 mb-2">Daily Inspiration</p>
-                    <p className="text-lg font-display font-medium mb-1">"{userData.dailyWord}"</p>
-                    <p className="text-xs text-white/60 italic leading-relaxed">{userData.dailyQuote}</p>
+                    <p className="text-lg font-display font-medium mb-1 group-hover:text-white transition-colors">"{userData.dailyWord}"</p>
+                    <p className="text-xs text-white/60 italic leading-relaxed line-clamp-3">"{userData.dailyQuote}"</p>
+                    <div className="mt-4 pt-2 border-t border-white/5 flex items-center justify-between">
+                      <span className="text-[8px] uppercase tracking-tighter text-white/20">Click to view card</span>
+                      <Sparkles className="w-3 h-3 text-white/20" />
+                    </div>
                   </motion.div>
                 )}
               </div>
@@ -1030,15 +1035,23 @@ export default function App() {
                 >
                   📥 Download Image
                 </button>
-                <button 
-                  onClick={() => {
-                    if (selectedCard) setSelectedCard(null);
-                    else handleCollectCard();
-                  }}
-                  className="flex-1 py-4 bg-white text-black rounded-2xl font-bold hover:bg-white/90 transition-all active:scale-95 flex items-center justify-center gap-2"
-                >
-                  {selectedCard ? "✕ Close" : "✕ Collect (放入卡袋)"}
-                </button>
+                {selectedCard ? (
+                  <button 
+                    onClick={() => setSelectedCard(null)}
+                    className="flex-1 py-4 bg-white text-black rounded-2xl font-bold hover:bg-white/90 transition-all active:scale-95 flex items-center justify-center gap-2"
+                  >
+                    ✕ Close
+                  </button>
+                ) : (
+                  <button 
+                    onClick={handleCollectCard}
+                    className="flex-1 py-4 bg-white text-black rounded-2xl font-bold hover:bg-white/90 transition-all active:scale-95 flex items-center justify-center gap-2"
+                  >
+                    {userData?.collectedCards?.some(c => c.id === new Date().toISOString().split('T')[0].replace(/-/g, '')) 
+                      ? "✓ Collected (Close)" 
+                      : "✕ Collect (放入卡袋)"}
+                  </button>
+                )}
               </div>
             </motion.div>
           </div>
