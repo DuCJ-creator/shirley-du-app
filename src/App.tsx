@@ -423,6 +423,13 @@ export default function App() {
               const lines = csv.split(/\r?\n/).filter(l => l.trim());
               if (lines.length < 2) return [];
               
+              // Detect delimiter
+              const firstLine = lines[0];
+              const commaCount = (firstLine.match(/,/g) || []).length;
+              const semiCount = (firstLine.match(/;/g) || []).length;
+              const tabCount = (firstLine.match(/\t/g) || []).length;
+              const delimiter = semiCount > commaCount ? (semiCount > tabCount ? ';' : '\t') : (commaCount > tabCount ? ',' : '\t');
+
               const splitCsvLine = (line: string) => {
                 const result = [];
                 let current = '';
@@ -436,7 +443,7 @@ export default function App() {
                     } else {
                       inQuotes = !inQuotes;
                     }
-                  } else if (char === ',' && !inQuotes) {
+                  } else if (char === delimiter && !inQuotes) {
                     result.push(current.trim());
                     current = '';
                   } else {
@@ -452,7 +459,6 @@ export default function App() {
                 const values = splitCsvLine(line);
                 return headers.reduce((obj: any, header, i) => {
                   let val = values[i] || '';
-                  // Clean up quotes if they still exist
                   if (val.startsWith('"') && val.endsWith('"')) val = val.slice(1, -1);
                   obj[header] = val;
                   return obj;
@@ -463,20 +469,16 @@ export default function App() {
             const words = parseCsv(wordCsv);
             const quotes = parseCsv(quoteCsv);
 
-            // Match by date with normalization
             const dateStr = getLocalDateString();
             const normalizeDate = (d: string) => {
               if (!d) return '';
               const parts = d.replace(/\//g, '-').split('-');
               if (parts.length !== 3) return '';
-              // Handle YYYY-MM-DD
               if (parts[0].length === 4) return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
-              // Handle MM-DD-YYYY or DD-MM-YYYY (assume MM-DD-YYYY if first part <= 12)
               if (parts[2].length === 4) {
                 const p0 = parseInt(parts[0]);
-                const p1 = parseInt(parts[1]);
-                if (p0 > 12) return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`; // DD-MM-YYYY
-                return `${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`; // MM-DD-YYYY
+                if (p0 > 12) return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                return `${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
               }
               return parts.map(p => p.padStart(2, '0')).join('-');
             };
@@ -493,18 +495,18 @@ export default function App() {
 
             if (rawWordData) {
               wordData = {
-                Word: rawWordData.word || rawWordData.vocabulary || '',
-                POS: rawWordData.pos || rawWordData.partofspeech || '',
-                Definition: rawWordData.definition || rawWordData.def || rawWordData.meaning || rawWordData.meaningen || '',
-                Sentence_EN: rawWordData.sentenceen || rawWordData.sentence_en || rawWordData.example || rawWordData.exampleen || rawWordData.sentence || '',
-                Sentence_CN: rawWordData.sentencecn || rawWordData.sentence_cn || rawWordData.chinese || rawWordData.meaningcn || rawWordData.translation || rawWordData.examplecn || rawWordData.translationcn || ''
+                Word: rawWordData.word || rawWordData.vocabulary || rawWordData.term || '',
+                POS: rawWordData.pos || rawWordData.partofspeech || rawWordData.type || '',
+                Definition: rawWordData.definition || rawWordData.def || rawWordData.meaning || rawWordData.meaningen || rawWordData.explanation || '',
+                Sentence_EN: rawWordData.sentenceen || rawWordData.sentence_en || rawWordData.example || rawWordData.exampleen || rawWordData.sentence || rawWordData.examplesentence || '',
+                Sentence_CN: rawWordData.sentencecn || rawWordData.sentence_cn || rawWordData.chinese || rawWordData.meaningcn || rawWordData.translation || rawWordData.examplecn || rawWordData.translationcn || rawWordData.chinesemeaning || ''
               };
             }
 
             if (rawQuoteData) {
               quoteData = {
-                Quote: rawQuoteData.quote || rawQuoteData.text || rawQuoteData.content || '',
-                Translation: rawQuoteData.translation || rawQuoteData.trans || rawQuoteData.chinese || rawQuoteData.meaning || rawQuoteData.translationcn || '',
+                Quote: rawQuoteData.quote || rawQuoteData.text || rawQuoteData.content || rawQuoteData.sentence || '',
+                Translation: rawQuoteData.translation || rawQuoteData.trans || rawQuoteData.chinese || rawQuoteData.meaning || rawQuoteData.translationcn || rawQuoteData.quotecn || '',
                 Author: rawQuoteData.author || rawQuoteData.by || rawQuoteData.writer || 'Unknown'
               };
             }
@@ -915,17 +917,45 @@ export default function App() {
                 )}
               </div>
 
-              {/* Planets Grid */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-12 md:gap-20">
-                {Object.entries(STRANDS).map(([key, info]) => (
-                  <Planet 
-                    key={key} 
-                    strand={key as Strand} 
-                    info={info} 
-                    onClick={() => handleStrandClick(key as Strand)}
-                    disabled={!user}
-                  />
-                ))}
+              {/* Planets Grid / Solar System Layout */}
+              <div className="relative w-full min-h-[500px] md:min-h-[700px] flex items-center justify-center">
+                {/* Orbital Rings (Desktop Only) */}
+                <div className="hidden md:block absolute inset-0 pointer-events-none">
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[240px] h-[240px] border border-white/5 rounded-full" />
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] border border-white/5 rounded-full" />
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[560px] h-[560px] border border-white/5 rounded-full" />
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[720px] h-[720px] border border-white/5 rounded-full" />
+                </div>
+
+                {/* Mobile: Grid, Desktop: Scattered */}
+                <div className="grid grid-cols-2 gap-8 md:block md:absolute md:inset-0">
+                  {Object.entries(STRANDS).map(([key, info], index) => {
+                    // Desktop positioning logic
+                    const angles = [45, 135, 225, 315];
+                    const distances = [120, 200, 280, 360];
+                    const angle = angles[index];
+                    const distance = distances[index];
+                    const x = Math.cos((angle * Math.PI) / 180) * distance;
+                    const y = Math.sin((angle * Math.PI) / 180) * distance;
+
+                    return (
+                      <div 
+                        key={key}
+                        className="md:absolute md:top-1/2 md:left-1/2"
+                        style={{ 
+                          transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`
+                        }}
+                      >
+                        <Planet 
+                          strand={key as Strand} 
+                          info={info} 
+                          onClick={() => handleStrandClick(key as Strand)}
+                          disabled={!user}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </motion.div>
           ) : currentStrand === 'pet' ? (
