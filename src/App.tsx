@@ -579,7 +579,7 @@ const BilingualSubjectsView = ({
   isFetching: boolean,
   currentStrand: string
 }) => {
-  const localSubjectGems = [
+  const localSubjectGems = useMemo(() => [
     { name: 'Language Art', nameZh: '語文', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/language%20art.html', type: 'diamond' },
     { name: 'Math', nameZh: '數學', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/math.html', type: 'ruby' },
     { name: 'Physics', nameZh: '物理', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/physics.html', type: 'emerald' },
@@ -588,7 +588,25 @@ const BilingualSubjectsView = ({
     { name: 'Humanities', nameZh: '人文', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/humanities.html', type: 'topaz' },
     { name: 'Ast. & Geo', nameZh: '天文地理', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/geography.html', type: 'opal' },
     { name: 'Business', nameZh: '商業', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/business.html', type: 'ruby' },
-  ];
+  ], []);
+
+  const filteredWords = useMemo(() => {
+    if (!searchTerm.trim()) return [];
+    const term = searchTerm.toLowerCase();
+    return allWordData.filter(w => 
+      (w.word || w.vocabulary || w.term || '').toLowerCase().includes(term) ||
+      (w.meaning || w.definition || w.meaningen || '').toLowerCase().includes(term)
+    );
+  }, [allWordData, searchTerm]);
+
+  const filteredGems = useMemo(() => {
+    if (!searchTerm.trim()) return [];
+    const term = searchTerm.toLowerCase();
+    return localSubjectGems.filter(gem => 
+      gem.name.toLowerCase().includes(term) || 
+      gem.nameZh.toLowerCase().includes(term)
+    );
+  }, [localSubjectGems, searchTerm]);
 
   return (
     <div className="relative w-full max-w-6xl mx-auto py-8 px-4 flex flex-col items-center">
@@ -633,17 +651,11 @@ const BilingualSubjectsView = ({
       {searchTerm.trim() !== "" ? (
         <div className="w-full space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
           {/* Matching Subjects/Tools */}
-          {localSubjectGems.filter(gem => 
-            gem.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-            gem.nameZh.toLowerCase().includes(searchTerm.toLowerCase())
-          ).length > 0 && (
+          {filteredGems.length > 0 && (
             <div className="space-y-4">
               <h4 className="text-white/40 text-[10px] uppercase tracking-[0.3em] font-bold px-2">Matching Subjects</h4>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-                {localSubjectGems.filter(gem => 
-                  gem.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                  gem.nameZh.toLowerCase().includes(searchTerm.toLowerCase())
-                ).map((gem, idx) => (
+                {filteredGems.map((gem, idx) => (
                   <Gem 
                     key={`gem-search-${idx}`} 
                     {...gem}
@@ -660,19 +672,12 @@ const BilingualSubjectsView = ({
             <div className="flex items-center justify-between px-2 border-b border-white/5 pb-4">
               <h4 className="text-white/40 text-[10px] uppercase tracking-[0.3em] font-bold">Vocabulary Results</h4>
               <span className="text-[10px] text-blue-400/60 font-medium bg-blue-400/5 px-2 py-1 rounded-full border border-blue-400/10">
-                Found {allWordData.filter(w => 
-                  (w.word || w.vocabulary || w.term || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                  (w.meaning || w.definition || w.meaningen || '').toLowerCase().includes(searchTerm.toLowerCase())
-                ).length} sync entries
+                Found {filteredWords.length} sync entries
               </span>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {allWordData
-                .filter(w => 
-                  (w.word || w.vocabulary || w.term || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                  (w.meaning || w.definition || w.meaningen || '').toLowerCase().includes(searchTerm.toLowerCase())
-                )
+              {filteredWords
                 .slice(0, 30)
                 .map((w, idx) => (
                   <motion.div 
@@ -680,7 +685,7 @@ const BilingualSubjectsView = ({
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: idx * 0.05 }}
-                    className="p-6 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-sm hover:bg-white/10 transition-all group relative overflow-hidden"
+                    className="p-6 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-sm hover:bg-white/10 transition-all group relative overflow-hidden transform-gpu"
                   >
                     <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
                       <Star className="w-3 h-3 text-white/20" />
@@ -706,34 +711,32 @@ const BilingualSubjectsView = ({
           </div>
         </div>
       ) : (
-        <div className="relative w-full aspect-square max-w-[660px] flex items-center justify-center overflow-visible mt-12 bg-white/[0.01] rounded-full border border-white/[0.02]">
-          {/* Decorative Background Elements */}
-          <div className="absolute inset-0 pointer-events-none overflow-visible">
-            <div className="absolute inset-0 border-[0.5px] border-white/5 rounded-full animate-[spin_100s_linear_infinite]" />
-            <div className="absolute inset-12 border-[0.5px] border-white/5 rounded-full animate-[spin_70s_linear_infinite_reverse]" />
-            <div className="absolute inset-24 border-[0.5px] border-white/5 rounded-full animate-[spin_40s_linear_infinite]" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.05)_0%,transparent_70%)]" />
+        <div className="relative w-full aspect-square max-w-[660px] flex items-center justify-center overflow-visible mt-12 mb-12 scale-[0.55] sm:scale-[0.85] lg:scale-100 origin-center">
+          {/* Decorative Background Elements - Optimized for Performance */}
+          <div className="absolute inset-0 pointer-events-none overflow-visible will-change-transform">
+            <div className="absolute inset-0 border-[0.5px] border-white/[0.03] rounded-full animate-[spin_120s_linear_infinite] transform-gpu" />
+            <div className="absolute inset-12 border-[0.5px] border-white/[0.03] rounded-full animate-[spin_80s_linear_infinite_reverse] transform-gpu" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.03)_0%,transparent_70%)]" />
           </div>
 
-          {/* Central Quote Node */}
-          <div className="relative z-10 w-[240px] h-[240px]">
+          {/* Centerpiece: The Knowledge Core */}
+          <div className="relative z-10 w-[200px] h-[200px]">
             <motion.div 
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="text-center p-6 bg-black/60 backdrop-blur-3xl rounded-full border border-white/20 w-full h-full flex flex-col items-center justify-center shadow-[0_0_80px_rgba(255,255,255,0.1)] relative overflow-hidden group"
+              className="text-center p-5 bg-black/60 backdrop-blur-xl rounded-full border border-white/20 w-full h-full flex flex-col items-center justify-center shadow-[0_0_60px_rgba(255,255,255,0.05)] relative overflow-hidden group transform-gpu"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-transparent opacity-40 group-hover:opacity-60 transition-opacity" />
               <motion.div 
                 animate={{ 
-                  opacity: [0.1, 0.3, 0.1],
-                  scale: [1, 1.05, 1]
+                  opacity: [0.1, 0.2, 0.1],
                 }}
-                transition={{ duration: 5, repeat: Infinity }}
-                className="absolute inset-[10%] border border-white/10 rounded-full" 
+                transition={{ duration: 8, repeat: Infinity }}
+                className="absolute inset-[15%] border border-white/5 rounded-full" 
               />
-              <h3 className="font-artistic text-2xl text-white mb-3 leading-tight relative z-10 drop-shadow-[0_0_10px_rgba(255,255,255,0.4)]">Knowledge is Power.</h3>
-              <div className="w-12 h-[0.5px] bg-gradient-to-r from-transparent via-white/40 to-transparent mb-3 relative z-10" />
-              <p className="font-display text-[10px] tracking-[0.4em] text-white/60 uppercase relative z-10 font-bold">Francis Bacon</p>
+              <h3 className="font-artistic text-xl text-white mb-2 leading-tight relative z-10 drop-shadow-[0_0_10px_rgba(255,255,255,0.4)]">Knowledge is Power.</h3>
+              <div className="w-10 h-[0.5px] bg-gradient-to-r from-transparent via-white/40 to-transparent mb-2 relative z-10" />
+              <p className="font-display text-[9px] tracking-[0.4em] text-white/50 uppercase relative z-10 font-bold">Francis Bacon</p>
             </motion.div>
           </div>
 
@@ -1773,7 +1776,19 @@ export default function App() {
               </button>
 
               <div className="flex flex-col md:flex-row items-center md:items-start gap-12 mb-12">
-                <div className={cn("w-32 h-32 rounded-full shrink-0", STRANDS[currentStrand as keyof typeof STRANDS].class)} />
+                <motion.div 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setCurrentStrand('home')}
+                  className={cn(
+                    "w-32 h-32 rounded-full shrink-0 cursor-pointer shadow-[0_0_30px_rgba(255,255,255,0.05)] transition-shadow hover:shadow-[0_0_50px_rgba(255,255,255,0.1)] relative group transform-gpu",
+                    STRANDS[currentStrand as keyof typeof STRANDS].class
+                  )} 
+                >
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 rounded-full">
+                    <span className="text-[10px] text-white font-bold tracking-widest uppercase">Home</span>
+                  </div>
+                </motion.div>
                 <div className="flex-1">
                   <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div>
@@ -1791,7 +1806,7 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {showSubjects ? (
                   <div className="col-span-full">
                     <BilingualSubjectsView 
