@@ -80,10 +80,10 @@ const PET_TYPES = [
 ];
 
 const STRANDS = {
-  vocabulary: { name: 'Vocabulary', nameZh: '單字', planet: 'Venus', color: '#ffd700', icon: BookOpen, class: 'planet-venus' },
-  pronunciation: { name: 'Pronunciation', nameZh: '發音', planet: 'Mars', color: '#ff4500', icon: Mic2, class: 'planet-mars' },
-  grammar: { name: 'Grammar', nameZh: '文法', planet: 'Mercury', color: '#a9a9a9', icon: PenTool, class: 'planet-mercury' },
-  tests: { name: 'Tests', nameZh: '測驗', planet: 'Jupiter', color: '#deb887', icon: GraduationCap, class: 'planet-jupiter' },
+  vocabulary: { name: 'Vocabulary', nameZh: '單字', planet: 'Venus', color: '#ffd700', icon: BookOpen, class: 'planet-venus', size: 0.95 },
+  pronunciation: { name: 'Pronunciation', nameZh: '發音', planet: 'Mars', color: '#ff4500', icon: Mic2, class: 'planet-mars', size: 0.53 },
+  grammar: { name: 'Grammar', nameZh: '文法', planet: 'Mercury', color: '#a9a9a9', icon: PenTool, class: 'planet-mercury', size: 0.38 },
+  tests: { name: 'Tests', nameZh: '測驗', planet: 'Jupiter', color: '#deb887', icon: GraduationCap, class: 'planet-jupiter', size: 2.2 }, // Capped Jupiter size for UI
 };
 
 const GEMS = {
@@ -228,34 +228,57 @@ const GalaxyBackground = React.memo(() => (
   </div>
 ));
 
-const Planet = ({ strand, info, onClick, disabled }: { strand: Strand, info: any, onClick: () => void, disabled: boolean, key?: any }) => (
-  <motion.div
-    whileHover={!disabled ? { scale: 1.1, rotate: 5 } : {}}
-    whileTap={!disabled ? { scale: 0.95 } : {}}
-    className={cn(
-      "relative flex flex-col items-center cursor-pointer group",
-      disabled && "opacity-50 cursor-not-allowed"
-    )}
-    onClick={onClick}
-  >
-    <div className={cn(
-      "w-24 h-24 md:w-32 md:h-32 rounded-full moon-glow transition-all duration-500",
-      info.class,
-      !disabled && "group-hover:shadow-[0_0_40px_rgba(255,255,255,0.4)]"
-    )}>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <info.icon className="w-10 h-10 text-white/80" />
+const Planet = ({ strand, info, onClick, disabled }: { strand: Strand, info: any, onClick: () => void, disabled: boolean, key?: any }) => {
+  const baseSize = 100;
+  const scaledSize = baseSize * (info.size || 1);
+  
+  return (
+    <motion.div
+      whileHover={!disabled ? { scale: 1.05, rotate: 2 } : {}}
+      whileTap={!disabled ? { scale: 0.95 } : {}}
+      className={cn(
+        "relative flex flex-col items-center cursor-pointer group",
+        disabled && "opacity-50 cursor-not-allowed"
+      )}
+      onClick={onClick}
+    >
+      <div 
+        className={cn(
+          "rounded-full moon-glow transition-all duration-700 relative overflow-hidden",
+          info.class,
+          !disabled && "group-hover:shadow-[0_0_60px_rgba(255,255,255,0.3)]"
+        )}
+        style={{ 
+          width: `${scaledSize}px`, 
+          height: `${scaledSize}px`,
+        }}
+      >
+        {/* Artistic Textures */}
+        <div className="absolute inset-0 opacity-40 mix-blend-overlay planet-texture" />
+        <div className="absolute inset-0 bg-gradient-to-tr from-black/60 via-transparent to-white/20" />
+        
+        {/* Atmospheric Glow */}
+        <div className="absolute inset-[-2px] rounded-full border border-white/10 opacity-50" />
+        
+        <div className="absolute inset-0 flex items-center justify-center z-10">
+          <info.icon className="w-8 h-8 text-white/80 group-hover:text-white drop-shadow-lg" />
+        </div>
       </div>
-    </div>
-    <span className="mt-4 font-display text-lg font-medium tracking-wider uppercase text-white/90 group-hover:text-white transition-colors">
-      {info.name}
-    </span>
-    <span className="text-sm font-medium text-white/60 group-hover:text-white/80 transition-colors">
-      {info.nameZh}
-    </span>
-    <span className="text-[10px] text-white/30 uppercase tracking-[0.2em] mt-1">{info.planet}</span>
-  </motion.div>
-);
+      <div className="mt-4 flex flex-col items-center text-center">
+        <span className="font-display text-lg font-bold tracking-tight text-white/90 group-hover:text-white transition-colors">
+          {info.name}
+        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-zh font-medium text-white/40 group-hover:text-white/60 transition-colors">
+            {info.nameZh}
+          </span>
+          <span className="w-1 h-1 rounded-full bg-white/20" />
+          <span className="text-[9px] text-white/20 uppercase tracking-[0.2em] font-bold">{info.planet}</span>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
 
 const Gem = ({ name, nameZh, url, color, type, onVisit, onClick }: { name: string, nameZh: string, url: string, color: string, type: string, onVisit: () => void, onClick?: () => void, key?: any }) => (
   <motion.button
@@ -399,40 +422,81 @@ const PetAvatar = ({ type, isPlaying, isRolling }: { type: string, isPlaying?: b
         {/* Ears/Features based on type */}
         {type.includes('Cat') && (
           <g fill={color}>
-            {/* Left Ear */}
             <path d="M 20 25 L 40 20 L 25 5 Z" stroke={color} strokeWidth="2" strokeLinejoin="round" />
-            {/* Right Ear */}
             <path d="M 80 25 L 60 20 L 75 5 Z" stroke={color} strokeWidth="2" strokeLinejoin="round" />
-            {/* Whiskers */}
             <g stroke="white" strokeWidth="1.5" opacity="0.6">
               <path d="M 30 55 L 10 50" />
               <path d="M 30 60 L 10 60" />
               <path d="M 70 55 L 90 50" />
               <path d="M 70 60 L 90 60" />
             </g>
-            {/* Nose */}
             <path d="M 47 53 L 53 53 L 50 57 Z" fill="#ff4d4d" />
           </g>
         )}
         {type.includes('Dog') && (
           <g fill={color}>
-            <ellipse cx="20" cy="40" rx="10" ry="20" />
-            <ellipse cx="80" cy="40" rx="10" ry="20" />
-            <circle cx="50" cy="55" r="4" fill="#3d3d3d" />
-          </g>
-        )}
-        {type.includes('Bunny') && (
-          <g fill={color}>
-            <ellipse cx="35" cy="15" rx="8" ry="30" />
-            <ellipse cx="65" cy="15" rx="8" ry="30" />
-            <circle cx="50" cy="55" r="3" fill="#ff9ff3" />
+            <path d="M 15 25 Q 10 10 25 20" stroke={color} fill="none" strokeWidth="8" strokeLinecap="round" />
+            <path d="M 85 25 Q 90 10 75 20" stroke={color} fill="none" strokeWidth="8" strokeLinecap="round" />
+            <circle cx="50" cy="55" r="5" fill="#1a1a1a" />
+            <path d="M 45 60 Q 50 65 55 60" stroke="#1a1a1a" fill="none" strokeWidth="2" strokeLinecap="round" />
           </g>
         )}
         {type.includes('Fox') && (
           <g fill={color}>
-            <path d="M 15 30 L 35 15 L 10 10 Z" />
-            <path d="M 85 30 L 65 15 L 90 10 Z" />
+            <path d="M 10 25 L 35 15 L 15 5 Z" stroke={color} strokeWidth="2" strokeLinejoin="round" />
+            <path d="M 90 25 L 65 15 L 85 5 Z" stroke={color} strokeWidth="2" strokeLinejoin="round" />
+            <path d="M 35 50 L 50 65 L 65 50 Z" fill="white" opacity="0.3" />
             <circle cx="50" cy="55" r="4" fill="#3d3d3d" />
+          </g>
+        )}
+        {type.includes('Bear') && (
+          <g fill={color}>
+            <circle cx="20" cy="20" r="10" />
+            <circle cx="80" cy="20" r="10" />
+            <ellipse cx="50" cy="60" rx="15" ry="10" fill="white" opacity="0.2" />
+            <circle cx="50" cy="55" r="5" fill="#1a1a1a" />
+          </g>
+        )}
+        {type.includes('Bunny') && (
+          <g fill={color}>
+            <motion.ellipse 
+              cx="35" cy="15" rx="8" ry="25" 
+              animate={{ rotate: [-5, 5, -5] }} 
+              transition={{ duration: 2, repeat: Infinity }} 
+            />
+            <motion.ellipse 
+              cx="65" cy="15" rx="8" ry="25"
+              animate={{ rotate: [5, -5, 5] }} 
+              transition={{ duration: 2, repeat: Infinity }} 
+            />
+            <circle cx="50" cy="55" r="3" fill="#ff9ff3" />
+          </g>
+        )}
+        {type.includes('Owl') && (
+          <g fill={color}>
+            <path d="M 15 20 L 40 30 L 30 15 Z" />
+            <path d="M 85 20 L 60 30 L 70 15 Z" />
+            <circle cx="35" cy="45" r="8" fill="white" opacity="0.2" />
+            <circle cx="65" cy="45" r="8" fill="white" opacity="0.2" />
+            <path d="M 48 55 L 52 55 L 50 62 Z" fill="#f1c40f" />
+          </g>
+        )}
+        {type.includes('Dragon') && (
+          <g fill={color}>
+            <path d="M 20 15 L 45 35 L 30 5 Z" />
+            <path d="M 80 15 L 55 35 L 70 5 Z" />
+            <path d="M 50 10 L 45 0 L 55 0 Z" opacity="0.5" />
+            <path d="M 30 65 Q 50 85 70 65" stroke="white" strokeWidth="2" fill="none" />
+            <circle cx="45" cy="55" r="2" fill="#ff4d4d" />
+            <circle cx="55" cy="55" r="2" fill="#ff4d4d" />
+          </g>
+        )}
+        {type.includes('Hamster') && (
+          <g fill={color}>
+            <circle cx="25" cy="20" r="8" />
+            <circle cx="75" cy="20" r="8" />
+            <ellipse cx="50" cy="65" rx="12" ry="8" fill="#ffcccc" opacity="0.5" />
+            <circle cx="50" cy="58" r="3" fill="#3d3d3d" />
           </g>
         )}
       </svg>
@@ -1140,14 +1204,15 @@ export default function App() {
             const rawWordData = words.find(w => {
               const rowDateRaw = w.date || "";
               const wDate = normalizeDate(rowDateRaw);
-              return wDate === dateStr || wDate === currentMMDD || (wDate && (wDate.includes(dateStr) || dateStr.includes(wDate)));
-            }) || (words.length > 0 ? words[hashString(dateStr) % words.length] : null);
+              // Fallback to MM-DD if year doesn't match
+              return wDate === today || wDate === currentMMDD;
+            }) || (words.length > 0 ? words[hashString(today) % words.length] : null);
 
             const rawQuoteData = quotes.find(q => {
               const rowDateRaw = q.date || "";
               const qDate = normalizeDate(rowDateRaw);
-              return qDate === dateStr || qDate === currentMMDD || (qDate && (qDate.includes(dateStr) || dateStr.includes(qDate)));
-            }) || (quotes.length > 0 ? quotes[hashString(dateStr) % (quotes.length || 1)] : null);
+              return qDate === today || qDate === currentMMDD;
+            }) || (quotes.length > 0 ? quotes[hashString(today) % (quotes.length || 1)] : null);
 
             if (rawWordData) {
               wordData = {
