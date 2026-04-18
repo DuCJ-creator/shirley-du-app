@@ -606,6 +606,14 @@ const BilingualSubjectsView = ({
               onChange={(e) => onSearchChange(e.target.value)}
               className="w-full bg-transparent border-none outline-none text-white placeholder:text-white/20 font-medium"
             />
+            {searchTerm && (
+              <button 
+                onClick={() => onSearchChange("")}
+                className="absolute right-4 text-white/40 hover:text-white transition-colors"
+              >
+                <RefreshCw className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -715,11 +723,11 @@ const BilingualSubjectsView = ({
             </motion.div>
           </div>
 
-          {/* The 8 Gems in a circle - Responsive Radius */}
+          {/* The 8 Gems in a circle - Stable Radius */}
           {SUBJECT_GEMS.map((subject, i) => {
             const angle = (i * 360) / 8;
-            // Radius scales with screen width but caps at 260px
-            const radius = typeof window !== 'undefined' ? Math.min(260, window.innerWidth * 0.35) : 260;
+            // Use a stable, relative radius instead of absolute window width
+            const radius = 230; 
             
             return (
               <motion.div
@@ -728,7 +736,7 @@ const BilingualSubjectsView = ({
                 animate={{ 
                   opacity: 1, 
                   scale: 1,
-                  transition: { delay: i * 0.1 + 0.3 }
+                  transition: { delay: i * 0.08 + 0.2 }
                 }}
                 style={{
                   position: 'absolute',
@@ -1789,7 +1797,12 @@ export default function App() {
                       type={gem.type || 'diamond'}
                       color={STRANDS[currentStrand as keyof typeof STRANDS].color}
                       onVisit={() => handleVisitGem(gem.name)}
-                      onClick={() => gem.url === 'subjects' && setShowSubjects(true)}
+                      onClick={() => {
+                        if (gem.url === 'subjects') {
+                          setVocabSearchTerm("");
+                          setShowSubjects(true);
+                        }
+                      }}
                     />
                   ))
                 )}
