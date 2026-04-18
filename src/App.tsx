@@ -575,40 +575,42 @@ const BilingualSubjectsView = ({ onBack, onVisit }: { onBack: () => void, onVisi
         <span className="font-medium">Back to Universe</span>
       </motion.button>
       
-      <div className="relative aspect-square max-w-[600px] mx-auto flex items-center justify-center">
-        {/* The Eight Trigrams (Bagua) Layout */}
-        <div className="absolute inset-0 border-[0.5px] border-white/5 rounded-full animate-[spin_60s_linear_infinite]" />
-        <div className="absolute inset-4 border-[0.5px] border-white/5 rounded-full animate-[spin_40s_linear_infinite_reverse]" />
-        <div className="absolute inset-8 border-[0.5px] border-white/5 rounded-full animate-[spin_20s_linear_infinite]" />
+      <div className="relative aspect-square w-full max-w-[650px] mx-auto flex items-center justify-center">
+        {/* The Eight Trigrams (Bagua) Layout Background */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute inset-0 border-[0.5px] border-white/5 rounded-full animate-[spin_60s_linear_infinite]" />
+          <div className="absolute inset-4 border-[0.5px] border-white/5 rounded-full animate-[spin_40s_linear_infinite_reverse]" />
+          <div className="absolute inset-8 border-[0.5px] border-white/5 rounded-full animate-[spin_20s_linear_infinite]" />
+        </div>
 
-        {/* Center: Quote - Using Absolute Centering Wrapper */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+        {/* Center: Quote - Using Absolute Centering Wrapper with Fixed Positioning Logic */}
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
           <motion.div 
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="pointer-events-auto text-center p-8 bg-black/60 backdrop-blur-3xl rounded-full border border-white/20 w-80 h-80 flex flex-col items-center justify-center shadow-[0_0_100px_rgba(255,255,255,0.15)] group overflow-hidden"
+            className="text-center p-8 bg-black/80 backdrop-blur-3xl rounded-full border border-white/20 w-[300px] h-[300px] flex flex-col items-center justify-center shadow-[0_0_120px_rgba(255,255,255,0.2)] group overflow-hidden relative"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-transparent opacity-50 group-hover:scale-110 transition-transform duration-1000" />
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-transparent opacity-50 group-hover:scale-110 transition-transform duration-1000" />
             <motion.div 
               animate={{ 
                 opacity: [0.3, 0.6, 0.3],
-                scale: [1, 1.05, 1]
+                scale: [1, 1.1, 1]
               }}
               transition={{ duration: 4, repeat: Infinity }}
-              className="absolute inset-[10%] border border-white/5 rounded-full" 
+              className="absolute inset-[8%] border border-white/10 rounded-full" 
             />
-            <h3 className="font-artistic text-3xl text-white mb-4 leading-tight relative z-10 drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]">Knowledge is Power.</h3>
-            <div className="w-20 h-[1px] bg-gradient-to-r from-transparent via-white/40 to-transparent mb-4 relative z-10" />
-            <p className="font-display text-[13px] tracking-[0.5em] text-white/70 uppercase relative z-10 font-bold">Francis Bacon</p>
+            <h3 className="font-artistic text-2xl md:text-3xl text-white mb-4 leading-tight relative z-10 drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]">Knowledge is Power.</h3>
+            <div className="w-16 h-[1px] bg-gradient-to-r from-transparent via-white/50 to-transparent mb-4 relative z-10" />
+            <p className="font-display text-[11px] md:text-[13px] tracking-[0.4em] text-white/80 uppercase relative z-10 font-bold">Francis Bacon</p>
             
-            <div className="absolute inset-0 animate-pulse opacity-20 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.1)_0%,transparent_70%)]" />
+            <div className="absolute inset-0 animate-pulse opacity-20 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.15)_0%,transparent_70%)]" />
           </motion.div>
         </div>
 
         {/* The 8 Gems in a circle */}
         {SUBJECT_GEMS.map((subject, i) => {
           const angle = (i * 360) / 8;
-          const radius = 240; // Increased distance from center for more room
+          const radius = 260; // Increased radius to prevent overlap with the center orb
           return (
             <motion.div
               key={subject.name}
@@ -622,9 +624,7 @@ const BilingualSubjectsView = ({ onBack, onVisit }: { onBack: () => void, onVisi
                 position: 'absolute',
                 left: '50%',
                 top: '50%',
-                marginLeft: `${Math.cos((angle - 90) * (Math.PI / 180)) * radius}px`,
-                marginTop: `${Math.sin((angle - 90) * (Math.PI / 180)) * radius}px`,
-                transform: 'translate(-50%, -50%)'
+                transform: `translate(-50%, -50%) translate(${Math.cos((angle - 90) * (Math.PI / 180)) * radius}px, ${Math.sin((angle - 90) * (Math.PI / 180)) * radius}px)`
               }}
               className="z-20"
             >
@@ -666,6 +666,7 @@ export default function App() {
   const [isActive, setIsActive] = useState(true);
   const [allWordData, setAllWordData] = useState<any[]>([]);
   const [vocabSearchTerm, setVocabSearchTerm] = useState("");
+  const [isFetchingVocab, setIsFetchingVocab] = useState(false);
   
   // Activity tracking
   const lastActivityRef = useRef(Date.now());
@@ -714,6 +715,61 @@ export default function App() {
       window.removeEventListener('focus', handleFocus);
       window.removeEventListener('blur', handleBlur);
     };
+  }, []);
+
+  useEffect(() => {
+    const fetchVocab = async () => {
+      setIsFetchingVocab(true);
+      try {
+        const wordRes = await fetch("https://ducj-creator.github.io/Teacher-Shirley/assets/word%20of%20the%20day.csv");
+        if (wordRes.ok) {
+          const wordCsv = await wordRes.text();
+          const parseCsv = (csv: string) => {
+            const lines = csv.split(/\r?\n/).filter(l => l.trim());
+            if (lines.length < 2) return [];
+            
+            const firstLine = lines[0];
+            const commaCount = (firstLine.match(/,/g) || []).length;
+            const semiCount = (firstLine.match(/;/g) || []).length;
+            const tabCount = (firstLine.match(/\t/g) || []).length;
+            const delimiter = semiCount > commaCount ? (semiCount > tabCount ? ';' : '\t') : (commaCount > tabCount ? ',' : '\t');
+
+            const splitCsvLine = (line: string) => {
+              const result = [];
+              let current = '';
+              let inQuotes = false;
+              for (let i = 0; i < line.length; i++) {
+                if (line[i] === '"') inQuotes = !inQuotes;
+                else if (line[i] === delimiter && !inQuotes) {
+                  result.push(current.trim());
+                  current = '';
+                } else current += line[i];
+              }
+              result.push(current.trim());
+              return result;
+            };
+
+            const headers = splitCsvLine(lines[0].replace(/^\uFEFF/, '')).map(h => h.toLowerCase().replace(/[^a-z0-9]/g, ''));
+            return lines.slice(1).map(line => {
+              const values = splitCsvLine(line);
+              return headers.reduce((obj: any, header, i) => {
+                let val = values[i] || '';
+                if (val.startsWith('"') && val.endsWith('"')) val = val.slice(1, -1);
+                obj[header] = val;
+                return obj;
+              }, {});
+            });
+          };
+          const words = parseCsv(wordCsv);
+          setAllWordData(words);
+        }
+      } catch (e) {
+        console.error("Failed to fetch vocab for search:", e);
+      } finally {
+        setIsFetchingVocab(false);
+      }
+    };
+    fetchVocab();
   }, []);
 
   const setupRealtimeListeners = (uid: string) => {
@@ -1624,46 +1680,90 @@ export default function App() {
                     />
                   </div>
                 ) : vocabSearchTerm.trim() !== "" ? (
-                  <div className="col-span-full space-y-4">
-                    <div className="flex items-center justify-between mb-8">
-                      <h4 className="text-white/60 font-medium font-display uppercase tracking-widest text-sm flex items-center gap-2">
-                        <Star className="w-4 h-4 text-blue-400" />
-                        Found {allWordData.filter(w => (w.word || w.vocabulary || '').toLowerCase().includes(vocabSearchTerm.toLowerCase())).length} Entries
-                      </h4>
-                      <button 
-                        onClick={() => setVocabSearchTerm("")}
-                        className="text-[10px] uppercase tracking-widest text-white/30 hover:text-white transition-colors"
-                      >
-                        Clear Results
-                      </button>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {allWordData
-                        .filter(w => (w.word || w.vocabulary || '').toLowerCase().includes(vocabSearchTerm.toLowerCase()))
-                        .map((w, idx) => (
-                          <motion.div 
-                            key={idx}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="p-6 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-sm hover:bg-white/10 transition-colors group relative overflow-hidden"
-                          >
-                            <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <Star className="w-4 h-4 text-white/20" />
-                            </div>
-                            <div className="flex items-baseline gap-3 mb-2">
-                              <h5 className="text-xl font-bold text-white tracking-tight">{w.word || w.vocabulary}</h5>
-                              <span className="text-[10px] text-white/40 font-mono italic">{w.pos}</span>
-                            </div>
-                            <p className="text-sm font-zh text-white/80 mb-3">{w.meaning}</p>
-                            <div className="space-y-1 py-3 border-t border-white/5">
-                              <p className="text-[11px] text-white/60 leading-relaxed italic line-clamp-2">"{w.sentencee || w.example}"</p>
-                              <p className="text-[10px] text-white/30 font-zh line-clamp-1">{w.sentencec || w.translation}</p>
-                            </div>
-                            <div className="flex justify-end pt-2">
-                              <span className="text-[8px] uppercase tracking-widest text-white/10 font-bold">{w.date || 'Archives'}</span>
-                            </div>
-                          </motion.div>
-                        ))}
+                  <div className="col-span-full space-y-8">
+                    {/* Matching Tools/Links */}
+                    {(GEMS[currentStrand as keyof typeof GEMS] || []).filter(gem => 
+                      gem.name.toLowerCase().includes(vocabSearchTerm.toLowerCase()) || 
+                      gem.nameZh.toLowerCase().includes(vocabSearchTerm.toLowerCase())
+                    ).length > 0 && (
+                      <div className="space-y-4">
+                        <h4 className="text-white/40 text-[10px] uppercase tracking-[0.3em] font-bold px-2">Related Tools</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                          {GEMS[currentStrand as keyof typeof GEMS].filter(gem => 
+                            gem.name.toLowerCase().includes(vocabSearchTerm.toLowerCase()) || 
+                            gem.nameZh.toLowerCase().includes(vocabSearchTerm.toLowerCase())
+                          ).map((gem, idx) => (
+                            <Gem 
+                              key={`gem-${idx}`} 
+                              name={gem.name} 
+                              nameZh={gem.nameZh}
+                              url={gem.url} 
+                              type={gem.type || 'diamond'}
+                              color={STRANDS[currentStrand as keyof typeof STRANDS].color}
+                              onVisit={() => handleVisitGem(gem.name)}
+                              onClick={() => gem.url === 'subjects' && setShowSubjects(true)}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Word Entries */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between px-2">
+                        <h4 className="text-white/40 text-[10px] uppercase tracking-[0.3em] font-bold">Word Entries</h4>
+                        <span className="text-[10px] text-blue-400/60 font-medium">
+                          Found {allWordData.filter(w => 
+                            (w.word || w.vocabulary || '').toLowerCase().includes(vocabSearchTerm.toLowerCase()) ||
+                            (w.meaning || w.definition || '').toLowerCase().includes(vocabSearchTerm.toLowerCase())
+                          ).length} results
+                        </span>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {allWordData
+                          .filter(w => 
+                            (w.word || w.vocabulary || '').toLowerCase().includes(vocabSearchTerm.toLowerCase()) ||
+                            (w.meaning || w.definition || '').toLowerCase().includes(vocabSearchTerm.toLowerCase())
+                          )
+                          .map((w, idx) => (
+                            <motion.div 
+                              key={`word-${idx}`}
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="p-6 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-sm hover:bg-white/10 transition-colors group relative overflow-hidden"
+                            >
+                              <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Star className="w-4 h-4 text-white/20" />
+                              </div>
+                              <div className="flex items-baseline gap-3 mb-2">
+                                <h5 className="text-xl font-bold text-white tracking-tight">{w.word || w.vocabulary}</h5>
+                                <span className="text-[10px] text-white/40 font-mono italic">{w.pos}</span>
+                              </div>
+                              <p className="text-sm font-zh text-white/80 mb-3">{w.meaning || w.definition || w.meaningen}</p>
+                              <div className="space-y-1 py-3 border-t border-white/5">
+                                <p className="text-[11px] text-white/60 leading-relaxed italic line-clamp-2">"{w.sentencee || w.example || w.sentenceen || w.exampleen}"</p>
+                                <p className="text-[10px] text-white/30 font-zh line-clamp-1">{w.sentencec || w.translation || w.sentencecn}</p>
+                              </div>
+                              <div className="flex justify-end pt-2">
+                                <span className="text-[8px] uppercase tracking-widest text-white/10 font-bold">{w.date || 'Archives'}</span>
+                              </div>
+                            </motion.div>
+                          ))}
+                      </div>
+
+                      {allWordData.length === 0 && !isFetchingVocab && (
+                        <div className="p-20 text-center bg-white/5 border border-white/10 rounded-3xl">
+                          <p className="text-white/40 italic">System data initializing... please wait or try again later.</p>
+                        </div>
+                      )}
+                      
+                      {isFetchingVocab && (
+                        <div className="flex flex-col items-center justify-center p-20 gap-4">
+                          <RefreshCw className="w-6 h-6 text-blue-400 animate-spin" />
+                          <p className="text-[10px] uppercase tracking-widest text-white/30 animate-pulse font-bold">Syncing Universal Index...</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ) : (
