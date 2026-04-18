@@ -3,13 +3,13 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   Moon, Star, Sparkles, BookOpen, Mic2, PenTool, GraduationCap, 
   Home, User, Trophy, Heart, Coffee, ChevronLeft, ExternalLink,
-  LogIn, LogOut, Clock, Zap, RefreshCw, Search
+  LogIn, LogOut, Clock, Zap, RefreshCw, Search, TrendingUp, ChevronRight
 } from 'lucide-react';
 import { cn } from './lib/utils';
 import { 
   auth, db, googleProvider, signInWithPopup, signOut, onAuthStateChanged,
   doc, getDoc, setDoc, updateDoc, increment, serverTimestamp, onSnapshot,
-  collection, query, where, arrayUnion
+  collection, query, where, arrayUnion, deleteDoc
 } from './firebase';
 import { GoogleGenAI } from "@google/genai";
 
@@ -62,6 +62,8 @@ interface PetData {
   hunger: number;
   happiness: number;
   level: number;
+  xp: number;
+  maxXp: number;
   isPlaying?: boolean;
 }
 
@@ -539,52 +541,139 @@ const FloatingPet = ({ pet, onReturn }: { pet: PetData, onReturn: () => void }) 
   );
 };
 
-const PetSection = ({ points, pet, onFeed, onPlay, onAdopt, isRolling }: { points: number, pet: PetData | null, onFeed: () => void, onPlay: () => void, onAdopt: () => void, isRolling: boolean }) => {
+const PetSection = ({ points, pet, onFeed, onPlay, onAdopt, onRelease, isRolling }: { points: number, pet: PetData | null, onFeed: () => void, onPlay: () => void, onAdopt: (selectedPet: typeof PET_TYPES[0]) => void, onRelease: () => void, isRolling: boolean }) => {
+  const [showShelter, setShowShelter] = useState(false);
+  const [selectedShelterPet, setSelectedShelterPet] = useState<typeof PET_TYPES[0] | null>(null);
+
   if (!pet) return (
-    <div className="p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md text-center">
-      <h3 className="text-xl font-display mb-4">Adopt a Space Pet</h3>
-      <p className="text-white/60 mb-6">Use your hard-earned points to adopt a random celestial companion!</p>
-      <button 
-        onClick={onAdopt}
-        disabled={points < 100}
-        className="px-6 py-2 bg-white text-black rounded-full font-medium hover:bg-white/90 transition-colors disabled:opacity-50"
-      >
-        Adopt for 100 Points
-      </button>
+    <div className="p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md">
+      {!showShelter ? (
+        <div className="text-center">
+          <Sparkles className="w-12 h-12 text-blue-400 mx-auto mb-4 opacity-50" />
+          <h3 className="text-2xl font-display mb-2">The Celestial Shelter</h3>
+          <p className="text-white/60 mb-6 text-sm">Choose your destiny among the stars. Every companion brings their own spark to your journey.</p>
+          <button 
+            onClick={() => setShowShelter(true)}
+            className="px-8 py-3 bg-white text-black rounded-full font-bold hover:bg-blue-50 transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,255,255,0.2)]"
+          >
+            Enter Shelter
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <button onClick={() => setShowShelter(false)} className="text-white/40 hover:text-white flex items-center gap-1 transition-colors">
+              <ChevronLeft className="w-4 h-4" /> Back
+            </button>
+            <h3 className="text-xl font-display">Select Companion</h3>
+          </div>
+          
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+            {PET_TYPES.map((p, idx) => (
+              <motion.button
+                key={idx}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setSelectedShelterPet(p)}
+                className={cn(
+                  "p-3 rounded-2xl border transition-all flex flex-col items-center gap-2",
+                  selectedShelterPet?.name === p.name 
+                    ? "bg-blue-500/20 border-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.3)]" 
+                    : "bg-white/5 border-white/10 hover:border-white/20"
+                )}
+              >
+                <div className="w-12 h-12 rounded-full overflow-hidden border border-white/10">
+                  <PetAvatar type={p.type} />
+                </div>
+                <div className="text-center">
+                  <p className="text-[10px] font-bold text-white leading-tight">{p.name}</p>
+                  <p className="text-[8px] text-white/40">{p.type}</p>
+                </div>
+              </motion.button>
+            ))}
+          </div>
+
+          <div className="pt-4 border-t border-white/5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2 text-blue-400 font-bold text-sm">
+                <Zap className="w-4 h-4" /> 100 Points Required
+              </div>
+              <div className="text-white/40 text-xs">Available: {points} pts</div>
+            </div>
+            <button 
+              disabled={!selectedShelterPet || points < 100}
+              onClick={() => selectedShelterPet && onAdopt(selectedShelterPet)}
+              className="w-full py-4 bg-white text-black rounded-2xl font-bold disabled:opacity-30 disabled:grayscale transition-all hover:bg-blue-50"
+            >
+              {selectedShelterPet ? `Adopt ${selectedShelterPet.name}` : "Confirm Selection"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 
   return (
-    <div className="p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md">
+    <div className="relative p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md group/shelter">
+      <button 
+        onClick={onRelease}
+        className="absolute top-4 right-4 text-[10px] uppercase font-bold tracking-widest text-white/10 hover:text-red-400 transition-colors flex items-center gap-1 group/release"
+      >
+        <TrendingUp className="w-3 h-3 rotate-45 group-hover/release:rotate-0 transition-transform" /> 
+        Release to Wild
+      </button>
       <div className="flex items-center gap-6">
         <div className="w-24 h-24 rounded-full border-2 border-white/20 moon-glow relative">
           <PetAvatar type={pet.type} isRolling={isRolling} />
         </div>
         <div className="flex-1">
           <h3 className="text-2xl font-display">{pet.name}</h3>
-          <p className="text-white/40 text-sm uppercase tracking-widest">Level {pet.level} {pet.type}</p>
-          <div className="mt-4 space-y-2">
-            <div className="flex justify-between text-xs uppercase tracking-tighter">
-              <span>Hunger</span>
-              <span>{Math.round(pet.hunger)}%</span>
+          <p className="text-white/40 text-sm uppercase tracking-widest font-medium">Level {pet.level} {pet.type}</p>
+          
+          <div className="mt-4 space-y-3">
+            {/* XP Bar */}
+            <div className="space-y-1">
+              <div className="flex justify-between text-[10px] uppercase tracking-widest font-bold text-blue-400">
+                <span>XP Progress</span>
+                <span>{pet.xp} / {pet.maxXp}</span>
+              </div>
+              <div className="h-2 bg-white/5 rounded-full overflow-hidden border border-white/5">
+                <motion.div 
+                  initial={{ width: 0 }}
+                  animate={{ width: `${(pet.xp / pet.maxXp) * 100}%` }}
+                  className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 shadow-[0_0_10px_rgba(59,130,246,0.5)]"
+                />
+              </div>
             </div>
-            <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-              <motion.div 
-                initial={{ width: 0 }}
-                animate={{ width: `${pet.hunger}%` }}
-                className={cn("h-full transition-colors", pet.hunger < 20 ? "bg-red-500" : "bg-orange-500")}
-              />
-            </div>
-            <div className="flex justify-between text-xs uppercase tracking-tighter mt-2">
-              <span>Happiness</span>
-              <span>{Math.round(pet.happiness)}%</span>
-            </div>
-            <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-              <motion.div 
-                initial={{ width: 0 }}
-                animate={{ width: `${pet.happiness}%` }}
-                className="h-full bg-pink-500"
-              />
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <div className="flex justify-between text-[9px] uppercase tracking-tighter text-white/50">
+                  <span>Hunger</span>
+                  <span>{Math.round(pet.hunger)}%</span>
+                </div>
+                <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${pet.hunger}%` }}
+                    className={cn("h-full transition-colors", pet.hunger < 20 ? "bg-red-500" : "bg-orange-500")}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <div className="flex justify-between text-[9px] uppercase tracking-tighter text-white/50">
+                  <span>Happiness</span>
+                  <span>{Math.round(pet.happiness)}%</span>
+                </div>
+                <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${pet.happiness}%` }}
+                    className="h-full bg-pink-500"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1236,26 +1325,35 @@ export default function App() {
     setShowSubjects(false);
   };
 
-  const handleAdoptPet = async () => {
+  const handleAdoptPet = async (selectedPet: typeof PET_TYPES[0]) => {
     if (!user || !userData || userData.points < 100) return;
     const userRef = doc(db, 'users', user.uid);
     await updateDoc(userRef, { points: increment(-100) });
     
-    // Pick a random pet
-    const randomPet = PET_TYPES[Math.floor(Math.random() * PET_TYPES.length)];
-    
-    await addPointLog(user.uid, 'pet', -100, `Adopted ${randomPet.name} the ${randomPet.type}`);
+    await addPointLog(user.uid, 'pet', -100, `Adopted ${selectedPet.name} the ${selectedPet.type}`);
     const petRef = doc(db, 'users', user.uid, 'pets', 'main_pet');
     await setDoc(petRef, {
-      name: randomPet.name,
-      type: randomPet.type,
-      image: randomPet.image,
+      name: selectedPet.name,
+      type: selectedPet.type,
+      image: selectedPet.image,
       hunger: 100,
       happiness: 100,
       level: 1,
+      xp: 0,
+      maxXp: 100,
       ownerId: user.uid,
       lastFed: serverTimestamp()
     });
+  };
+
+  const handleReleasePet = async () => {
+    if (!user || !petData) return;
+    const confirm = window.confirm(`Are you sure you want to release ${petData.name} back into the wild universe? This will reset all pet progress.`);
+    if (!confirm) return;
+
+    const petRef = doc(db, 'users', user.uid, 'pets', 'main_pet');
+    await deleteDoc(petRef);
+    setPetData(null);
   };
 
   const handleFeedPet = async () => {
@@ -1267,9 +1365,23 @@ export default function App() {
     const petRef = doc(db, 'users', user.uid, 'pets', 'main_pet');
     const petSnap = await getDoc(petRef);
     if (petSnap.exists()) {
+      const data = petSnap.data();
+      let newLevel = data.level || 1;
+      let newXp = (data.xp || 0) + 20;
+      let newMaxXp = data.maxXp || 100;
+
+      if (newXp >= newMaxXp) {
+        newXp -= newMaxXp;
+        newLevel += 1;
+        newMaxXp = newLevel * 100;
+      }
+
       await updateDoc(petRef, {
-        hunger: Math.min(100, (petSnap.data().hunger || 0) + 15),
-        happiness: Math.min(100, (petSnap.data().happiness || 0) + 5)
+        hunger: Math.min(100, (data.hunger || 0) + 15),
+        happiness: Math.min(100, (data.happiness || 0) + 5),
+        xp: newXp,
+        level: newLevel,
+        maxXp: newMaxXp
       });
     }
   };
@@ -1285,9 +1397,22 @@ export default function App() {
       setTimeout(() => setIsRolling(false), 1000);
     }
 
+    let newLevel = petData.level || 1;
+    let newXp = (petData.xp || 0) + 10;
+    let newMaxXp = petData.maxXp || 100;
+
+    if (newXp >= newMaxXp) {
+      newXp -= newMaxXp;
+      newLevel += 1;
+      newMaxXp = newLevel * 100;
+    }
+
     await updateDoc(petRef, {
       isPlaying: newIsPlaying,
-      happiness: Math.min(100, (petData.happiness || 0) + 10)
+      happiness: Math.min(100, (petData.happiness || 0) + 10),
+      xp: newXp,
+      level: newLevel,
+      maxXp: newMaxXp
     });
   };
 
@@ -1558,6 +1683,7 @@ export default function App() {
                 onFeed={handleFeedPet} 
                 onPlay={handlePlayWithPet}
                 onAdopt={handleAdoptPet} 
+                onRelease={handleReleasePet}
                 isRolling={isRolling}
               />
             </motion.div>
