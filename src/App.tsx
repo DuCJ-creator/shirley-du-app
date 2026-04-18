@@ -585,7 +585,7 @@ const BilingualSubjectsView = ({ onBack, onVisit }: { onBack: () => void, onVisi
         <motion.div 
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="absolute z-10 text-center p-8 bg-black/50 backdrop-blur-3xl rounded-full border border-white/20 w-72 h-72 flex flex-col items-center justify-center shadow-[0_0_100px_rgba(255,255,255,0.1)] group overflow-hidden"
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 text-center p-8 bg-black/50 backdrop-blur-3xl rounded-full border border-white/20 w-72 h-72 flex flex-col items-center justify-center shadow-[0_0_100px_rgba(255,255,255,0.1)] group overflow-hidden"
         >
           <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-transparent opacity-50 group-hover:scale-110 transition-transform duration-1000" />
           <motion.div 
@@ -662,6 +662,7 @@ export default function App() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [logs, setLogs] = useState<PointLog[]>([]);
   const [sessionStudyTime, setSessionStudyTime] = useState(0);
+  const [isActive, setIsActive] = useState(true);
   
   // Activity tracking
   const lastActivityRef = useRef(Date.now());
@@ -685,9 +686,20 @@ export default function App() {
     const handleActivity = () => {
       lastActivityRef.current = Date.now();
     };
+
+    const handleVisibilityChange = () => {
+      setIsActive(!document.hidden);
+    };
+
+    const handleFocus = () => setIsActive(true);
+    const handleBlur = () => setIsActive(false);
+
     window.addEventListener('scroll', handleActivity);
     window.addEventListener('mousemove', handleActivity);
     window.addEventListener('keydown', handleActivity);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('blur', handleBlur);
 
     return () => {
       unsubscribe();
@@ -695,6 +707,9 @@ export default function App() {
       window.removeEventListener('scroll', handleActivity);
       window.removeEventListener('mousemove', handleActivity);
       window.removeEventListener('keydown', handleActivity);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('blur', handleBlur);
     };
   }, []);
 
@@ -1032,10 +1047,11 @@ export default function App() {
   };
 
   const startStudyTimer = (uid: string) => {
-    // UI Timer: Updates every second
+    // UI Timer: Updates session time every second
     studyTimerRef.current = setInterval(() => {
       const now = Date.now();
-      if (now - lastActivityRef.current < 5 * 60 * 1000) { // Active in last 5 mins
+      // Only count if active in last 5 mins AND tab is focused/visible
+      if (isActive && (now - lastActivityRef.current < 5 * 60 * 1000)) {
         setSessionStudyTime(prev => prev + 1);
       }
     }, 1000);
@@ -1043,7 +1059,7 @@ export default function App() {
     // Sync Timer: Updates Firebase every 10 minutes
     syncTimerRef.current = setInterval(async () => {
       const now = Date.now();
-      if (now - lastActivityRef.current < 10 * 60 * 1000) {
+      if (isActive && (now - lastActivityRef.current < 10 * 60 * 1000)) {
         const userRef = doc(db, 'users', uid);
         await updateDoc(userRef, {
           points: increment(5),
@@ -1233,11 +1249,19 @@ export default function App() {
               <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
                 <Clock className="w-5 h-5 text-blue-400" />
               </div>
-              <div>
-                <p className="text-[10px] uppercase tracking-widest text-white/40 leading-none">Study Time</p>
-                <p className="text-lg font-display font-bold">
-                  {(userData?.studyTimeTotal || 0) + Math.floor(sessionStudyTime / 60)}m
-                </p>
+              <div className="flex flex-col">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-[8px] uppercase tracking-widest text-white/40 font-bold">Total</span>
+                  <p className="text-lg font-display font-bold leading-none">
+                    {Number(((userData?.studyTimeTotal || 0) / 60).toFixed(1))}h
+                  </p>
+                </div>
+                <div className="flex items-baseline gap-2 mt-0.5">
+                  <span className="text-[8px] uppercase tracking-widest text-blue-400/60 font-bold">Session</span>
+                  <p className="text-sm font-display font-medium text-blue-200/80 leading-none">
+                    {Math.floor(sessionStudyTime / 60)}m
+                  </p>
+                </div>
               </div>
             </motion.div>
           )}
