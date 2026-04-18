@@ -617,25 +617,36 @@ const PetSection = ({ points, pet, onFeed, onPlay, onAdopt, onRelease, isRolling
     <div className="relative p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md group/shelter">
       <button 
         onClick={onRelease}
-        className="absolute top-4 right-4 text-[10px] uppercase font-bold tracking-widest text-white/10 hover:text-red-400 transition-colors flex items-center gap-1 group/release"
+        className="absolute top-4 right-4 text-[10px] uppercase font-black tracking-[0.2em] text-white/40 hover:text-red-400 transition-all flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full border border-white/5 hover:border-red-400/30 group/release"
       >
         <TrendingUp className="w-3 h-3 rotate-45 group-hover/release:rotate-0 transition-transform" /> 
         Release to Wild
       </button>
       <div className="flex items-center gap-6">
-        <div className="w-24 h-24 rounded-full border-2 border-white/20 moon-glow relative">
+        <div className="w-24 h-24 rounded-full border-2 border-white/20 moon-glow relative shrink-0">
           <PetAvatar type={pet.type} isRolling={isRolling} />
         </div>
-        <div className="flex-1">
-          <h3 className="text-2xl font-display">{pet.name}</h3>
-          <p className="text-white/40 text-sm uppercase tracking-widest font-medium">Level {pet.level} {pet.type}</p>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h3 className="text-2xl font-display truncate">{pet.name}</h3>
+              <p className="text-white/40 text-[10px] uppercase tracking-[0.2em] font-bold">Lvl {pet.level} {pet.type}</p>
+            </div>
+            <div className="text-right hidden sm:block">
+              <p className="text-[8px] text-white/20 uppercase tracking-widest font-bold">Standard</p>
+              <p className="text-[10px] text-blue-400 font-bold">Goal: {pet.maxXp} XP</p>
+            </div>
+          </div>
           
           <div className="mt-4 space-y-3">
             {/* XP Bar */}
             <div className="space-y-1">
               <div className="flex justify-between text-[10px] uppercase tracking-widest font-bold text-blue-400">
                 <span>XP Progress</span>
-                <span>{pet.xp} / {pet.maxXp}</span>
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-2 h-2" />
+                  <span>{pet.xp} / {pet.maxXp}</span>
+                </div>
               </div>
               <div className="h-2 bg-white/5 rounded-full overflow-hidden border border-white/5">
                 <motion.div 
@@ -648,7 +659,7 @@ const PetSection = ({ points, pet, onFeed, onPlay, onAdopt, onRelease, isRolling
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <div className="flex justify-between text-[9px] uppercase tracking-tighter text-white/50">
+                <div className="flex justify-between text-[8px] uppercase tracking-widest text-white/30 font-bold">
                   <span>Hunger</span>
                   <span>{Math.round(pet.hunger)}%</span>
                 </div>
@@ -662,7 +673,7 @@ const PetSection = ({ points, pet, onFeed, onPlay, onAdopt, onRelease, isRolling
               </div>
 
               <div className="space-y-1">
-                <div className="flex justify-between text-[9px] uppercase tracking-tighter text-white/50">
+                <div className="flex justify-between text-[8px] uppercase tracking-widest text-white/30 font-bold">
                   <span>Happiness</span>
                   <span>{Math.round(pet.happiness)}%</span>
                 </div>
@@ -678,24 +689,38 @@ const PetSection = ({ points, pet, onFeed, onPlay, onAdopt, onRelease, isRolling
           </div>
         </div>
       </div>
-      <div className="mt-8 flex gap-4">
-        <button 
-          onClick={onFeed}
-          disabled={points < 10}
-          className="flex-1 py-3 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-50 group"
-        >
-          <Coffee className="w-4 h-4 group-hover:scale-110 transition-transform" /> Feed (10 pts)
-        </button>
-        <button 
-          onClick={onPlay}
-          className={cn(
-            "flex-1 py-3 rounded-xl flex items-center justify-center gap-2 transition-all group",
-            pet.isPlaying ? "bg-pink-500 text-white" : "bg-white/10 hover:bg-white/20"
-          )}
-        >
-          <Heart className={cn("w-4 h-4 group-hover:scale-110 transition-transform", pet.isPlaying ? "text-white" : "text-pink-500")} /> 
-          {pet.isPlaying ? "Playing..." : "Play"}
-        </button>
+      <div className="mt-8 flex flex-col gap-4">
+        <div className="flex gap-4">
+          <button 
+            onClick={onFeed}
+            disabled={points < 10}
+            className="flex-1 py-3 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-50 group border border-white/5"
+          >
+            <Coffee className="w-4 h-4 group-hover:scale-110 transition-transform text-orange-400" /> 
+            <div className="flex flex-col items-start leading-none">
+              <span className="text-xs font-bold uppercase tracking-wider">Feed</span>
+              <span className="text-[7px] text-white/40">+20 XP • 10 pts</span>
+            </div>
+          </button>
+          <button 
+            onClick={onPlay}
+            className={cn(
+              "flex-1 py-3 rounded-xl flex items-center justify-center gap-2 transition-all group border border-white/5",
+              pet.isPlaying ? "bg-pink-500 text-white shadow-[0_0_20px_rgba(236,72,153,0.3)]" : "bg-white/10 hover:bg-white/20"
+            )}
+          >
+            <Heart className={cn("w-4 h-4 group-hover:scale-110 transition-transform", pet.isPlaying ? "text-white" : "text-pink-500")} /> 
+            <div className="flex flex-col items-start leading-none">
+              <span className="text-xs font-bold uppercase tracking-wider">{pet.isPlaying ? "Playing..." : "Play"}</span>
+              <span className={cn("text-[7px]", pet.isPlaying ? "text-white/70" : "text-white/40")}>+10 XP</span>
+            </div>
+          </button>
+        </div>
+        <p className="text-[8px] text-white/20 text-center uppercase tracking-[0.3em] font-bold">
+          Level up requires {pet.maxXp} XP • Visit the 
+          <button onClick={onRelease} className="mx-1 text-blue-400/50 hover:text-blue-400 transition-colors">Shelter</button> 
+          to hand-pick a new companion
+        </p>
       </div>
       <p className="text-[10px] text-white/20 text-center mt-4">
         {pet.isPlaying ? "Your pet is accompanying you! Double-tap it to return." : "Tip: Click Play to have your pet accompany you!"}
