@@ -579,7 +579,6 @@ const BilingualSubjectsView = ({
   isFetching: boolean,
   currentStrand: string
 }) => {
-  // Use a local copy of subject gems to prevent any possible shadowing/mutation issues
   const localSubjectGems = [
     { name: 'Language Art', nameZh: '語文', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/language%20art.html', type: 'diamond' },
     { name: 'Math', nameZh: '數學', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/math.html', type: 'ruby' },
@@ -592,8 +591,8 @@ const BilingualSubjectsView = ({
   ];
 
   return (
-    <div className="relative w-full max-w-6xl mx-auto py-12 px-4 min-h-[800px]">
-      <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-16 relative z-[100]">
+    <div className="relative w-full max-w-6xl mx-auto py-8 px-4 flex flex-col items-center">
+      <div className="w-full flex flex-col md:flex-row items-center justify-between gap-8 mb-12 relative z-[100]">
         <motion.button
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -601,15 +600,15 @@ const BilingualSubjectsView = ({
           className="flex items-center gap-2 text-white/60 hover:text-white transition-colors group"
         >
           <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-          <div className="flex flex-col items-start leading-none">
-            <span className="font-medium">Back to Universe</span>
+          <div className="flex flex-col items-start leading-none text-left">
+            <span className="font-medium text-sm">Back to Universe</span>
             <span className="text-[10px] opacity-60">回到單字區</span>
           </div>
         </motion.button>
 
         <div className="relative w-full max-w-md group">
           <div className="absolute inset-0 bg-blue-500/5 blur-xl group-focus-within:bg-blue-500/10 transition-all rounded-full" />
-          <div className="relative flex items-center bg-white/5 border border-white/10 p-4 pl-12 rounded-2xl backdrop-blur-md focus-within:border-white/30 transition-all">
+          <div className="relative flex items-center bg-white/5 border border-white/10 p-4 pl-12 rounded-2xl backdrop-blur-md focus-within:border-white/30 transition-all shadow-lg">
             <Search className="absolute left-4 w-5 h-5 text-white/40" />
             <input 
               type="text" 
@@ -621,7 +620,7 @@ const BilingualSubjectsView = ({
             {searchTerm && (
               <button 
                 onClick={() => onSearchChange("")}
-                className="absolute right-4 text-white/40 hover:text-white transition-colors"
+                className="absolute right-4 text-white/40 hover:text-white transition-colors p-1"
                 title="Clear search"
               >
                 <RefreshCw className="w-4 h-4" />
@@ -632,7 +631,7 @@ const BilingualSubjectsView = ({
       </div>
       
       {searchTerm.trim() !== "" ? (
-        <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="w-full space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
           {/* Matching Subjects/Tools */}
           {localSubjectGems.filter(gem => 
             gem.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -640,7 +639,7 @@ const BilingualSubjectsView = ({
           ).length > 0 && (
             <div className="space-y-4">
               <h4 className="text-white/40 text-[10px] uppercase tracking-[0.3em] font-bold px-2">Matching Subjects</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
                 {localSubjectGems.filter(gem => 
                   gem.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                   gem.nameZh.toLowerCase().includes(searchTerm.toLowerCase())
@@ -648,7 +647,7 @@ const BilingualSubjectsView = ({
                   <Gem 
                     key={`gem-search-${idx}`} 
                     {...gem}
-                    color="#fff" // Default search color
+                    color="#fff" 
                     onVisit={() => onVisit(gem.name)}
                   />
                 ))}
@@ -704,73 +703,68 @@ const BilingualSubjectsView = ({
                 <p className="text-[10px] uppercase tracking-widest text-white/30 font-bold animate-pulse">Syncing Universal Index...</p>
               </div>
             )}
-            
-            {!isFetching && allWordData.filter(w => 
-              (w.word || w.vocabulary || w.term || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-              (w.meaning || w.definition || w.meaningen || '').toLowerCase().includes(searchTerm.toLowerCase())
-            ).length === 0 && (
-              <div className="p-20 text-center bg-white/5 border border-white/10 rounded-[2rem] border-dashed">
-                <p className="text-white/20 italic">No exact matches found in the current archive.</p>
-              </div>
-            )}
           </div>
         </div>
       ) : (
-        <div className="relative aspect-square w-full max-w-[700px] mx-auto flex items-center justify-center mt-8">
-          {/* Animated Background Rings */}
-          <div className="absolute inset-0 pointer-events-none scale-110">
-            <div className="absolute inset-0 border-[0.5px] border-white/5 rounded-full animate-[spin_60s_linear_infinite]" />
-            <div className="absolute inset-10 border-[0.5px] border-white/5 rounded-full animate-[spin_40s_linear_infinite_reverse]" />
-            <div className="absolute inset-20 border-[0.5px] border-white/5 rounded-full animate-[spin_20s_linear_infinite]" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.03)_0%,transparent_70%)]" />
+        <div className="relative w-full aspect-square max-w-[660px] flex items-center justify-center overflow-visible mt-12 bg-white/[0.01] rounded-full border border-white/[0.02]">
+          {/* Decorative Background Elements */}
+          <div className="absolute inset-0 pointer-events-none overflow-visible">
+            <div className="absolute inset-0 border-[0.5px] border-white/5 rounded-full animate-[spin_100s_linear_infinite]" />
+            <div className="absolute inset-12 border-[0.5px] border-white/5 rounded-full animate-[spin_70s_linear_infinite_reverse]" />
+            <div className="absolute inset-24 border-[0.5px] border-white/5 rounded-full animate-[spin_40s_linear_infinite]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.05)_0%,transparent_70%)]" />
           </div>
 
-          {/* Centerpiece: The Knowledge Core */}
-          <div className="relative z-10">
+          {/* Central Quote Node */}
+          <div className="relative z-10 w-[240px] h-[240px]">
             <motion.div 
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="text-center p-10 bg-black/40 backdrop-blur-3xl rounded-full border border-white/10 w-[300px] h-[300px] flex flex-col items-center justify-center shadow-[0_0_150px_rgba(255,255,255,0.1)] group relative overflow-hidden"
+              className="text-center p-6 bg-black/60 backdrop-blur-3xl rounded-full border border-white/20 w-full h-full flex flex-col items-center justify-center shadow-[0_0_80px_rgba(255,255,255,0.1)] relative overflow-hidden group"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-transparent opacity-50" />
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-transparent opacity-40 group-hover:opacity-60 transition-opacity" />
               <motion.div 
                 animate={{ 
-                  opacity: [0.2, 0.4, 0.2],
+                  opacity: [0.1, 0.3, 0.1],
                   scale: [1, 1.05, 1]
                 }}
-                transition={{ duration: 6, repeat: Infinity }}
-                className="absolute inset-[6%] border border-white/5 rounded-full" 
+                transition={{ duration: 5, repeat: Infinity }}
+                className="absolute inset-[10%] border border-white/10 rounded-full" 
               />
-              <h3 className="font-artistic text-3xl text-white mb-4 leading-tight relative z-10 drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]">Knowledge is Power.</h3>
-              <div className="w-16 h-[0.5px] bg-gradient-to-r from-transparent via-white/30 to-transparent mb-4 relative z-10" />
-              <p className="font-display text-[12px] tracking-[0.5em] text-white/60 uppercase relative z-10 font-bold">Francis Bacon</p>
+              <h3 className="font-artistic text-2xl text-white mb-3 leading-tight relative z-10 drop-shadow-[0_0_10px_rgba(255,255,255,0.4)]">Knowledge is Power.</h3>
+              <div className="w-12 h-[0.5px] bg-gradient-to-r from-transparent via-white/40 to-transparent mb-3 relative z-10" />
+              <p className="font-display text-[10px] tracking-[0.4em] text-white/60 uppercase relative z-10 font-bold">Francis Bacon</p>
             </motion.div>
           </div>
 
-          {/* The Subject Orbitals */}
+          {/* Corrected Multi-Gem Orbital Propagation */}
           {localSubjectGems.map((subject, i) => {
-            const angle = (i * 360) / localSubjectGems.length;
-            const radius = 260; // Slightly larger orbit
+            const angle = (i * 360) / 8;
+            const radius = 245; // Stabilized radius
+            // Explicit radian calculation
+            const radian = (angle - 90) * (Math.PI / 180);
             
             return (
               <motion.div
-                key={subject.name}
+                key={`subject-gem-${i}-${subject.name}`}
                 initial={{ opacity: 0, scale: 0 }}
                 animate={{ 
                   opacity: 1, 
                   scale: 1,
-                  transition: { delay: i * 0.1 + 0.3 }
+                  transition: { delay: i * 0.05 + 0.2, duration: 0.4 }
                 }}
+                className="absolute z-20 flex items-center justify-center p-0 m-0 w-max h-max"
                 style={{
-                  position: 'absolute',
-                  left: '50%',
-                  top: '50%',
-                  transform: `translate(-50%, -50%) translate(${Math.cos((angle - 90) * (Math.PI / 180)) * radius}px, ${Math.sin((angle - 90) * (Math.PI / 180)) * radius}px)`
+                  left: `calc(50% + ${Math.cos(radian) * radius}px)`,
+                  top: `calc(50% + ${Math.sin(radian) * radius}px)`,
+                  transform: 'translate(-50%, -50%)'
                 }}
-                className="z-30"
               >
                 <Gem 
-                  {...subject} 
+                  name={subject.name}
+                  nameZh={subject.nameZh}
+                  url={subject.url}
+                  type={subject.type}
                   color={
                     subject.type === 'diamond' ? '#fff' :
                     subject.type === 'ruby' ? '#ff4d4d' :
