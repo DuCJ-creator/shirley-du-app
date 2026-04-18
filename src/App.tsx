@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   Moon, Star, Sparkles, BookOpen, Mic2, PenTool, GraduationCap, 
   Home, User, Trophy, Heart, Coffee, ChevronLeft, ExternalLink,
-  LogIn, LogOut, Clock, Zap, RefreshCw
+  LogIn, LogOut, Clock, Zap, RefreshCw, Search
 } from 'lucide-react';
 import { cn } from './lib/utils';
 import { 
@@ -581,28 +581,29 @@ const BilingualSubjectsView = ({ onBack, onVisit }: { onBack: () => void, onVisi
         <div className="absolute inset-4 border-[0.5px] border-white/5 rounded-full animate-[spin_40s_linear_infinite_reverse]" />
         <div className="absolute inset-8 border-[0.5px] border-white/5 rounded-full animate-[spin_20s_linear_infinite]" />
 
-        {/* Center: Quote */}
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 text-center p-8 bg-black/50 backdrop-blur-3xl rounded-full border border-white/20 w-72 h-72 flex flex-col items-center justify-center shadow-[0_0_100px_rgba(255,255,255,0.1)] group overflow-hidden"
-        >
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-transparent opacity-50 group-hover:scale-110 transition-transform duration-1000" />
+        {/* Center: Quote - Using Absolute Centering Wrapper */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
           <motion.div 
-            animate={{ 
-              opacity: [0.3, 0.6, 0.3],
-              scale: [1, 1.05, 1]
-            }}
-            transition={{ duration: 4, repeat: Infinity }}
-            className="absolute inset-[10%] border border-white/5 rounded-full" 
-          />
-          <p className="font-artistic text-2xl text-white mb-3 leading-tight relative z-10 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">Knowledge is Power.</p>
-          <div className="w-16 h-[1px] bg-gradient-to-r from-transparent via-white/40 to-transparent mb-3 relative z-10" />
-          <p className="font-display text-[12px] tracking-[0.4em] text-white/60 uppercase relative z-10">Francis Bacon</p>
-          
-          {/* Subtle Mobius Ring like particle in center */}
-          <div className="absolute inset-0 animate-pulse opacity-20 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.1)_0%,transparent_70%)]" />
-        </motion.div>
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="pointer-events-auto text-center p-8 bg-black/60 backdrop-blur-3xl rounded-full border border-white/20 w-80 h-80 flex flex-col items-center justify-center shadow-[0_0_100px_rgba(255,255,255,0.15)] group overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-transparent opacity-50 group-hover:scale-110 transition-transform duration-1000" />
+            <motion.div 
+              animate={{ 
+                opacity: [0.3, 0.6, 0.3],
+                scale: [1, 1.05, 1]
+              }}
+              transition={{ duration: 4, repeat: Infinity }}
+              className="absolute inset-[10%] border border-white/5 rounded-full" 
+            />
+            <h3 className="font-artistic text-3xl text-white mb-4 leading-tight relative z-10 drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]">Knowledge is Power.</h3>
+            <div className="w-20 h-[1px] bg-gradient-to-r from-transparent via-white/40 to-transparent mb-4 relative z-10" />
+            <p className="font-display text-[13px] tracking-[0.5em] text-white/70 uppercase relative z-10 font-bold">Francis Bacon</p>
+            
+            <div className="absolute inset-0 animate-pulse opacity-20 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.1)_0%,transparent_70%)]" />
+          </motion.div>
+        </div>
 
         {/* The 8 Gems in a circle */}
         {SUBJECT_GEMS.map((subject, i) => {
@@ -663,6 +664,8 @@ export default function App() {
   const [logs, setLogs] = useState<PointLog[]>([]);
   const [sessionStudyTime, setSessionStudyTime] = useState(0);
   const [isActive, setIsActive] = useState(true);
+  const [allWordData, setAllWordData] = useState<any[]>([]);
+  const [vocabSearchTerm, setVocabSearchTerm] = useState("");
   
   // Activity tracking
   const lastActivityRef = useRef(Date.now());
@@ -861,6 +864,9 @@ export default function App() {
 
             const words = parseCsv(wordCsv);
             const quotes = parseCsv(quoteCsv);
+            
+            // Store all words for search
+            setAllWordData(words);
 
             const dateStr = getLocalDateString();
             const currentMMDD = dateStr.slice(5); // "MM-DD"
@@ -1574,18 +1580,38 @@ export default function App() {
                 </div>
               </button>
 
-              <div className="flex flex-col md:flex-row items-center md:items-start gap-12 mb-20">
+              <div className="flex flex-col md:flex-row items-center md:items-start gap-12 mb-12">
                 <div className={cn("w-32 h-32 rounded-full shrink-0", STRANDS[currentStrand as keyof typeof STRANDS].class)} />
-                <div>
-                  <h2 className="text-5xl md:text-7xl font-display font-bold mb-2 tracking-tighter">
-                    {STRANDS[currentStrand as keyof typeof STRANDS].name}
-                  </h2>
-                  <h3 className="text-3xl md:text-4xl font-display font-medium text-white/60 mb-4">
-                    {STRANDS[currentStrand as keyof typeof STRANDS].nameZh}
-                  </h3>
-                  <p className="text-xl text-white/30 uppercase tracking-[0.3em]">
-                    Strand of {STRANDS[currentStrand as keyof typeof STRANDS].planet}
-                  </p>
+                <div className="flex-1">
+                  <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                    <div>
+                      <h2 className="text-5xl md:text-7xl font-display font-bold mb-2 tracking-tighter">
+                        {STRANDS[currentStrand as keyof typeof STRANDS].name}
+                      </h2>
+                      <h3 className="text-3xl md:text-4xl font-display font-medium text-white/60 mb-4">
+                        {STRANDS[currentStrand as keyof typeof STRANDS].nameZh}
+                      </h3>
+                      <p className="text-xl text-white/30 uppercase tracking-[0.3em]">
+                        Strand of {STRANDS[currentStrand as keyof typeof STRANDS].planet}
+                      </p>
+                    </div>
+
+                    {currentStrand === 'vocabulary' && (
+                      <div className="relative w-full max-w-md group">
+                        <div className="absolute inset-0 bg-blue-500/5 blur-xl group-focus-within:bg-blue-500/10 transition-all rounded-full" />
+                        <div className="relative flex items-center bg-white/5 border border-white/10 p-4 pl-12 rounded-2xl backdrop-blur-md focus-within:border-white/30 transition-all">
+                          <Search className="absolute left-4 w-5 h-5 text-white/40" />
+                          <input 
+                            type="text" 
+                            placeholder="Global Search Vocabulary..."
+                            value={vocabSearchTerm}
+                            onChange={(e) => setVocabSearchTerm(e.target.value)}
+                            className="w-full bg-transparent border-none outline-none text-white placeholder:text-white/20 font-medium"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -1596,6 +1622,49 @@ export default function App() {
                       onBack={() => setShowSubjects(false)} 
                       onVisit={(name) => handleVisitGem(name)} 
                     />
+                  </div>
+                ) : vocabSearchTerm.trim() !== "" ? (
+                  <div className="col-span-full space-y-4">
+                    <div className="flex items-center justify-between mb-8">
+                      <h4 className="text-white/60 font-medium font-display uppercase tracking-widest text-sm flex items-center gap-2">
+                        <Star className="w-4 h-4 text-blue-400" />
+                        Found {allWordData.filter(w => (w.word || w.vocabulary || '').toLowerCase().includes(vocabSearchTerm.toLowerCase())).length} Entries
+                      </h4>
+                      <button 
+                        onClick={() => setVocabSearchTerm("")}
+                        className="text-[10px] uppercase tracking-widest text-white/30 hover:text-white transition-colors"
+                      >
+                        Clear Results
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {allWordData
+                        .filter(w => (w.word || w.vocabulary || '').toLowerCase().includes(vocabSearchTerm.toLowerCase()))
+                        .map((w, idx) => (
+                          <motion.div 
+                            key={idx}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="p-6 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-sm hover:bg-white/10 transition-colors group relative overflow-hidden"
+                          >
+                            <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Star className="w-4 h-4 text-white/20" />
+                            </div>
+                            <div className="flex items-baseline gap-3 mb-2">
+                              <h5 className="text-xl font-bold text-white tracking-tight">{w.word || w.vocabulary}</h5>
+                              <span className="text-[10px] text-white/40 font-mono italic">{w.pos}</span>
+                            </div>
+                            <p className="text-sm font-zh text-white/80 mb-3">{w.meaning}</p>
+                            <div className="space-y-1 py-3 border-t border-white/5">
+                              <p className="text-[11px] text-white/60 leading-relaxed italic line-clamp-2">"{w.sentencee || w.example}"</p>
+                              <p className="text-[10px] text-white/30 font-zh line-clamp-1">{w.sentencec || w.translation}</p>
+                            </div>
+                            <div className="flex justify-end pt-2">
+                              <span className="text-[8px] uppercase tracking-widest text-white/10 font-bold">{w.date || 'Archives'}</span>
+                            </div>
+                          </motion.div>
+                        ))}
+                    </div>
                   </div>
                 ) : (
                   GEMS[currentStrand as keyof typeof GEMS].map((gem, idx) => (
