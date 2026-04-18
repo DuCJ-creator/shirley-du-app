@@ -256,15 +256,12 @@ const Planet = ({ strand, info, onClick, disabled }: { strand: Strand, info: any
 );
 
 const Gem = ({ name, nameZh, url, color, type, onVisit, onClick }: { name: string, nameZh: string, url: string, color: string, type: string, onVisit: () => void, onClick?: () => void, key?: any }) => (
-  <motion.a
-    href={url === 'subjects' ? undefined : url}
-    target={url === 'subjects' ? undefined : "_blank"}
-    rel={url === 'subjects' ? undefined : "noopener noreferrer"}
+  <motion.button
     whileHover={{ scale: 1.05, y: -5 }}
     onClick={(e) => {
-      if (url === 'subjects') {
-        e.preventDefault();
-        onClick?.();
+      e.preventDefault();
+      if (onClick) {
+        onClick();
       }
       onVisit();
     }}
@@ -278,10 +275,66 @@ const Gem = ({ name, nameZh, url, color, type, onVisit, onClick }: { name: strin
       <span className="font-medium text-[13px] leading-tight text-white/90 group-hover:text-white line-clamp-2">{name}</span>
       <span className="text-[11px] text-white/40 group-hover:text-white/60">{nameZh}</span>
     </div>
-    {url !== 'subjects' && <ExternalLink className="absolute top-2 right-2 w-3 h-3 text-white/20 group-hover:text-white/60" />}
+    {url !== 'subjects' && <Sparkles className="absolute top-2 right-2 w-3 h-3 text-white/20 group-hover:text-white/60" />}
     <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-  </motion.a>
+  </motion.button>
 );
+
+const EmbeddedPortal = ({ url, onClose }: { url: string, onClose: () => void }) => {
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[2000] flex flex-col bg-black/95 backdrop-blur-xl"
+    >
+      <div className="flex flex-col w-full h-full p-4 md:p-8 max-w-7xl mx-auto">
+        <div className="flex items-center justify-between mb-6">
+          <button 
+            onClick={onClose}
+            className="flex items-center gap-3 text-white/60 hover:text-white transition-all group px-4 py-2 bg-white/5 rounded-full border border-white/10"
+          >
+            <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+            <div className="flex flex-col items-start leading-none text-left">
+              <span className="font-bold text-xs tracking-wider uppercase">Close Portal</span>
+              <span className="text-[9px] opacity-50 font-zh">關閉星際門</span>
+            </div>
+          </button>
+          
+          <div className="flex flex-col items-end">
+            <h3 className="text-[10px] uppercase tracking-[0.4em] text-blue-400 font-bold mb-1">Knowledge Stream Active</h3>
+            <div className="flex gap-1">
+              <div className="w-1 h-1 rounded-full bg-blue-400 animate-pulse" />
+              <div className="w-1 h-1 rounded-full bg-blue-400 animate-pulse delay-75" />
+              <div className="w-1 h-1 rounded-full bg-blue-400 animate-pulse delay-150" />
+            </div>
+          </div>
+        </div>
+
+        <div className="flex-1 relative rounded-[2.5rem] overflow-hidden border border-white/10 bg-black/40 shadow-[0_0_100px_rgba(30,58,138,0.2)]">
+          <div className="absolute inset-0 z-10 pointer-events-none shadow-[inset_0_0_100px_rgba(0,0,0,0.5)] border-[1px] border-white/5" />
+          <iframe 
+            src={url} 
+            className="w-full h-full border-none bg-white/5"
+            title="Embedded Subject Content"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+          
+          {/* Decorative Corner Accents */}
+          <div className="absolute top-0 left-0 w-20 h-20 border-t-2 border-l-2 border-blue-500/30 rounded-tl-[2.5rem] pointer-events-none" />
+          <div className="absolute top-0 right-0 w-20 h-20 border-t-2 border-r-2 border-blue-500/30 rounded-tr-[2.5rem] pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-20 h-20 border-b-2 border-l-2 border-blue-500/30 rounded-bl-[2.5rem] pointer-events-none" />
+          <div className="absolute bottom-0 right-0 w-20 h-20 border-b-2 border-r-2 border-blue-500/30 rounded-br-[2.5rem] pointer-events-none" />
+        </div>
+        
+        <div className="mt-4 text-center">
+          <p className="text-[9px] uppercase tracking-[0.5em] text-white/20 font-medium">Teacher Shirley • Universal Education Cluster</p>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
 
 const PetAvatar = ({ type, isPlaying, isRolling }: { type: string, isPlaying?: boolean, isRolling?: boolean }) => {
   const color = type.includes('Cat') ? '#ff9ff3' : 
@@ -565,22 +618,15 @@ const PetSection = ({ points, pet, onFeed, onPlay, onAdopt, isRolling }: { point
 const BilingualSubjectsView = ({ 
   onBack, 
   onVisit,
+  onGemClick,
   currentStrand
 }: { 
   onBack: () => void, 
   onVisit: (name: string) => void,
+  onGemClick: (url: string) => void,
   currentStrand: string
 }) => {
-  const localSubjectGems = useMemo(() => [
-    { name: 'Language Art', nameZh: '語文', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/language%20art.html', type: 'diamond' },
-    { name: 'Math', nameZh: '數學', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/math.html', type: 'ruby' },
-    { name: 'Physics', nameZh: '物理', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/physics.html', type: 'emerald' },
-    { name: 'Chemistry', nameZh: '化學', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/chemistry.html', type: 'sapphire' },
-    { name: 'Biology', nameZh: '生物', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/biology.html', type: 'amethyst' },
-    { name: 'Humanities', nameZh: '人文', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/humanities.html', type: 'topaz' },
-    { name: 'Ast. & Geo', nameZh: '天文地理', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/geography.html', type: 'opal' },
-    { name: 'Business', nameZh: '商業', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/business.html', type: 'ruby' },
-  ], []);
+  const localSubjectGems = useMemo(() => SUBJECT_GEMS, []);
 
   return (
     <div className="relative w-full max-w-6xl mx-auto py-8 px-4 flex flex-col items-center">
@@ -665,6 +711,7 @@ const BilingualSubjectsView = ({
                   subject.type === 'topaz' ? '#f39c12' : '#fff'
                 }
                 onVisit={() => onVisit(subject.name)}
+                onClick={() => onGemClick(subject.url)}
               />
             </motion.div>
           );
@@ -679,6 +726,7 @@ export default function App() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [petData, setPetData] = useState<PetData | null>(null);
   const [currentStrand, setCurrentStrand] = useState<Strand>('home');
+  const [activePortalUrl, setActivePortalUrl] = useState<string | null>(null);
   const [logTab, setLogTab] = useState<'points' | 'cards'>('points');
   const [isRolling, setIsRolling] = useState(false);
   const [isAuthReady, setIsAuthReady] = useState(false);
@@ -1185,6 +1233,7 @@ export default function App() {
       return;
     }
     setCurrentStrand(strand);
+    setShowSubjects(false);
   };
 
   const handleAdoptPet = async () => {
@@ -1699,6 +1748,7 @@ export default function App() {
                     <BilingualSubjectsView 
                       onBack={() => setShowSubjects(false)} 
                       onVisit={(name) => handleVisitGem(name)} 
+                      onGemClick={(url) => setActivePortalUrl(url)}
                       currentStrand={currentStrand}
                     />
                   </div>
@@ -1716,6 +1766,8 @@ export default function App() {
                         if (gem.url === 'subjects') {
                           setVocabSearchTerm("");
                           setShowSubjects(true);
+                        } else {
+                          setActivePortalUrl(gem.url);
                         }
                       }}
                     />
@@ -1888,6 +1940,15 @@ export default function App() {
           <Star className="w-6 h-6" />
         </button>
       </nav>
+      {/* Active Portal Overlay */}
+      <AnimatePresence>
+        {activePortalUrl && (
+          <EmbeddedPortal 
+            url={activePortalUrl} 
+            onClose={() => setActivePortalUrl(null)} 
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
