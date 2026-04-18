@@ -118,12 +118,26 @@ const GEMS = {
 };
 
 const SUBJECT_GEMS = [
-  { name: 'Bilingual Periodic Table', nameZh: '雙語元素週期表', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/periodic.html', type: 'emerald' },
-  { name: 'Bilingual Taxonomy', nameZh: '雙語生物分類', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/taxonomy.html', type: 'ruby' },
-  { name: 'Bilingual Math', nameZh: '雙語數學', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/math.html', type: 'sapphire' },
+  { name: 'Language Art', nameZh: '語文', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/language%20art.html', type: 'diamond' },
+  { name: 'Math', nameZh: '數學', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/math.html', type: 'ruby' },
+  { name: 'Physics', nameZh: '物理', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/physics.html', type: 'emerald' },
+  { name: 'Chemistry', nameZh: '化學', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/chemistry.html', type: 'sapphire' },
+  { name: 'Biology', nameZh: '生物', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/biology.html', type: 'amethyst' },
+  { name: 'Humanities', nameZh: '人文', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/humanities.html', type: 'topaz' },
+  { name: 'Astrology & Geography', nameZh: '天文地理', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/geography.html', type: 'opal' },
+  { name: 'Business', nameZh: '商業', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/business.html', type: 'ruby' },
 ];
 
 // --- Helpers ---
+const hashString = (s: string) => {
+  let hash = 0;
+  for (let i = 0; i < s.length; i++) {
+    hash = ((hash << 5) - hash) + s.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+};
+
 const getLocalDateString = (date: Date = new Date()) => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -548,6 +562,91 @@ const PetSection = ({ points, pet, onFeed, onPlay, onAdopt, isRolling }: { point
   );
 };
 
+const BilingualSubjectsView = ({ onBack, onVisit }: { onBack: () => void, onVisit: (name: string) => void }) => {
+  return (
+    <div className="relative w-full max-w-5xl mx-auto py-12 px-4">
+      <motion.button
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        onClick={onBack}
+        className="mb-8 flex items-center gap-2 text-white/60 hover:text-white transition-colors group"
+      >
+        <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+        <span className="font-medium">Back to Universe</span>
+      </motion.button>
+      
+      <div className="relative aspect-square max-w-[600px] mx-auto flex items-center justify-center">
+        {/* The Eight Trigrams (Bagua) Layout */}
+        <div className="absolute inset-0 border-[0.5px] border-white/5 rounded-full animate-[spin_60s_linear_infinite]" />
+        <div className="absolute inset-4 border-[0.5px] border-white/5 rounded-full animate-[spin_40s_linear_infinite_reverse]" />
+        <div className="absolute inset-8 border-[0.5px] border-white/5 rounded-full animate-[spin_20s_linear_infinite]" />
+
+        {/* Center: Quote */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="relative z-10 text-center p-8 bg-black/40 backdrop-blur-3xl rounded-full border border-white/20 w-72 h-72 flex flex-col items-center justify-center shadow-[0_0_80px_rgba(255,255,255,0.1)] group overflow-hidden"
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-transparent opacity-50 group-hover:scale-110 transition-transform duration-1000" />
+          <motion.div 
+            animate={{ 
+              opacity: [0.3, 0.6, 0.3],
+              scale: [1, 1.05, 1]
+            }}
+            transition={{ duration: 4, repeat: Infinity }}
+            className="absolute inset-[10%] border border-white/5 rounded-full" 
+          />
+          <p className="font-artistic text-2xl text-white mb-3 leading-tight relative z-10 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">Knowledge is Power.</p>
+          <div className="w-16 h-[1px] bg-gradient-to-r from-transparent via-white/40 to-transparent mb-3 relative z-10" />
+          <p className="font-display text-[12px] tracking-[0.4em] text-white/60 uppercase relative z-10">Francis Bacon</p>
+          
+          {/* Subtle Mobius Ring like particle in center */}
+          <div className="absolute inset-0 animate-pulse opacity-20 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.1)_0%,transparent_70%)]" />
+        </motion.div>
+
+        {/* The 8 Gems in a circle */}
+        {SUBJECT_GEMS.map((subject, i) => {
+          const angle = (i * 360) / 8;
+          const radius = 220; // Distance from center
+          return (
+            <motion.div
+              key={subject.name}
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ 
+                opacity: 1, 
+                scale: 1,
+                transition: { delay: i * 0.1 + 0.5 }
+              }}
+              style={{
+                position: 'absolute',
+                left: '50%',
+                top: '50%',
+                marginLeft: `${Math.cos((angle - 90) * (Math.PI / 180)) * radius}px`,
+                marginTop: `${Math.sin((angle - 90) * (Math.PI / 180)) * radius}px`,
+                transform: 'translate(-50%, -50%)'
+              }}
+              className="z-20"
+            >
+              <Gem 
+                {...subject} 
+                color={
+                  subject.type === 'diamond' ? '#fff' :
+                  subject.type === 'ruby' ? '#ff4d4d' :
+                  subject.type === 'emerald' ? '#2ecc71' :
+                  subject.type === 'sapphire' ? '#3498db' :
+                  subject.type === 'amethyst' ? '#9b59b6' :
+                  subject.type === 'topaz' ? '#f39c12' : '#fff'
+                }
+                onVisit={() => onVisit(subject.name)}
+              />
+            </motion.div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 export default function App() {
   const [user, setUser] = useState<any>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
@@ -764,13 +863,13 @@ export default function App() {
             
             const rawWordData = words.find(w => {
               const wDate = w.date ? normalizeDate(w.date) : '';
-              return wDate === dateStr || wDate.includes(dateStr) || dateStr.includes(wDate);
-            }) || words[new Date().getDate() % words.length];
+              return wDate === dateStr || (wDate && (wDate.includes(dateStr) || dateStr.includes(wDate)));
+            }) || (words.length > 0 ? words[hashString(dateStr) % words.length] : null);
 
             const rawQuoteData = quotes.find(q => {
               const qDate = q.date ? normalizeDate(q.date) : '';
-              return qDate === dateStr || qDate.includes(dateStr) || dateStr.includes(qDate);
-            }) || quotes[new Date().getDate() % quotes.length];
+              return qDate === dateStr || (qDate && (qDate.includes(dateStr) || dateStr.includes(qDate)));
+            }) || (quotes.length > 0 ? quotes[hashString(dateStr) % (quotes.length || 1)] : null);
 
             if (rawWordData) {
               wordData = {
@@ -1455,17 +1554,12 @@ export default function App() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {showSubjects ? (
-                  SUBJECT_GEMS.map((gem, idx) => (
-                    <Gem 
-                      key={idx} 
-                      name={gem.name} 
-                      nameZh={gem.nameZh}
-                      url={gem.url} 
-                      type={gem.type}
-                      color={STRANDS[currentStrand as keyof typeof STRANDS].color}
-                      onVisit={() => handleVisitGem(gem.name)}
+                  <div className="col-span-full">
+                    <BilingualSubjectsView 
+                      onBack={() => setShowSubjects(false)} 
+                      onVisit={(name) => handleVisitGem(name)} 
                     />
-                  ))
+                  </div>
                 ) : (
                   GEMS[currentStrand as keyof typeof GEMS].map((gem, idx) => (
                     <Gem 
