@@ -579,9 +579,21 @@ const BilingualSubjectsView = ({
   isFetching: boolean,
   currentStrand: string
 }) => {
+  // Use a local copy of subject gems to prevent any possible shadowing/mutation issues
+  const localSubjectGems = [
+    { name: 'Language Art', nameZh: '語文', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/language%20art.html', type: 'diamond' },
+    { name: 'Math', nameZh: '數學', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/math.html', type: 'ruby' },
+    { name: 'Physics', nameZh: '物理', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/physics.html', type: 'emerald' },
+    { name: 'Chemistry', nameZh: '化學', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/chemistry.html', type: 'sapphire' },
+    { name: 'Biology', nameZh: '生物', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/biology.html', type: 'amethyst' },
+    { name: 'Humanities', nameZh: '人文', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/humanities.html', type: 'topaz' },
+    { name: 'Ast. & Geo', nameZh: '天文地理', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/geography.html', type: 'opal' },
+    { name: 'Business', nameZh: '商業', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/business.html', type: 'ruby' },
+  ];
+
   return (
-    <div className="relative w-full max-w-6xl mx-auto py-12 px-4">
-      <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-12">
+    <div className="relative w-full max-w-6xl mx-auto py-12 px-4 min-h-[800px]">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-16 relative z-[100]">
         <motion.button
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -591,7 +603,7 @@ const BilingualSubjectsView = ({
           <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
           <div className="flex flex-col items-start leading-none">
             <span className="font-medium">Back to Universe</span>
-            <span className="text-[10px] opacity-60">回到首頁</span>
+            <span className="text-[10px] opacity-60">回到單字區</span>
           </div>
         </motion.button>
 
@@ -610,6 +622,7 @@ const BilingualSubjectsView = ({
               <button 
                 onClick={() => onSearchChange("")}
                 className="absolute right-4 text-white/40 hover:text-white transition-colors"
+                title="Clear search"
               >
                 <RefreshCw className="w-4 h-4" />
               </button>
@@ -619,16 +632,16 @@ const BilingualSubjectsView = ({
       </div>
       
       {searchTerm.trim() !== "" ? (
-        <div className="space-y-12">
+        <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
           {/* Matching Subjects/Tools */}
-          {SUBJECT_GEMS.filter(gem => 
+          {localSubjectGems.filter(gem => 
             gem.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
             gem.nameZh.toLowerCase().includes(searchTerm.toLowerCase())
           ).length > 0 && (
             <div className="space-y-4">
               <h4 className="text-white/40 text-[10px] uppercase tracking-[0.3em] font-bold px-2">Matching Subjects</h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {SUBJECT_GEMS.filter(gem => 
+                {localSubjectGems.filter(gem => 
                   gem.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                   gem.nameZh.toLowerCase().includes(searchTerm.toLowerCase())
                 ).map((gem, idx) => (
@@ -643,91 +656,101 @@ const BilingualSubjectsView = ({
             </div>
           )}
 
-          {/* Word Entries from the Vocabulary Database */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between px-2">
+          {/* Vocabulary Results */}
+          <div className="space-y-6">
+            <div className="flex items-center justify-between px-2 border-b border-white/5 pb-4">
               <h4 className="text-white/40 text-[10px] uppercase tracking-[0.3em] font-bold">Vocabulary Results</h4>
-              <span className="text-[10px] text-blue-400/60 font-medium">
+              <span className="text-[10px] text-blue-400/60 font-medium bg-blue-400/5 px-2 py-1 rounded-full border border-blue-400/10">
                 Found {allWordData.filter(w => 
                   (w.word || w.vocabulary || w.term || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                   (w.meaning || w.definition || w.meaningen || '').toLowerCase().includes(searchTerm.toLowerCase())
-                ).length} entries
+                ).length} sync entries
               </span>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {allWordData
                 .filter(w => 
                   (w.word || w.vocabulary || w.term || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                   (w.meaning || w.definition || w.meaningen || '').toLowerCase().includes(searchTerm.toLowerCase())
                 )
-                .slice(0, 30) // Show top 30 for performance
+                .slice(0, 30)
                 .map((w, idx) => (
                   <motion.div 
                     key={`word-${idx}`}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="p-5 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-sm hover:bg-white/10 transition-colors group relative overflow-hidden"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: idx * 0.05 }}
+                    className="p-6 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-sm hover:bg-white/10 transition-all group relative overflow-hidden"
                   >
                     <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
                       <Star className="w-3 h-3 text-white/20" />
                     </div>
-                    <div className="flex items-baseline gap-2 mb-2">
-                      <h5 className="text-lg font-bold text-white tracking-tight">{w.word || w.vocabulary || w.term}</h5>
-                      <span className="text-[9px] text-white/40 font-mono italic">{w.pos}</span>
+                    <div className="flex items-baseline gap-2 mb-3">
+                      <h5 className="text-xl font-bold text-white tracking-tight">{w.word || w.vocabulary || w.term}</h5>
+                      <span className="text-[10px] text-white/30 font-mono italic">{w.pos}</span>
                     </div>
-                    <p className="text-xs font-zh text-white/80 mb-2">{w.meaning || w.definition || w.meaningen}</p>
-                    <div className="space-y-1 py-2 border-t border-white/5">
-                      <p className="text-[10px] text-white/50 leading-relaxed italic line-clamp-2">"{w.sentencee || w.example || w.sentenceen}"</p>
+                    <p className="text-sm font-zh text-white/80 mb-4 line-clamp-2">{w.meaning || w.definition || w.meaningen}</p>
+                    <div className="space-y-1 pt-3 border-t border-white/5">
+                      <p className="text-[11px] text-white/40 leading-relaxed italic line-clamp-2">"{w.sentencee || w.example || w.sentenceen}"</p>
                     </div>
                   </motion.div>
                 ))}
             </div>
 
             {isFetching && (
-              <div className="flex flex-col items-center justify-center p-12 gap-3 opacity-40">
-                <RefreshCw className="w-4 h-4 text-blue-400 animate-spin" />
-                <p className="text-[8px] uppercase tracking-widest text-white/30 font-bold">Syncing index...</p>
+              <div className="flex flex-col items-center justify-center p-20 gap-4 opacity-40">
+                <RefreshCw className="w-6 h-6 text-blue-400 animate-spin" />
+                <p className="text-[10px] uppercase tracking-widest text-white/30 font-bold animate-pulse">Syncing Universal Index...</p>
+              </div>
+            )}
+            
+            {!isFetching && allWordData.filter(w => 
+              (w.word || w.vocabulary || w.term || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+              (w.meaning || w.definition || w.meaningen || '').toLowerCase().includes(searchTerm.toLowerCase())
+            ).length === 0 && (
+              <div className="p-20 text-center bg-white/5 border border-white/10 rounded-[2rem] border-dashed">
+                <p className="text-white/20 italic">No exact matches found in the current archive.</p>
               </div>
             )}
           </div>
         </div>
       ) : (
-        <div className="relative aspect-square w-full max-w-[650px] mx-auto flex items-center justify-center overflow-visible">
-          {/* The Eight Trigrams (Bagua) Layout Background */}
-          <div className="absolute inset-0 pointer-events-none">
+        <div className="relative aspect-square w-full max-w-[700px] mx-auto flex items-center justify-center mt-8">
+          {/* Animated Background Rings */}
+          <div className="absolute inset-0 pointer-events-none scale-110">
             <div className="absolute inset-0 border-[0.5px] border-white/5 rounded-full animate-[spin_60s_linear_infinite]" />
-            <div className="absolute inset-4 border-[0.5px] border-white/5 rounded-full animate-[spin_40s_linear_infinite_reverse]" />
-            <div className="absolute inset-8 border-[0.5px] border-white/5 rounded-full animate-[spin_20s_linear_infinite]" />
+            <div className="absolute inset-10 border-[0.5px] border-white/5 rounded-full animate-[spin_40s_linear_infinite_reverse]" />
+            <div className="absolute inset-20 border-[0.5px] border-white/5 rounded-full animate-[spin_20s_linear_infinite]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.03)_0%,transparent_70%)]" />
           </div>
 
-          {/* Center: Quote */}
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+          {/* Centerpiece: The Knowledge Core */}
+          <div className="relative z-10">
             <motion.div 
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="text-center p-8 bg-black/80 backdrop-blur-3xl rounded-full border border-white/20 w-[280px] h-[280px] flex flex-col items-center justify-center shadow-[0_0_120px_rgba(255,255,255,0.2)] group overflow-hidden relative"
+              className="text-center p-10 bg-black/40 backdrop-blur-3xl rounded-full border border-white/10 w-[300px] h-[300px] flex flex-col items-center justify-center shadow-[0_0_150px_rgba(255,255,255,0.1)] group relative overflow-hidden"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-transparent opacity-50 transition-transform duration-1000" />
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-transparent opacity-50" />
               <motion.div 
                 animate={{ 
-                  opacity: [0.3, 0.6, 0.3],
-                  scale: [1, 1.1, 1]
+                  opacity: [0.2, 0.4, 0.2],
+                  scale: [1, 1.05, 1]
                 }}
-                transition={{ duration: 4, repeat: Infinity }}
-                className="absolute inset-[8%] border border-white/10 rounded-full" 
+                transition={{ duration: 6, repeat: Infinity }}
+                className="absolute inset-[6%] border border-white/5 rounded-full" 
               />
-              <h3 className="font-artistic text-2xl text-white mb-3 leading-tight relative z-10 drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]">Knowledge is Power.</h3>
-              <div className="w-12 h-[0.5px] bg-gradient-to-r from-transparent via-white/50 to-transparent mb-3 relative z-10" />
-              <p className="font-display text-[11px] tracking-[0.4em] text-white/80 uppercase relative z-10 font-bold">Francis Bacon</p>
+              <h3 className="font-artistic text-3xl text-white mb-4 leading-tight relative z-10 drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]">Knowledge is Power.</h3>
+              <div className="w-16 h-[0.5px] bg-gradient-to-r from-transparent via-white/30 to-transparent mb-4 relative z-10" />
+              <p className="font-display text-[12px] tracking-[0.5em] text-white/60 uppercase relative z-10 font-bold">Francis Bacon</p>
             </motion.div>
           </div>
 
-          {/* The 8 Gems in a circle - Stable Radius */}
-          {SUBJECT_GEMS.map((subject, i) => {
-            const angle = (i * 360) / 8;
-            // Use a stable, relative radius instead of absolute window width
-            const radius = 230; 
+          {/* The Subject Orbitals */}
+          {localSubjectGems.map((subject, i) => {
+            const angle = (i * 360) / localSubjectGems.length;
+            const radius = 260; // Slightly larger orbit
             
             return (
               <motion.div
@@ -736,7 +759,7 @@ const BilingualSubjectsView = ({
                 animate={{ 
                   opacity: 1, 
                   scale: 1,
-                  transition: { delay: i * 0.08 + 0.2 }
+                  transition: { delay: i * 0.1 + 0.3 }
                 }}
                 style={{
                   position: 'absolute',
@@ -744,7 +767,7 @@ const BilingualSubjectsView = ({
                   top: '50%',
                   transform: `translate(-50%, -50%) translate(${Math.cos((angle - 90) * (Math.PI / 180)) * radius}px, ${Math.sin((angle - 90) * (Math.PI / 180)) * radius}px)`
                 }}
-                className="z-20"
+                className="z-30"
               >
                 <Gem 
                   {...subject} 
