@@ -673,9 +673,6 @@ const BilingualSubjectsView = ({
     </div>
   );
 };
-    </div>
-  );
-};
 
 export default function App() {
   const [user, setUser] = useState<any>(null);
