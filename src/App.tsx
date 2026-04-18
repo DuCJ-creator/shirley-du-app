@@ -590,15 +590,6 @@ const BilingualSubjectsView = ({
     { name: 'Business', nameZh: '商業', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/business.html', type: 'ruby' },
   ], []);
 
-  const filteredWords = useMemo(() => {
-    if (!searchTerm.trim()) return [];
-    const term = searchTerm.toLowerCase();
-    return allWordData.filter(w => 
-      (w.word || w.vocabulary || w.term || '').toLowerCase().includes(term) ||
-      (w.meaning || w.definition || w.meaningen || '').toLowerCase().includes(term)
-    );
-  }, [allWordData, searchTerm]);
-
   const filteredGems = useMemo(() => {
     if (!searchTerm.trim()) return [];
     const term = searchTerm.toLowerCase();
@@ -630,7 +621,7 @@ const BilingualSubjectsView = ({
             <Search className="absolute left-4 w-5 h-5 text-white/40" />
             <input 
               type="text" 
-              placeholder="Search Subject Words & Tools..."
+              placeholder="Search Subject Modules..."
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
               className="w-full bg-transparent border-none outline-none text-white placeholder:text-white/20 font-medium"
@@ -651,9 +642,11 @@ const BilingualSubjectsView = ({
       {searchTerm.trim() !== "" ? (
         <div className="w-full space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
           {/* Matching Subjects/Tools */}
-          {filteredGems.length > 0 && (
-            <div className="space-y-4">
-              <h4 className="text-white/40 text-[10px] uppercase tracking-[0.3em] font-bold px-2">Matching Subjects</h4>
+          <div className="space-y-4">
+            <h4 className="text-white/40 text-[10px] uppercase tracking-[0.3em] font-bold px-2">
+              {filteredGems.length > 0 ? 'Matching Subjects' : 'No Subjects Found'}
+            </h4>
+            {filteredGems.length > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
                 {filteredGems.map((gem, idx) => (
                   <Gem 
@@ -664,48 +657,9 @@ const BilingualSubjectsView = ({
                   />
                 ))}
               </div>
-            </div>
-          )}
-
-          {/* Vocabulary Results */}
-          <div className="space-y-6">
-            <div className="flex items-center justify-between px-2 border-b border-white/5 pb-4">
-              <h4 className="text-white/40 text-[10px] uppercase tracking-[0.3em] font-bold">Vocabulary Results</h4>
-              <span className="text-[10px] text-blue-400/60 font-medium bg-blue-400/5 px-2 py-1 rounded-full border border-blue-400/10">
-                Found {filteredWords.length} sync entries
-              </span>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredWords
-                .slice(0, 30)
-                .map((w, idx) => (
-                  <motion.div 
-                    key={`word-${idx}`}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: idx * 0.05 }}
-                    className="p-6 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-sm hover:bg-white/10 transition-all group relative overflow-hidden transform-gpu"
-                  >
-                    <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Star className="w-3 h-3 text-white/20" />
-                    </div>
-                    <div className="flex items-baseline gap-2 mb-3">
-                      <h5 className="text-xl font-bold text-white tracking-tight">{w.word || w.vocabulary || w.term}</h5>
-                      <span className="text-[10px] text-white/30 font-mono italic">{w.pos}</span>
-                    </div>
-                    <p className="text-sm font-zh text-white/80 mb-4 line-clamp-2">{w.meaning || w.definition || w.meaningen}</p>
-                    <div className="space-y-1 pt-3 border-t border-white/5">
-                      <p className="text-[11px] text-white/40 leading-relaxed italic line-clamp-2">"{w.sentencee || w.example || w.sentenceen}"</p>
-                    </div>
-                  </motion.div>
-                ))}
-            </div>
-
-            {isFetching && (
-              <div className="flex flex-col items-center justify-center p-20 gap-4 opacity-40">
-                <RefreshCw className="w-6 h-6 text-blue-400 animate-spin" />
-                <p className="text-[10px] uppercase tracking-widest text-white/30 font-bold animate-pulse">Syncing Universal Index...</p>
+            ) : (
+              <div className="p-20 text-center bg-white/5 border border-white/10 rounded-[2rem] border-dashed">
+                <p className="text-white/20 italic">No subject modules match your search.</p>
               </div>
             )}
           </div>
