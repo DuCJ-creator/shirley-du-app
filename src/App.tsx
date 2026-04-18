@@ -562,88 +562,199 @@ const PetSection = ({ points, pet, onFeed, onPlay, onAdopt, isRolling }: { point
   );
 };
 
-const BilingualSubjectsView = ({ onBack, onVisit }: { onBack: () => void, onVisit: (name: string) => void }) => {
+const BilingualSubjectsView = ({ 
+  onBack, 
+  onVisit, 
+  searchTerm, 
+  onSearchChange, 
+  allWordData, 
+  isFetching,
+  currentStrand
+}: { 
+  onBack: () => void, 
+  onVisit: (name: string) => void,
+  searchTerm: string,
+  onSearchChange: (val: string) => void,
+  allWordData: any[],
+  isFetching: boolean,
+  currentStrand: string
+}) => {
   return (
-    <div className="relative w-full max-w-5xl mx-auto py-12 px-4">
-      <motion.button
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        onClick={onBack}
-        className="mb-8 flex items-center gap-2 text-white/60 hover:text-white transition-colors group"
-      >
-        <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-        <span className="font-medium">Back to Universe</span>
-      </motion.button>
-      
-      <div className="relative aspect-square w-full max-w-[650px] mx-auto flex items-center justify-center">
-        {/* The Eight Trigrams (Bagua) Layout Background */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute inset-0 border-[0.5px] border-white/5 rounded-full animate-[spin_60s_linear_infinite]" />
-          <div className="absolute inset-4 border-[0.5px] border-white/5 rounded-full animate-[spin_40s_linear_infinite_reverse]" />
-          <div className="absolute inset-8 border-[0.5px] border-white/5 rounded-full animate-[spin_20s_linear_infinite]" />
-        </div>
+    <div className="relative w-full max-w-6xl mx-auto py-12 px-4">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-12">
+        <motion.button
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          onClick={onBack}
+          className="flex items-center gap-2 text-white/60 hover:text-white transition-colors group"
+        >
+          <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+          <div className="flex flex-col items-start leading-none">
+            <span className="font-medium">Back to Universe</span>
+            <span className="text-[10px] opacity-60">回到首頁</span>
+          </div>
+        </motion.button>
 
-        {/* Center: Quote - Using Absolute Centering Wrapper with Fixed Positioning Logic */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="text-center p-8 bg-black/80 backdrop-blur-3xl rounded-full border border-white/20 w-[300px] h-[300px] flex flex-col items-center justify-center shadow-[0_0_120px_rgba(255,255,255,0.2)] group overflow-hidden relative"
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-transparent opacity-50 group-hover:scale-110 transition-transform duration-1000" />
-            <motion.div 
-              animate={{ 
-                opacity: [0.3, 0.6, 0.3],
-                scale: [1, 1.1, 1]
-              }}
-              transition={{ duration: 4, repeat: Infinity }}
-              className="absolute inset-[8%] border border-white/10 rounded-full" 
+        <div className="relative w-full max-w-md group">
+          <div className="absolute inset-0 bg-blue-500/5 blur-xl group-focus-within:bg-blue-500/10 transition-all rounded-full" />
+          <div className="relative flex items-center bg-white/5 border border-white/10 p-4 pl-12 rounded-2xl backdrop-blur-md focus-within:border-white/30 transition-all">
+            <Search className="absolute left-4 w-5 h-5 text-white/40" />
+            <input 
+              type="text" 
+              placeholder="Search Subject Words & Tools..."
+              value={searchTerm}
+              onChange={(e) => onSearchChange(e.target.value)}
+              className="w-full bg-transparent border-none outline-none text-white placeholder:text-white/20 font-medium"
             />
-            <h3 className="font-artistic text-2xl md:text-3xl text-white mb-4 leading-tight relative z-10 drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]">Knowledge is Power.</h3>
-            <div className="w-16 h-[1px] bg-gradient-to-r from-transparent via-white/50 to-transparent mb-4 relative z-10" />
-            <p className="font-display text-[11px] md:text-[13px] tracking-[0.4em] text-white/80 uppercase relative z-10 font-bold">Francis Bacon</p>
-            
-            <div className="absolute inset-0 animate-pulse opacity-20 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.15)_0%,transparent_70%)]" />
-          </motion.div>
+          </div>
         </div>
-
-        {/* The 8 Gems in a circle */}
-        {SUBJECT_GEMS.map((subject, i) => {
-          const angle = (i * 360) / 8;
-          const radius = 260; // Increased radius to prevent overlap with the center orb
-          return (
-            <motion.div
-              key={subject.name}
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{ 
-                opacity: 1, 
-                scale: 1,
-                transition: { delay: i * 0.1 + 0.5 }
-              }}
-              style={{
-                position: 'absolute',
-                left: '50%',
-                top: '50%',
-                transform: `translate(-50%, -50%) translate(${Math.cos((angle - 90) * (Math.PI / 180)) * radius}px, ${Math.sin((angle - 90) * (Math.PI / 180)) * radius}px)`
-              }}
-              className="z-20"
-            >
-              <Gem 
-                {...subject} 
-                color={
-                  subject.type === 'diamond' ? '#fff' :
-                  subject.type === 'ruby' ? '#ff4d4d' :
-                  subject.type === 'emerald' ? '#2ecc71' :
-                  subject.type === 'sapphire' ? '#3498db' :
-                  subject.type === 'amethyst' ? '#9b59b6' :
-                  subject.type === 'topaz' ? '#f39c12' : '#fff'
-                }
-                onVisit={() => onVisit(subject.name)}
-              />
-            </motion.div>
-          );
-        })}
       </div>
+      
+      {searchTerm.trim() !== "" ? (
+        <div className="space-y-12">
+          {/* Matching Subjects/Tools */}
+          {SUBJECT_GEMS.filter(gem => 
+            gem.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+            gem.nameZh.toLowerCase().includes(searchTerm.toLowerCase())
+          ).length > 0 && (
+            <div className="space-y-4">
+              <h4 className="text-white/40 text-[10px] uppercase tracking-[0.3em] font-bold px-2">Matching Subjects</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {SUBJECT_GEMS.filter(gem => 
+                  gem.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                  gem.nameZh.toLowerCase().includes(searchTerm.toLowerCase())
+                ).map((gem, idx) => (
+                  <Gem 
+                    key={`gem-search-${idx}`} 
+                    {...gem}
+                    color="#fff" // Default search color
+                    onVisit={() => onVisit(gem.name)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Word Entries from the Vocabulary Database */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between px-2">
+              <h4 className="text-white/40 text-[10px] uppercase tracking-[0.3em] font-bold">Vocabulary Results</h4>
+              <span className="text-[10px] text-blue-400/60 font-medium">
+                Found {allWordData.filter(w => 
+                  (w.word || w.vocabulary || w.term || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  (w.meaning || w.definition || w.meaningen || '').toLowerCase().includes(searchTerm.toLowerCase())
+                ).length} entries
+              </span>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {allWordData
+                .filter(w => 
+                  (w.word || w.vocabulary || w.term || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  (w.meaning || w.definition || w.meaningen || '').toLowerCase().includes(searchTerm.toLowerCase())
+                )
+                .slice(0, 30) // Show top 30 for performance
+                .map((w, idx) => (
+                  <motion.div 
+                    key={`word-${idx}`}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-5 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-sm hover:bg-white/10 transition-colors group relative overflow-hidden"
+                  >
+                    <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Star className="w-3 h-3 text-white/20" />
+                    </div>
+                    <div className="flex items-baseline gap-2 mb-2">
+                      <h5 className="text-lg font-bold text-white tracking-tight">{w.word || w.vocabulary || w.term}</h5>
+                      <span className="text-[9px] text-white/40 font-mono italic">{w.pos}</span>
+                    </div>
+                    <p className="text-xs font-zh text-white/80 mb-2">{w.meaning || w.definition || w.meaningen}</p>
+                    <div className="space-y-1 py-2 border-t border-white/5">
+                      <p className="text-[10px] text-white/50 leading-relaxed italic line-clamp-2">"{w.sentencee || w.example || w.sentenceen}"</p>
+                    </div>
+                  </motion.div>
+                ))}
+            </div>
+
+            {isFetching && (
+              <div className="flex flex-col items-center justify-center p-12 gap-3 opacity-40">
+                <RefreshCw className="w-4 h-4 text-blue-400 animate-spin" />
+                <p className="text-[8px] uppercase tracking-widest text-white/30 font-bold">Syncing index...</p>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="relative aspect-square w-full max-w-[650px] mx-auto flex items-center justify-center overflow-visible">
+          {/* The Eight Trigrams (Bagua) Layout Background */}
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute inset-0 border-[0.5px] border-white/5 rounded-full animate-[spin_60s_linear_infinite]" />
+            <div className="absolute inset-4 border-[0.5px] border-white/5 rounded-full animate-[spin_40s_linear_infinite_reverse]" />
+            <div className="absolute inset-8 border-[0.5px] border-white/5 rounded-full animate-[spin_20s_linear_infinite]" />
+          </div>
+
+          {/* Center: Quote */}
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center p-8 bg-black/80 backdrop-blur-3xl rounded-full border border-white/20 w-[280px] h-[280px] flex flex-col items-center justify-center shadow-[0_0_120px_rgba(255,255,255,0.2)] group overflow-hidden relative"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-transparent opacity-50 transition-transform duration-1000" />
+              <motion.div 
+                animate={{ 
+                  opacity: [0.3, 0.6, 0.3],
+                  scale: [1, 1.1, 1]
+                }}
+                transition={{ duration: 4, repeat: Infinity }}
+                className="absolute inset-[8%] border border-white/10 rounded-full" 
+              />
+              <h3 className="font-artistic text-2xl text-white mb-3 leading-tight relative z-10 drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]">Knowledge is Power.</h3>
+              <div className="w-12 h-[0.5px] bg-gradient-to-r from-transparent via-white/50 to-transparent mb-3 relative z-10" />
+              <p className="font-display text-[11px] tracking-[0.4em] text-white/80 uppercase relative z-10 font-bold">Francis Bacon</p>
+            </motion.div>
+          </div>
+
+          {/* The 8 Gems in a circle - Responsive Radius */}
+          {SUBJECT_GEMS.map((subject, i) => {
+            const angle = (i * 360) / 8;
+            // Radius scales with screen width but caps at 260px
+            const radius = typeof window !== 'undefined' ? Math.min(260, window.innerWidth * 0.35) : 260;
+            
+            return (
+              <motion.div
+                key={subject.name}
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ 
+                  opacity: 1, 
+                  scale: 1,
+                  transition: { delay: i * 0.1 + 0.3 }
+                }}
+                style={{
+                  position: 'absolute',
+                  left: '50%',
+                  top: '50%',
+                  transform: `translate(-50%, -50%) translate(${Math.cos((angle - 90) * (Math.PI / 180)) * radius}px, ${Math.sin((angle - 90) * (Math.PI / 180)) * radius}px)`
+                }}
+                className="z-20"
+              >
+                <Gem 
+                  {...subject} 
+                  color={
+                    subject.type === 'diamond' ? '#fff' :
+                    subject.type === 'ruby' ? '#ff4d4d' :
+                    subject.type === 'emerald' ? '#2ecc71' :
+                    subject.type === 'sapphire' ? '#3498db' :
+                    subject.type === 'amethyst' ? '#9b59b6' :
+                    subject.type === 'topaz' ? '#f39c12' : '#fff'
+                  }
+                  onVisit={() => onVisit(subject.name)}
+                />
+              </motion.div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };
@@ -1651,22 +1762,6 @@ export default function App() {
                         Strand of {STRANDS[currentStrand as keyof typeof STRANDS].planet}
                       </p>
                     </div>
-
-                    {currentStrand === 'vocabulary' && (
-                      <div className="relative w-full max-w-md group">
-                        <div className="absolute inset-0 bg-blue-500/5 blur-xl group-focus-within:bg-blue-500/10 transition-all rounded-full" />
-                        <div className="relative flex items-center bg-white/5 border border-white/10 p-4 pl-12 rounded-2xl backdrop-blur-md focus-within:border-white/30 transition-all">
-                          <Search className="absolute left-4 w-5 h-5 text-white/40" />
-                          <input 
-                            type="text" 
-                            placeholder="Global Search Vocabulary..."
-                            value={vocabSearchTerm}
-                            onChange={(e) => setVocabSearchTerm(e.target.value)}
-                            className="w-full bg-transparent border-none outline-none text-white placeholder:text-white/20 font-medium"
-                          />
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
@@ -1677,94 +1772,12 @@ export default function App() {
                     <BilingualSubjectsView 
                       onBack={() => setShowSubjects(false)} 
                       onVisit={(name) => handleVisitGem(name)} 
+                      searchTerm={vocabSearchTerm}
+                      onSearchChange={setVocabSearchTerm}
+                      allWordData={allWordData}
+                      isFetching={isFetchingVocab}
+                      currentStrand={currentStrand}
                     />
-                  </div>
-                ) : vocabSearchTerm.trim() !== "" ? (
-                  <div className="col-span-full space-y-8">
-                    {/* Matching Tools/Links */}
-                    {(GEMS[currentStrand as keyof typeof GEMS] || []).filter(gem => 
-                      gem.name.toLowerCase().includes(vocabSearchTerm.toLowerCase()) || 
-                      gem.nameZh.toLowerCase().includes(vocabSearchTerm.toLowerCase())
-                    ).length > 0 && (
-                      <div className="space-y-4">
-                        <h4 className="text-white/40 text-[10px] uppercase tracking-[0.3em] font-bold px-2">Related Tools</h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                          {GEMS[currentStrand as keyof typeof GEMS].filter(gem => 
-                            gem.name.toLowerCase().includes(vocabSearchTerm.toLowerCase()) || 
-                            gem.nameZh.toLowerCase().includes(vocabSearchTerm.toLowerCase())
-                          ).map((gem, idx) => (
-                            <Gem 
-                              key={`gem-${idx}`} 
-                              name={gem.name} 
-                              nameZh={gem.nameZh}
-                              url={gem.url} 
-                              type={gem.type || 'diamond'}
-                              color={STRANDS[currentStrand as keyof typeof STRANDS].color}
-                              onVisit={() => handleVisitGem(gem.name)}
-                              onClick={() => gem.url === 'subjects' && setShowSubjects(true)}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Word Entries */}
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between px-2">
-                        <h4 className="text-white/40 text-[10px] uppercase tracking-[0.3em] font-bold">Word Entries</h4>
-                        <span className="text-[10px] text-blue-400/60 font-medium">
-                          Found {allWordData.filter(w => 
-                            (w.word || w.vocabulary || '').toLowerCase().includes(vocabSearchTerm.toLowerCase()) ||
-                            (w.meaning || w.definition || '').toLowerCase().includes(vocabSearchTerm.toLowerCase())
-                          ).length} results
-                        </span>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {allWordData
-                          .filter(w => 
-                            (w.word || w.vocabulary || '').toLowerCase().includes(vocabSearchTerm.toLowerCase()) ||
-                            (w.meaning || w.definition || '').toLowerCase().includes(vocabSearchTerm.toLowerCase())
-                          )
-                          .map((w, idx) => (
-                            <motion.div 
-                              key={`word-${idx}`}
-                              initial={{ opacity: 0, y: 10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              className="p-6 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-sm hover:bg-white/10 transition-colors group relative overflow-hidden"
-                            >
-                              <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Star className="w-4 h-4 text-white/20" />
-                              </div>
-                              <div className="flex items-baseline gap-3 mb-2">
-                                <h5 className="text-xl font-bold text-white tracking-tight">{w.word || w.vocabulary}</h5>
-                                <span className="text-[10px] text-white/40 font-mono italic">{w.pos}</span>
-                              </div>
-                              <p className="text-sm font-zh text-white/80 mb-3">{w.meaning || w.definition || w.meaningen}</p>
-                              <div className="space-y-1 py-3 border-t border-white/5">
-                                <p className="text-[11px] text-white/60 leading-relaxed italic line-clamp-2">"{w.sentencee || w.example || w.sentenceen || w.exampleen}"</p>
-                                <p className="text-[10px] text-white/30 font-zh line-clamp-1">{w.sentencec || w.translation || w.sentencecn}</p>
-                              </div>
-                              <div className="flex justify-end pt-2">
-                                <span className="text-[8px] uppercase tracking-widest text-white/10 font-bold">{w.date || 'Archives'}</span>
-                              </div>
-                            </motion.div>
-                          ))}
-                      </div>
-
-                      {allWordData.length === 0 && !isFetchingVocab && (
-                        <div className="p-20 text-center bg-white/5 border border-white/10 rounded-3xl">
-                          <p className="text-white/40 italic">System data initializing... please wait or try again later.</p>
-                        </div>
-                      )}
-                      
-                      {isFetchingVocab && (
-                        <div className="flex flex-col items-center justify-center p-20 gap-4">
-                          <RefreshCw className="w-6 h-6 text-blue-400 animate-spin" />
-                          <p className="text-[10px] uppercase tracking-widest text-white/30 animate-pulse font-bold">Syncing Universal Index...</p>
-                        </div>
-                      )}
-                    </div>
                   </div>
                 ) : (
                   GEMS[currentStrand as keyof typeof GEMS].map((gem, idx) => (
