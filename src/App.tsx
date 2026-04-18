@@ -124,7 +124,7 @@ const SUBJECT_GEMS = [
   { name: 'Chemistry', nameZh: '化學', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/chemistry.html', type: 'sapphire' },
   { name: 'Biology', nameZh: '生物', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/biology.html', type: 'amethyst' },
   { name: 'Humanities', nameZh: '人文', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/humanities.html', type: 'topaz' },
-  { name: 'Astrology & Geography', nameZh: '天文地理', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/geography.html', type: 'opal' },
+  { name: 'Ast. & Geo', nameZh: '天文地理', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/geography.html', type: 'opal' },
   { name: 'Business', nameZh: '商業', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/business.html', type: 'ruby' },
 ];
 
@@ -268,15 +268,15 @@ const Gem = ({ name, nameZh, url, color, type, onVisit, onClick }: { name: strin
       }
       onVisit();
     }}
-    className="relative p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center gap-4 group overflow-hidden cursor-pointer"
+    className="relative w-32 h-44 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center gap-3 group overflow-hidden cursor-pointer shrink-0"
   >
     <div 
       className={cn("gem-shape", `gem-${type}`)}
       style={{ color: color }}
     />
-    <div className="text-center flex flex-col gap-0.5">
-      <span className="font-medium text-sm text-white/90 group-hover:text-white">{name}</span>
-      <span className="text-xs text-white/40 group-hover:text-white/60">{nameZh}</span>
+    <div className="text-center flex flex-col gap-0.5 px-2">
+      <span className="font-medium text-[13px] leading-tight text-white/90 group-hover:text-white line-clamp-2">{name}</span>
+      <span className="text-[11px] text-white/40 group-hover:text-white/60">{nameZh}</span>
     </div>
     {url !== 'subjects' && <ExternalLink className="absolute top-2 right-2 w-3 h-3 text-white/20 group-hover:text-white/60" />}
     <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -585,7 +585,7 @@ const BilingualSubjectsView = ({ onBack, onVisit }: { onBack: () => void, onVisi
         <motion.div 
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="relative z-10 text-center p-8 bg-black/40 backdrop-blur-3xl rounded-full border border-white/20 w-72 h-72 flex flex-col items-center justify-center shadow-[0_0_80px_rgba(255,255,255,0.1)] group overflow-hidden"
+          className="absolute z-10 text-center p-8 bg-black/50 backdrop-blur-3xl rounded-full border border-white/20 w-72 h-72 flex flex-col items-center justify-center shadow-[0_0_100px_rgba(255,255,255,0.1)] group overflow-hidden"
         >
           <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-transparent opacity-50 group-hover:scale-110 transition-transform duration-1000" />
           <motion.div 
@@ -607,7 +607,7 @@ const BilingualSubjectsView = ({ onBack, onVisit }: { onBack: () => void, onVisi
         {/* The 8 Gems in a circle */}
         {SUBJECT_GEMS.map((subject, i) => {
           const angle = (i * 360) / 8;
-          const radius = 220; // Distance from center
+          const radius = 240; // Increased distance from center for more room
           return (
             <motion.div
               key={subject.name}
@@ -848,10 +848,21 @@ export default function App() {
             const quotes = parseCsv(quoteCsv);
 
             const dateStr = getLocalDateString();
+            const currentMMDD = dateStr.slice(5); // "MM-DD"
+
             const normalizeDate = (d: string) => {
               if (!d) return '';
-              const parts = d.replace(/\//g, '-').split('-');
-              if (parts.length !== 3) return '';
+              // Remove quotes if present
+              const cleanD = d.replace(/^"|"$/g, '').trim();
+              const parts = cleanD.replace(/\//g, '-').split('-');
+              
+              if (parts.length === 2) {
+                // Handle MM-DD format from CSV
+                return `${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
+              }
+              
+              if (parts.length !== 3) return cleanD; // Return as-is if we can't normalize
+              
               if (parts[0].length === 4) return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
               if (parts[2].length === 4) {
                 const p0 = parseInt(parts[0]);
@@ -862,13 +873,15 @@ export default function App() {
             };
             
             const rawWordData = words.find(w => {
-              const wDate = w.date ? normalizeDate(w.date) : '';
-              return wDate === dateStr || (wDate && (wDate.includes(dateStr) || dateStr.includes(wDate)));
+              const rowDateRaw = w.date || "";
+              const wDate = normalizeDate(rowDateRaw);
+              return wDate === dateStr || wDate === currentMMDD || (wDate && (wDate.includes(dateStr) || dateStr.includes(wDate)));
             }) || (words.length > 0 ? words[hashString(dateStr) % words.length] : null);
 
             const rawQuoteData = quotes.find(q => {
-              const qDate = q.date ? normalizeDate(q.date) : '';
-              return qDate === dateStr || (qDate && (qDate.includes(dateStr) || dateStr.includes(qDate)));
+              const rowDateRaw = q.date || "";
+              const qDate = normalizeDate(rowDateRaw);
+              return qDate === dateStr || qDate === currentMMDD || (qDate && (qDate.includes(dateStr) || dateStr.includes(qDate)));
             }) || (quotes.length > 0 ? quotes[hashString(dateStr) % (quotes.length || 1)] : null);
 
             if (rawWordData) {
