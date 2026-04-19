@@ -4,7 +4,7 @@ import {
   Moon, Star, Sparkles, BookOpen, Mic2, PenTool, GraduationCap, 
   Home, User, Trophy, Heart, Coffee, ChevronLeft, ExternalLink,
   LogIn, LogOut, Clock, Zap, RefreshCw, Search, TrendingUp, ChevronRight,
-  ClipboardX, FileText, Trash2, Download, Palette, Plus, Save, X, Edit, Pencil
+  ClipboardX, FileText, Trash2, Download, Palette, Plus, Save, X, Edit, Pencil, Check
 } from 'lucide-react';
 import { cn } from './lib/utils';
 import { 
@@ -231,54 +231,109 @@ const NotePad = ({ notes, onSave, onDelete }: { notes: StudyNote[], onSave: (not
 
   const [isExporting, setIsExporting] = useState(false);
 
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  const toggleSelect = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(id)) newSelected.delete(id);
+    else newSelected.add(id);
+    setSelectedIds(newSelected);
+  };
+
   const handleExport = async () => {
+    const notesToExport = notes.filter(n => selectedIds.has(n.id));
+    if (notesToExport.length === 0) {
+      alert("Please select at least one note to export.");
+      return;
+    }
+
     setIsExporting(true);
     try {
       const doc = new jsPDF();
-    let yPos = 20;
+      let yPos = 20;
 
-    doc.setFontSize(22);
-    doc.text("My Universal Space Logs", 20, yPos);
-    yPos += 15;
+      doc.setFontSize(22);
+      doc.text("My Selected Space Logs", 20, yPos);
+      yPos += 15;
 
-    for (const note of notes) {
-      if (yPos > 250) {
-        doc.addPage();
-        yPos = 20;
-      }
+      // Off-screen container for rendering visual replicas
+      const container = document.createElement('div');
+      container.style.width = '800px';
+      container.style.position = 'fixed';
+      container.style.left = '-9999px';
+      container.style.top = '0';
+      container.style.zIndex = '-1000';
+      document.body.appendChild(container);
 
-      doc.setFontSize(10);
-      doc.setTextColor(150, 150, 150);
-      doc.text(`[${note.date}]`, 20, yPos);
-      yPos += 7;
+      for (const note of notesToExport) {
+        // Create an element that replicates the note editor's visual state
+        const noteEl = document.createElement('div');
+        noteEl.style.width = '800px';
+        noteEl.style.minHeight = '1000px';
+        noteEl.style.backgroundColor = note.color;
+        noteEl.style.padding = '60px';
+        noteEl.style.position = 'relative';
+        noteEl.style.fontFamily = 'Inter, sans-serif';
+        noteEl.style.fontSize = '32px';
+        noteEl.style.lineHeight = '1.6';
+        noteEl.style.color = '#1a1a1a';
+        noteEl.style.whiteSpace = 'pre-wrap';
+        noteEl.style.borderRadius = '40px';
+        noteEl.style.overflow = 'hidden';
+        
+        // Add content (text)
+        const textContent = document.createElement('div');
+        textContent.textContent = note.content || '';
+        noteEl.appendChild(textContent);
+        
+        // Add drawing as absolute overlay
+        if (note.drawingData) {
+          const img = document.createElement('img');
+          img.src = note.drawingData;
+          img.style.position = 'absolute';
+          img.style.top = '0';
+          img.style.left = '0';
+          img.style.width = '100%';
+          img.style.height = '100%';
+          img.style.objectFit = 'contain';
+          noteEl.appendChild(img);
+        }
 
-      if (note.content) {
-        doc.setFontSize(12);
-        doc.setTextColor(0, 0, 0);
-        const splitText = doc.splitTextToSize(note.content, 170);
-        doc.text(splitText, 20, yPos);
-        yPos += (splitText.length * 6) + 5;
-      }
-
-      if (note.drawingData) {
-        if (yPos > 180) {
+        container.appendChild(noteEl);
+        
+        // Visual capture using html2canvas
+        const canvas = await html2canvas(noteEl, { 
+          scale: 2, 
+          backgroundColor: null,
+          logging: false,
+          useCORS: true 
+        });
+        const imgData = canvas.toDataURL('image/png');
+        
+        // Scale to fit PDF width
+        const imgWidth = 170;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        
+        if (yPos + imgHeight > 270) {
           doc.addPage();
           yPos = 20;
         }
-        try {
-          doc.addImage(note.drawingData, 'PNG', 20, yPos, 160, 100);
-          yPos += 110;
-        } catch (e) {
-          console.error("Failed to add image to PDF", e);
-        }
-      }
-      
-      doc.setDrawColor(230, 230, 230);
-      doc.line(20, yPos, 190, yPos);
-      yPos += 15;
-    }
 
-    doc.save(`space-logs-${getLocalDateString()}.pdf`);
+        // Timestamp Label
+        doc.setFontSize(10);
+        doc.setTextColor(150, 150, 150);
+        doc.text(`Recorded At: ${note.date}`, 20, yPos);
+        yPos += 5;
+
+        doc.addImage(imgData, 'PNG', 20, yPos, imgWidth, imgHeight);
+        yPos += imgHeight + 20;
+        
+        container.removeChild(noteEl);
+      }
+
+      document.body.removeChild(container);
+      doc.save(`space-logs-${getLocalDateString()}.pdf`);
     } catch (e) {
       console.error("Export failed", e);
     } finally {
@@ -421,9 +476,26 @@ const NotePad = ({ notes, onSave, onDelete }: { notes: StudyNote[], onSave: (not
               ) : (
                 <div className="space-y-4">
                   <header className="flex justify-between items-center mb-4">
-                    <h4 className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Stored Logs</h4>
-                    <button onClick={handleExport} disabled={isExporting} className="text-[10px] font-bold text-white/20 hover:text-white transition-colors flex items-center gap-1.5 ring-1 ring-white/10 px-2 py-1 rounded disabled:opacity-50">
-                      <Download className="w-3 h-3" /> {isExporting ? "GENERATING..." : "EXPORT PDF"}
+                    <div className="flex flex-col gap-1">
+                      <h4 className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Stored Logs</h4>
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={() => setSelectedIds(new Set(notes.map(n => n.id)))} 
+                          className="text-[8px] font-bold text-cyan-400/40 hover:text-cyan-400 transition-colors uppercase"
+                        >Select All</button>
+                        <button 
+                          onClick={() => setSelectedIds(new Set())} 
+                          className="text-[8px] font-bold text-white/10 hover:text-white/30 transition-colors uppercase"
+                        >Clear</button>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={handleExport} 
+                      disabled={isExporting || selectedIds.size === 0} 
+                      className="text-[10px] font-bold text-white/20 hover:text-white transition-colors flex items-center gap-1.5 ring-1 ring-white/10 px-2 py-1 rounded disabled:opacity-30 disabled:cursor-not-allowed group/btn"
+                    >
+                      <Download className="w-3 h-3 group-hover/btn:text-cyan-400" /> 
+                      {isExporting ? "GENERATING..." : `EXPORT PDF (${selectedIds.size})`}
                     </button>
                   </header>
                   
@@ -444,14 +516,29 @@ const NotePad = ({ notes, onSave, onDelete }: { notes: StudyNote[], onSave: (not
                         key={note.id} 
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="rounded-xl p-4 group transition-all"
+                        onClick={() => { setCurrentNote(note); setActiveTab(note.type as any || 'text'); }}
+                        className={cn(
+                          "rounded-xl p-4 group transition-all relative cursor-pointer border-2",
+                          selectedIds.has(note.id) ? "border-cyan-500/50 scale-[1.02]" : "border-transparent"
+                        )}
                         style={{ backgroundColor: note.color, color: '#1a1a1a' }}
                       >
+                        {/* Selector bit */}
+                        <div 
+                          onClick={(e) => toggleSelect(note.id, e)}
+                          className={cn(
+                            "absolute -top-2 -left-2 w-6 h-6 rounded-full flex items-center justify-center transition-all z-10 shadow-lg",
+                            selectedIds.has(note.id) ? "bg-cyan-500 text-black border-2 border-white scale-110" : "bg-white/40 text-black/20 hover:bg-white/60 hover:text-black/40"
+                          )}
+                        >
+                          <Check className={cn("w-3 h-3", !selectedIds.has(note.id) && "opacity-0")} />
+                        </div>
+
                         <div className="flex justify-between items-start mb-2">
                           <span className="text-[8px] font-black uppercase opacity-30 tracking-tighter">{note.date}</span>
                           <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onClick={() => { setCurrentNote(note); setActiveTab(note.type as any || 'text'); }} className="p-1 hover:bg-black/10 rounded"><Edit className="w-3 h-3" /></button>
-                            <button onClick={() => onDelete(note.id)} className="p-1 hover:bg-black/10 rounded text-red-700/80"><Trash2 className="w-3 h-3" /></button>
+                            <button className="p-1 hover:bg-black/10 rounded"><Edit className="w-3 h-3" /></button>
+                            <button onClick={(e) => { e.stopPropagation(); onDelete(note.id); }} className="p-1 hover:bg-black/10 rounded text-red-700/80"><Trash2 className="w-3 h-3" /></button>
                           </div>
                         </div>
                         {note.drawingData ? (
