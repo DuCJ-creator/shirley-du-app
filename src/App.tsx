@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useDragControls } from 'motion/react';
 import { 
   Moon, Star, Sparkles, BookOpen, Mic2, PenTool, GraduationCap, 
   Home, User, Trophy, Heart, Coffee, ChevronLeft, ExternalLink,
@@ -169,6 +169,7 @@ const NotePad = ({ notes, onSave, onDelete }: { notes: StudyNote[], onSave: (not
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [lastPos, setLastPos] = useState({ x: 0, y: 0 });
+  const dragControls = useDragControls();
 
   const colors = ['#fef08a', '#bbf7d0', '#bfdbfe', '#fbcfe8', '#ddd6fe'];
 
@@ -226,13 +227,19 @@ const NotePad = ({ notes, onSave, onDelete }: { notes: StudyNote[], onSave: (not
   };
 
   const handleExport = () => {
-    const text = notes.map(n => `[${n.date}]\n${n.content}\n---`).join('\n\n');
-    const blob = new Blob([text], { type: 'text/plain' });
+    const text = notes.map(n => {
+      const header = `[${n.date}] Type: ${n.type.toUpperCase()}`;
+      const body = n.type === 'drawing' ? '(Handwritten/Drawing Entry - See in App)' : n.content;
+      return `${header}\n${body}\n---`;
+    }).join('\n\n');
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = `my-space-notes-${getLocalDateString()}.txt`;
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
 
@@ -252,6 +259,8 @@ const NotePad = ({ notes, onSave, onDelete }: { notes: StudyNote[], onSave: (not
         {isOpen && (
           <motion.div
             drag
+            dragControls={dragControls}
+            dragListener={false}
             dragMomentum={false}
             initial={{ scale: 0.9, opacity: 0, x: 100 }}
             animate={{ scale: 1, opacity: 1, x: 0 }}
@@ -259,7 +268,10 @@ const NotePad = ({ notes, onSave, onDelete }: { notes: StudyNote[], onSave: (not
             className="fixed bottom-40 right-8 w-[400px] h-[550px] bg-neutral-900/95 backdrop-blur-2xl border border-white/10 rounded-[2rem] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] z-[2200] overflow-hidden flex flex-col pointer-events-auto"
           >
             {/* Draggable Header */}
-            <div className="p-4 border-b border-white/5 flex items-center justify-between bg-white/[0.03] cursor-move">
+            <div 
+              onPointerDown={(e) => dragControls.start(e)}
+              className="p-4 border-b border-white/5 flex items-center justify-between bg-white/[0.03] cursor-move"
+            >
               <div className="flex items-center gap-3">
                 <div className="flex gap-1">
                   <div className="w-2 h-2 rounded-full bg-red-500/50" />
@@ -1176,7 +1188,19 @@ export default function App() {
   const [allWordData, setAllWordData] = useState<any[]>([]);
   const [vocabSearchTerm, setVocabSearchTerm] = useState("");
   const [isFetchingVocab, setIsFetchingVocab] = useState(false);
-  const [notes, setNotes] = useState<StudyNote[]>([]);
+  const [notes, setNotes] = useState<StudyNote[]>(() => {
+    try {
+      const saved = localStorage.getItem('space_notes_cache');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  
+  // Update localStorage when notes change
+  useEffect(() => {
+    if (notes.length > 0) {
+      localStorage.setItem('space_notes_cache', JSON.stringify(notes));
+    }
+  }, [notes]);
   
   // Activity tracking
   const lastActivityRef = useRef(Date.now());
@@ -1302,7 +1326,11 @@ export default function App() {
 
     onSnapshot(collection(db, 'users', uid, 'notes'), (snapshot) => {
       const newNotes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as StudyNote));
-      setNotes(newNotes.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+      setNotes(newNotes.sort((a, b) => {
+        const timeA = new Date(a.date).getTime() || 0;
+        const timeB = new Date(b.date).getTime() || 0;
+        return timeB - timeA;
+      }));
     });
   };
 
@@ -1834,20 +1862,49 @@ export default function App() {
 
   const handleSaveNote = async (note: Partial<StudyNote>) => {
     if (!user) return;
-    const noteRef = doc(db, 'users', user.uid, 'notes', note.id!);
-    await setDoc(noteRef, {
+    
+    const noteId = note.id || Math.random().toString(36).substr(2, 9);
+    const newNote: StudyNote = {
       ...note,
+      id: noteId,
       content: note.content || '',
       drawingData: note.drawingData || null,
       date: note.date || new Date().toLocaleString(),
-      type: note.type || 'text'
-    }, { merge: true });
+      type: (note.type || 'text') as 'text' | 'drawing',
+      color: note.color || '#fef08a'
+    };
+
+    // Optimistic local update
+    setNotes(prev => {
+      const idx = prev.findIndex(n => n.id === noteId);
+      if (idx >= 0) {
+        const updated = [...prev];
+        updated[idx] = newNote;
+        return updated;
+      }
+      return [newNote, ...prev];
+    });
+
+    try {
+      const noteRef = doc(db, 'users', user.uid, 'notes', noteId);
+      await setDoc(noteRef, newNote, { merge: true });
+    } catch (e) {
+      console.error("Firestore save failed, using local storage only", e);
+    }
   };
 
   const handleDeleteNote = async (id: string) => {
     if (!user) return;
     if (!window.confirm("Are you sure you want to delete this note?")) return;
-    await deleteDoc(doc(db, 'users', user.uid, 'notes', id));
+    
+    // Optimistic local update
+    setNotes(prev => prev.filter(n => n.id !== id));
+
+    try {
+      await deleteDoc(doc(db, 'users', user.uid, 'notes', id));
+    } catch (e) {
+      console.error("Firestore delete failed", e);
+    }
   };
 
   return (
