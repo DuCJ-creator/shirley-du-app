@@ -160,6 +160,9 @@ const getLocalDateString = (date: Date = new Date()) => {
 
 // --- Components ---
 
+import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
+
 const NotePad = ({ notes, onSave, onDelete }: { notes: StudyNote[], onSave: (note: Partial<StudyNote>) => void, onDelete: (id: string) => void }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [currentNote, setCurrentNote] = useState<Partial<StudyNote> | null>(null);
@@ -226,21 +229,61 @@ const NotePad = ({ notes, onSave, onDelete }: { notes: StudyNote[], onSave: (not
     }
   };
 
-  const handleExport = () => {
-    const text = notes.map(n => {
-      const header = `[${n.date}] Type: ${n.type.toUpperCase()}`;
-      const body = n.type === 'drawing' ? '(Handwritten/Drawing Entry - See in App)' : n.content;
-      return `${header}\n${body}\n---`;
-    }).join('\n\n');
-    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `my-space-notes-${getLocalDateString()}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const doc = new jsPDF();
+    let yPos = 20;
+
+    doc.setFontSize(22);
+    doc.text("My Universal Space Logs", 20, yPos);
+    yPos += 15;
+
+    for (const note of notes) {
+      if (yPos > 250) {
+        doc.addPage();
+        yPos = 20;
+      }
+
+      doc.setFontSize(10);
+      doc.setTextColor(150, 150, 150);
+      doc.text(`[${note.date}]`, 20, yPos);
+      yPos += 7;
+
+      if (note.content) {
+        doc.setFontSize(12);
+        doc.setTextColor(0, 0, 0);
+        const splitText = doc.splitTextToSize(note.content, 170);
+        doc.text(splitText, 20, yPos);
+        yPos += (splitText.length * 6) + 5;
+      }
+
+      if (note.drawingData) {
+        if (yPos > 180) {
+          doc.addPage();
+          yPos = 20;
+        }
+        try {
+          doc.addImage(note.drawingData, 'PNG', 20, yPos, 160, 100);
+          yPos += 110;
+        } catch (e) {
+          console.error("Failed to add image to PDF", e);
+        }
+      }
+      
+      doc.setDrawColor(230, 230, 230);
+      doc.line(20, yPos, 190, yPos);
+      yPos += 15;
+    }
+
+    doc.save(`space-logs-${getLocalDateString()}.pdf`);
+    } catch (e) {
+      console.error("Export failed", e);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -321,22 +364,20 @@ const NotePad = ({ notes, onSave, onDelete }: { notes: StudyNote[], onSave: (not
             <div className="flex-1 overflow-y-auto p-4 scrollbar-hide">
               {currentNote ? (
                 <div className="h-full flex flex-col gap-4">
-                  {activeTab === 'text' ? (
-                    <textarea 
-                      autoFocus
-                      className="flex-1 bg-transparent border-none focus:ring-0 text-neutral-900 font-medium resize-none p-4 rounded-xl leading-relaxed"
-                      style={{ backgroundColor: color }}
-                      value={currentNote.content}
-                      onChange={(e) => setCurrentNote({ ...currentNote, content: e.target.value })}
-                      placeholder="Transmission starts here..."
-                    />
-                  ) : (
-                    <div className="flex-1 relative bg-white rounded-xl overflow-hidden cursor-crosshair">
+                  <div 
+                    className="flex-1 relative rounded-2xl overflow-hidden shadow-inner group/editor"
+                    style={{ backgroundColor: color }}
+                  >
+                    {/* Unified Canvas + Text Layer */}
+                    <div className="absolute inset-0 z-0">
                       <canvas 
                         ref={canvasRef}
                         width={800}
                         height={1000}
-                        className="w-full h-full"
+                        className={cn(
+                          "w-full h-full",
+                          activeTab === 'drawing' ? "cursor-crosshair z-20 pointer-events-auto" : "pointer-events-none z-0"
+                        )}
                         onMouseDown={startDrawing}
                         onMouseMove={draw}
                         onMouseUp={stopDrawing}
@@ -346,12 +387,31 @@ const NotePad = ({ notes, onSave, onDelete }: { notes: StudyNote[], onSave: (not
                         onTouchEnd={stopDrawing}
                       />
                     </div>
-                  )}
+                    
+                    <textarea 
+                      autoFocus={activeTab === 'text'}
+                      className={cn(
+                        "absolute inset-0 w-full h-full bg-transparent border-none focus:ring-0 text-neutral-900 font-medium resize-none p-6 leading-relaxed z-10",
+                        activeTab === 'drawing' ? "pointer-events-none opacity-40 select-none" : "pointer-events-auto opacity-100"
+                      )}
+                      value={currentNote.content}
+                      onChange={(e) => setCurrentNote({ ...currentNote, content: e.target.value })}
+                      placeholder={activeTab === 'text' ? "Transmission starts here..." : ""}
+                    />
+
+                    {/* Interaction Hint */}
+                    <div className="absolute top-2 right-4 pointer-events-none">
+                      <span className="text-[8px] font-black uppercase opacity-20 tracking-tighter">
+                        {activeTab === 'drawing' ? "Drawing Mode Active" : "Text Mode Active"}
+                      </span>
+                    </div>
+                  </div>
+
                   <div className="flex justify-between items-center gap-2">
                     <button onClick={() => setCurrentNote(null)} className="text-[10px] font-bold text-white/30 hover:text-white/60 transition-colors uppercase tracking-widest">Discard</button>
                     <button 
                       onClick={() => {
-                        onSave({ ...currentNote, color, type: activeTab });
+                        onSave({ ...currentNote, color });
                         setCurrentNote(null);
                       }}
                       className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-black text-[10px] font-bold rounded-lg uppercase tracking-widest"
@@ -362,8 +422,8 @@ const NotePad = ({ notes, onSave, onDelete }: { notes: StudyNote[], onSave: (not
                 <div className="space-y-4">
                   <header className="flex justify-between items-center mb-4">
                     <h4 className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Stored Logs</h4>
-                    <button onClick={handleExport} className="text-[10px] font-bold text-white/20 hover:text-white transition-colors flex items-center gap-1.5 ring-1 ring-white/10 px-2 py-1 rounded">
-                      <Download className="w-3 h-3" /> EXPORT
+                    <button onClick={handleExport} disabled={isExporting} className="text-[10px] font-bold text-white/20 hover:text-white transition-colors flex items-center gap-1.5 ring-1 ring-white/10 px-2 py-1 rounded disabled:opacity-50">
+                      <Download className="w-3 h-3" /> {isExporting ? "GENERATING..." : "EXPORT PDF"}
                     </button>
                   </header>
                   
@@ -394,9 +454,9 @@ const NotePad = ({ notes, onSave, onDelete }: { notes: StudyNote[], onSave: (not
                             <button onClick={() => onDelete(note.id)} className="p-1 hover:bg-black/10 rounded text-red-700/80"><Trash2 className="w-3 h-3" /></button>
                           </div>
                         </div>
-                        {note.type === 'drawing' && note.drawingData ? (
+                        {note.drawingData ? (
                           <div className="relative aspect-video bg-white/20 rounded-lg overflow-hidden mb-2">
-                            <img src={note.drawingData} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                            <img src={note.drawingData} className="w-full h-full object-cover" referrerPolicy="no-referrer" alt="Drawing preview" />
                           </div>
                         ) : null}
                         <p className="text-[11px] font-medium leading-tight line-clamp-2">{note.content}</p>
@@ -420,6 +480,7 @@ const NotePad = ({ notes, onSave, onDelete }: { notes: StudyNote[], onSave: (not
 };
 const MobiusRing = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const lastRenderRef = useRef<number>(0);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -439,19 +500,24 @@ const MobiusRing = () => {
     resize();
 
     const render = () => {
+      time += 0.003; // Slowed down
+      
+      // Throttle rendering to ~30 FPS for device cooling
+      const now = Date.now();
+      if (lastRenderRef.current && now - lastRenderRef.current < 33) {
+        animationFrameId = requestAnimationFrame(render);
+        return;
+      }
+      lastRenderRef.current = now;
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      time += 0.005;
 
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
       const scale = Math.min(canvas.width, canvas.height) * 0.35;
 
-      ctx.beginPath();
-      ctx.strokeStyle = 'rgba(100, 150, 255, 0.15)';
-      ctx.lineWidth = 1;
-
-      // Draw Mobius Ring particles
-      for (let u = 0; u < Math.PI * 2; u += 0.05) {
+      // Lower resolution loop for performance
+      for (let u = 0; u < Math.PI * 2; u += 0.08) { // Increased step (0.05 -> 0.08)
         for (let v = -0.5; v <= 0.5; v += 0.5) {
           const x = (1 + v * Math.cos(u / 2 + time)) * Math.cos(u + time * 0.5);
           const y = (1 + v * Math.cos(u / 2 + time)) * Math.sin(u + time * 0.5);
