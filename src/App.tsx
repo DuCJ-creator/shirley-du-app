@@ -4,7 +4,7 @@ import {
   Moon, Star, Sparkles, BookOpen, Mic2, PenTool, GraduationCap, 
   Home, User, Trophy, Heart, Coffee, ChevronLeft, ExternalLink,
   LogIn, LogOut, Clock, Zap, RefreshCw, Search, TrendingUp, ChevronRight,
-  ClipboardX, FileText, Trash2, Download, Palette, Plus, Save, X
+  ClipboardX, FileText, Trash2, Download, Palette, Plus, Save, X, Edit, Pencil
 } from 'lucide-react';
 import { cn } from './lib/utils';
 import { 
@@ -60,9 +60,10 @@ interface UserData {
 interface StudyNote {
   id: string;
   content: string;
+  drawingData?: string; // Data URL for canvas image
   date: string;
   color: string;
-  type: 'text' | 'handwritten';
+  type: 'text' | 'drawing';
 }
 
 interface PetData {
@@ -162,9 +163,67 @@ const getLocalDateString = (date: Date = new Date()) => {
 const NotePad = ({ notes, onSave, onDelete }: { notes: StudyNote[], onSave: (note: Partial<StudyNote>) => void, onDelete: (id: string) => void }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [currentNote, setCurrentNote] = useState<Partial<StudyNote> | null>(null);
-  const [color, setColor] = useState('#fef08a'); // Default yellow sticky color
+  const [activeTab, setActiveTab] = useState<'text' | 'drawing'>('text');
+  const [color, setColor] = useState('#fef08a');
+  
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [lastPos, setLastPos] = useState({ x: 0, y: 0 });
 
   const colors = ['#fef08a', '#bbf7d0', '#bfdbfe', '#fbcfe8', '#ddd6fe'];
+
+  useEffect(() => {
+    if (activeTab === 'drawing' && canvasRef.current && currentNote?.drawingData) {
+      const img = new Image();
+      img.onload = () => {
+        const ctx = canvasRef.current?.getContext('2d');
+        ctx?.clearRect(0, 0, 800, 600);
+        ctx?.drawImage(img, 0, 0);
+      };
+      img.src = currentNote.drawingData;
+    }
+  }, [activeTab, currentNote?.id]);
+
+  const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
+    setIsDrawing(true);
+    const pos = getPos(e);
+    setLastPos(pos);
+  };
+
+  const draw = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isDrawing) return;
+    const ctx = canvasRef.current?.getContext('2d');
+    if (!ctx) return;
+
+    const pos = getPos(e);
+    ctx.beginPath();
+    ctx.moveTo(lastPos.x, lastPos.y);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.strokeStyle = '#1a1a1a';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+    setLastPos(pos);
+  };
+
+  const getPos = (e: any) => {
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return { x: 0, y: 0 };
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return {
+      x: (clientX - rect.left) * (canvasRef.current!.width / rect.width),
+      y: (clientY - rect.top) * (canvasRef.current!.height / rect.height)
+    };
+  };
+
+  const stopDrawing = () => {
+    setIsDrawing(false);
+    if (canvasRef.current) {
+      const dataUrl = canvasRef.current.toDataURL();
+      setCurrentNote(prev => ({ ...prev, drawingData: dataUrl }));
+    }
+  };
 
   const handleExport = () => {
     const text = notes.map(n => `[${n.date}]\n${n.content}\n---`).join('\n\n');
@@ -179,12 +238,11 @@ const NotePad = ({ notes, onSave, onDelete }: { notes: StudyNote[], onSave: (not
 
   return (
     <>
-      {/* Floating Toggle */}
       <motion.button
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-32 right-8 w-14 h-14 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl flex items-center justify-center shadow-2xl z-[100] group"
+        onClick={() => setIsOpen(!isOpen)}
+        className="fixed bottom-32 right-8 w-14 h-14 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl flex items-center justify-center shadow-2xl z-[100] group pointer-events-auto"
       >
         <FileText className="w-6 h-6 text-white group-hover:text-cyan-400 transition-colors" />
         <div className="absolute -top-1 -right-1 w-4 h-4 bg-cyan-500 rounded-full text-[8px] flex items-center justify-center font-bold">{notes.length}</div>
@@ -192,101 +250,154 @@ const NotePad = ({ notes, onSave, onDelete }: { notes: StudyNote[], onSave: (not
 
       <AnimatePresence>
         {isOpen && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-              onClick={() => setIsOpen(false)}
-            />
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="relative w-full max-w-2xl h-[80vh] bg-neutral-900 border border-white/10 rounded-[2rem] shadow-2xl overflow-hidden flex flex-col"
-            >
-              {/* Toolbar */}
-              <div className="p-4 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
-                <div className="flex items-center gap-4">
-                  <h3 className="font-display font-medium text-white/80">Study Notes</h3>
-                  <div className="flex gap-1.5">
-                    {colors.map(c => (
-                      <button 
-                        key={c}
-                        onClick={() => setColor(c)}
-                        className={cn("w-5 h-5 rounded-full border-2 transition-all", color === c ? "border-white scale-110" : "border-transparent opacity-40")}
-                        style={{ backgroundColor: c }}
-                      />
-                    ))}
-                  </div>
+          <motion.div
+            drag
+            dragMomentum={false}
+            initial={{ scale: 0.9, opacity: 0, x: 100 }}
+            animate={{ scale: 1, opacity: 1, x: 0 }}
+            exit={{ scale: 0.9, opacity: 0, x: 100 }}
+            className="fixed bottom-40 right-8 w-[400px] h-[550px] bg-neutral-900/95 backdrop-blur-2xl border border-white/10 rounded-[2rem] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] z-[150] overflow-hidden flex flex-col pointer-events-auto"
+          >
+            {/* Draggable Header */}
+            <div className="p-4 border-b border-white/5 flex items-center justify-between bg-white/[0.03] cursor-move">
+              <div className="flex items-center gap-3">
+                <div className="flex gap-1">
+                  <div className="w-2 h-2 rounded-full bg-red-500/50" />
+                  <div className="w-2 h-2 rounded-full bg-yellow-500/50" />
+                  <div className="w-2 h-2 rounded-full bg-green-500/50" />
                 </div>
-                <div className="flex items-center gap-2">
-                  <button onClick={handleExport} className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white/40 hover:text-white" title="Export All">
-                    <Download className="w-4 h-4" />
-                  </button>
-                  <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white/40 hover:text-white">
-                    <X className="w-4 h-4" />
-                  </button>
+                <h3 className="text-xs font-bold text-white/40 uppercase tracking-widest">Space Log v1.0</h3>
+              </div>
+              <button 
+                onClick={() => setIsOpen(false)} 
+                className="p-1.5 hover:bg-white/10 rounded-lg text-white/20 hover:text-white transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Note Controls */}
+            {currentNote && (
+              <div className="px-4 py-2 border-b border-white/5 flex items-center justify-between gap-4">
+                <div className="flex bg-white/5 rounded-lg p-0.5">
+                  <button 
+                    onClick={() => setActiveTab('text')}
+                    className={cn("px-3 py-1 text-[10px] font-bold rounded-md transition-all", activeTab === 'text' ? "bg-white text-black" : "text-white/40")}
+                  >TEXT</button>
+                  <button 
+                    onClick={() => setActiveTab('drawing')}
+                    className={cn("px-3 py-1 text-[10px] font-bold rounded-md transition-all", activeTab === 'drawing' ? "bg-white text-black" : "text-white/40")}
+                  >DRAW</button>
+                </div>
+                <div className="flex gap-1">
+                  {colors.map(c => (
+                    <button 
+                      key={c}
+                      onClick={() => setColor(c)}
+                      className={cn("w-4 h-4 rounded-full border transition-all", color === c ? "border-white scale-110" : "border-transparent opacity-40")}
+                      style={{ backgroundColor: c }}
+                    />
+                  ))}
                 </div>
               </div>
+            )}
 
-              {/* Content Area */}
-              <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6 scrollbar-hide">
-                {currentNote ? (
-                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex-1 flex flex-col gap-4">
+            {/* Scrollable List or Editor */}
+            <div className="flex-1 overflow-y-auto p-4 scrollbar-hide">
+              {currentNote ? (
+                <div className="h-full flex flex-col gap-4">
+                  {activeTab === 'text' ? (
                     <textarea 
                       autoFocus
-                      className="flex-1 bg-transparent border-none focus:ring-0 text-neutral-800 font-medium resize-none p-6 rounded-2xl shadow-inner min-h-[300px]"
+                      className="flex-1 bg-transparent border-none focus:ring-0 text-neutral-900 font-medium resize-none p-4 rounded-xl leading-relaxed"
                       style={{ backgroundColor: color }}
                       value={currentNote.content}
                       onChange={(e) => setCurrentNote({ ...currentNote, content: e.target.value })}
-                      placeholder="Start typing your study notes..."
+                      placeholder="Transmission starts here..."
                     />
-                    <div className="flex justify-end gap-3">
-                      <button onClick={() => setCurrentNote(null)} className="px-6 py-2 text-white/60 hover:text-white">Cancel</button>
-                      <button 
-                        onClick={() => {
-                          onSave({ ...currentNote, color });
-                          setCurrentNote(null);
-                        }}
-                        className="px-6 py-2 bg-cyan-500 text-white rounded-xl font-bold flex items-center gap-2"
-                      >
-                        <Save className="w-4 h-4" /> Save Note
-                      </button>
+                  ) : (
+                    <div className="flex-1 relative bg-white rounded-xl overflow-hidden cursor-crosshair">
+                      <canvas 
+                        ref={canvasRef}
+                        width={800}
+                        height={1000}
+                        className="w-full h-full"
+                        onMouseDown={startDrawing}
+                        onMouseMove={draw}
+                        onMouseUp={stopDrawing}
+                        onMouseLeave={stopDrawing}
+                        onTouchStart={startDrawing}
+                        onTouchMove={draw}
+                        onTouchEnd={stopDrawing}
+                      />
                     </div>
-                  </motion.div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  )}
+                  <div className="flex justify-between items-center gap-2">
+                    <button onClick={() => setCurrentNote(null)} className="text-[10px] font-bold text-white/30 hover:text-white/60 transition-colors uppercase tracking-widest">Discard</button>
                     <button 
-                      onClick={() => setCurrentNote({ content: '', id: Math.random().toString(36).substr(2, 9), color })}
-                      className="border-2 border-dashed border-white/10 rounded-2xl p-6 flex flex-col items-center justify-center gap-3 hover:border-white/30 transition-all group"
-                    >
-                      <Plus className="w-8 h-8 text-white/20 group-hover:text-white/60" />
-                      <span className="text-white/20 group-hover:text-white/60 font-medium">Add New Note</span>
+                      onClick={() => {
+                        onSave({ ...currentNote, color, type: activeTab });
+                        setCurrentNote(null);
+                      }}
+                      className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-black text-[10px] font-bold rounded-lg uppercase tracking-widest"
+                    >Save Entry</button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <header className="flex justify-between items-center mb-4">
+                    <h4 className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Stored Logs</h4>
+                    <button onClick={handleExport} className="text-[10px] font-bold text-white/20 hover:text-white transition-colors flex items-center gap-1.5 ring-1 ring-white/10 px-2 py-1 rounded">
+                      <Download className="w-3 h-3" /> EXPORT
                     </button>
+                  </header>
+                  
+                  <button 
+                    onClick={() => {
+                      setCurrentNote({ content: '', id: Math.random().toString(36).substr(2, 9), color, type: 'text' });
+                      setActiveTab('text');
+                    }}
+                    className="w-full h-16 border border-dashed border-white/10 rounded-xl flex items-center justify-center gap-3 hover:bg-white/5 transition-all text-white/20 hover:text-white/60"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span className="text-[11px] font-bold uppercase tracking-wider">New Transmission</span>
+                  </button>
+
+                  <div className="grid grid-cols-1 gap-3">
                     {notes.map(note => (
                       <motion.div 
                         key={note.id} 
-                        layoutId={note.id}
-                        className="rounded-2xl p-5 relative group"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="rounded-xl p-4 group transition-all"
                         style={{ backgroundColor: note.color, color: '#1a1a1a' }}
                       >
                         <div className="flex justify-between items-start mb-2">
-                          <span className="text-[10px] uppercase font-bold tracking-widest opacity-40">{note.date}</span>
+                          <span className="text-[8px] font-black uppercase opacity-30 tracking-tighter">{note.date}</span>
                           <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onClick={() => setCurrentNote(note)} className="p-1 hover:bg-black/5 rounded"><FileText className="w-3.5 h-3.5" /></button>
-                            <button onClick={() => onDelete(note.id)} className="p-1 hover:bg-black/5 rounded text-red-600"><Trash2 className="w-3.5 h-3.5" /></button>
+                            <button onClick={() => { setCurrentNote(note); setActiveTab(note.type as any || 'text'); }} className="p-1 hover:bg-black/10 rounded"><Edit className="w-3 h-3" /></button>
+                            <button onClick={() => onDelete(note.id)} className="p-1 hover:bg-black/10 rounded text-red-700/80"><Trash2 className="w-3 h-3" /></button>
                           </div>
                         </div>
-                        <p className="text-sm font-medium line-clamp-4 leading-relaxed whitespace-pre-wrap">{note.content}</p>
+                        {note.type === 'drawing' && note.drawingData ? (
+                          <div className="relative aspect-video bg-white/20 rounded-lg overflow-hidden mb-2">
+                            <img src={note.drawingData} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                          </div>
+                        ) : null}
+                        <p className="text-[11px] font-medium leading-tight line-clamp-2">{note.content}</p>
                       </motion.div>
                     ))}
+                    {notes.length === 0 && (
+                      <div className="py-12 text-center">
+                        <Moon className="w-5 h-5 text-white/5 mx-auto mb-2" />
+                        <p className="text-[10px] font-bold text-white/10 uppercase tracking-widest">No logs found</p>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            </motion.div>
-          </div>
+                </div>
+              )}
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </>
@@ -1726,6 +1837,8 @@ export default function App() {
     const noteRef = doc(db, 'users', user.uid, 'notes', note.id!);
     await setDoc(noteRef, {
       ...note,
+      content: note.content || '',
+      drawingData: note.drawingData || null,
       date: note.date || new Date().toLocaleString(),
       type: note.type || 'text'
     }, { merge: true });
@@ -2165,22 +2278,31 @@ export default function App() {
                       customStyle = positions[idx];
                       customClass = "rover-part";
                     } else if (currentStrand === 'tests') {
-                      // Big Dipper layout (7 gems)
+                      // Big Dipper layout (7 gems) - Spread further to avoid overlap
                       const positions = [
-                        { left: '10%', top: '20%' },
-                        { left: '20%', top: '35%' },
-                        { left: '35%', top: '45%' },
-                        { left: '50%', top: '55%' }, // Handle pivot
-                        { left: '50%', top: '75%' }, // Bowl bottom
-                        { left: '70%', top: '75%' }, // Bowl corner
-                        { left: '70%', top: '55%' }  // Bowl top
+                        { left: '2%', top: '10%' },
+                        { left: '15%', top: '30%' },
+                        { left: '30%', top: '45%' },
+                        { left: '48%', top: '55%' }, // Handle pivot
+                        { left: '48%', top: '80%' }, // Bowl bottom
+                        { left: '75%', top: '80%' }, // Bowl corner
+                        { left: '75%', top: '55%' }  // Bowl top
                       ];
-                      customWrapperClass = "absolute scale-75 md:scale-100";
+                      customWrapperClass = "absolute scale-75 md:scale-90";
                       customStyle = positions[idx] || {};
                     } else if (currentStrand === 'vocabulary') {
-                      // craters layout (9 gems)
-                      // No absolute positioning for 9 gems grid, use specialized styling
-                      customClass = "gem-crater backdrop-blur-3xl";
+                      // craters layout (9 gems) - Randomized spread
+                      // Seeded random based on index for stability within a session
+                      const seed = (idx + 1) * 1234.5678;
+                      const randomL = Math.sin(seed) * 35 + 50; // 15% to 85% range
+                      const randomT = Math.cos(seed) * 35 + 50;
+                      customWrapperClass = "absolute";
+                      customStyle = {
+                        left: `${randomL}%`,
+                        top: `${randomT}%`,
+                        transform: 'translate(-50%, -50%)'
+                      };
+                      customClass = "gem-crater backdrop-blur-3xl scale-90";
                     }
 
                     return (
