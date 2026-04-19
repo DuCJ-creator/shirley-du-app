@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   Moon, Star, Sparkles, BookOpen, Mic2, PenTool, GraduationCap, 
   Home, User, Trophy, Heart, Coffee, ChevronLeft, ExternalLink,
-  LogIn, LogOut, Clock, Zap, RefreshCw, Search, TrendingUp, ChevronRight
+  LogIn, LogOut, Clock, Zap, RefreshCw, Search, TrendingUp, ChevronRight,
+  ClipboardX, FileText, Trash2, Download, Palette, Plus, Save, X
 } from 'lucide-react';
 import { cn } from './lib/utils';
 import { 
@@ -53,6 +54,15 @@ interface UserData {
     wordData: any;
     quoteData: any;
   }>;
+  notes?: StudyNote[];
+}
+
+interface StudyNote {
+  id: string;
+  content: string;
+  date: string;
+  color: string;
+  type: 'text' | 'handwritten';
 }
 
 interface PetData {
@@ -149,6 +159,139 @@ const getLocalDateString = (date: Date = new Date()) => {
 
 // --- Components ---
 
+const NotePad = ({ notes, onSave, onDelete }: { notes: StudyNote[], onSave: (note: Partial<StudyNote>) => void, onDelete: (id: string) => void }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [currentNote, setCurrentNote] = useState<Partial<StudyNote> | null>(null);
+  const [color, setColor] = useState('#fef08a'); // Default yellow sticky color
+
+  const colors = ['#fef08a', '#bbf7d0', '#bfdbfe', '#fbcfe8', '#ddd6fe'];
+
+  const handleExport = () => {
+    const text = notes.map(n => `[${n.date}]\n${n.content}\n---`).join('\n\n');
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `my-space-notes-${getLocalDateString()}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <>
+      {/* Floating Toggle */}
+      <motion.button
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        onClick={() => setIsOpen(true)}
+        className="fixed bottom-32 right-8 w-14 h-14 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl flex items-center justify-center shadow-2xl z-[100] group"
+      >
+        <FileText className="w-6 h-6 text-white group-hover:text-cyan-400 transition-colors" />
+        <div className="absolute -top-1 -right-1 w-4 h-4 bg-cyan-500 rounded-full text-[8px] flex items-center justify-center font-bold">{notes.length}</div>
+      </motion.button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={() => setIsOpen(false)}
+            />
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="relative w-full max-w-2xl h-[80vh] bg-neutral-900 border border-white/10 rounded-[2rem] shadow-2xl overflow-hidden flex flex-col"
+            >
+              {/* Toolbar */}
+              <div className="p-4 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+                <div className="flex items-center gap-4">
+                  <h3 className="font-display font-medium text-white/80">Study Notes</h3>
+                  <div className="flex gap-1.5">
+                    {colors.map(c => (
+                      <button 
+                        key={c}
+                        onClick={() => setColor(c)}
+                        className={cn("w-5 h-5 rounded-full border-2 transition-all", color === c ? "border-white scale-110" : "border-transparent opacity-40")}
+                        style={{ backgroundColor: c }}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button onClick={handleExport} className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white/40 hover:text-white" title="Export All">
+                    <Download className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white/40 hover:text-white">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Content Area */}
+              <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6 scrollbar-hide">
+                {currentNote ? (
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex-1 flex flex-col gap-4">
+                    <textarea 
+                      autoFocus
+                      className="flex-1 bg-transparent border-none focus:ring-0 text-neutral-800 font-medium resize-none p-6 rounded-2xl shadow-inner min-h-[300px]"
+                      style={{ backgroundColor: color }}
+                      value={currentNote.content}
+                      onChange={(e) => setCurrentNote({ ...currentNote, content: e.target.value })}
+                      placeholder="Start typing your study notes..."
+                    />
+                    <div className="flex justify-end gap-3">
+                      <button onClick={() => setCurrentNote(null)} className="px-6 py-2 text-white/60 hover:text-white">Cancel</button>
+                      <button 
+                        onClick={() => {
+                          onSave({ ...currentNote, color });
+                          setCurrentNote(null);
+                        }}
+                        className="px-6 py-2 bg-cyan-500 text-white rounded-xl font-bold flex items-center gap-2"
+                      >
+                        <Save className="w-4 h-4" /> Save Note
+                      </button>
+                    </div>
+                  </motion.div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button 
+                      onClick={() => setCurrentNote({ content: '', id: Math.random().toString(36).substr(2, 9), color })}
+                      className="border-2 border-dashed border-white/10 rounded-2xl p-6 flex flex-col items-center justify-center gap-3 hover:border-white/30 transition-all group"
+                    >
+                      <Plus className="w-8 h-8 text-white/20 group-hover:text-white/60" />
+                      <span className="text-white/20 group-hover:text-white/60 font-medium">Add New Note</span>
+                    </button>
+                    {notes.map(note => (
+                      <motion.div 
+                        key={note.id} 
+                        layoutId={note.id}
+                        className="rounded-2xl p-5 relative group"
+                        style={{ backgroundColor: note.color, color: '#1a1a1a' }}
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <span className="text-[10px] uppercase font-bold tracking-widest opacity-40">{note.date}</span>
+                          <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onClick={() => setCurrentNote(note)} className="p-1 hover:bg-black/5 rounded"><FileText className="w-3.5 h-3.5" /></button>
+                            <button onClick={() => onDelete(note.id)} className="p-1 hover:bg-black/5 rounded text-red-600"><Trash2 className="w-3.5 h-3.5" /></button>
+                          </div>
+                        </div>
+                        <p className="text-sm font-medium line-clamp-4 leading-relaxed whitespace-pre-wrap">{note.content}</p>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+};
 const MobiusRing = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -280,7 +423,7 @@ const Planet = ({ strand, info, onClick, disabled }: { strand: Strand, info: any
   );
 };
 
-const Gem = ({ name, nameZh, url, color, type, onVisit, onClick }: { name: string, nameZh: string, url: string, color: string, type: string, onVisit: () => void, onClick?: () => void, key?: any }) => (
+const Gem = ({ name, nameZh, url, color, type, onVisit, onClick, className }: { name: string, nameZh: string, url: string, color: string, type: string, onVisit: () => void, onClick?: () => void, className?: string, key?: any }) => (
   <motion.button
     whileHover={{ scale: 1.05, y: -5 }}
     onClick={(e) => {
@@ -290,7 +433,10 @@ const Gem = ({ name, nameZh, url, color, type, onVisit, onClick }: { name: strin
       }
       onVisit();
     }}
-    className="relative w-32 h-44 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center gap-3 group overflow-hidden cursor-pointer shrink-0"
+    className={cn(
+      "relative w-32 h-44 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center gap-3 group overflow-hidden cursor-pointer shrink-0 transition-all",
+      className
+    )}
   >
     <div 
       className={cn("gem-shape", `gem-${type}`)}
@@ -833,21 +979,21 @@ const BilingualSubjectsView = ({
 
         {/* Centerpiece: The Knowledge Core */}
         <div className="relative z-10 w-[200px] h-[200px]">
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="text-center p-5 bg-black/60 backdrop-blur-xl rounded-full border border-white/20 w-full h-full flex flex-col items-center justify-center shadow-[0_0_60px_rgba(255,255,255,0.05)] relative overflow-hidden group transform-gpu"
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-transparent opacity-40 group-hover:opacity-60 transition-opacity" />
             <motion.div 
-              animate={{ 
-                opacity: [0.1, 0.2, 0.1],
-              }}
-              transition={{ duration: 8, repeat: Infinity }}
-              className="absolute inset-[15%] border border-white/5 rounded-full" 
-            />
-            <h3 className="font-artistic text-xl text-white mb-2 leading-tight relative z-10 drop-shadow-[0_0_10px_rgba(255,255,255,0.4)]">Knowledge is Power.</h3>
-            <div className="w-10 h-[0.5px] bg-gradient-to-r from-transparent via-white/40 to-transparent mb-2 relative z-10" />
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center p-5 bg-black/60 backdrop-blur-xl rounded-full border border-white/20 w-full h-full flex flex-col items-center justify-center shadow-[0_0_60px_rgba(255,255,255,0.05)] relative overflow-hidden group transform-gpu"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-transparent opacity-40 group-hover:opacity-60 transition-opacity" />
+              <motion.div 
+                animate={{ 
+                  opacity: [0.1, 0.2, 0.1],
+                }}
+                transition={{ duration: 8, repeat: Infinity }}
+                className="absolute inset-[15%] border border-white/5 rounded-full" 
+              />
+              <h3 className="font-artistic text-xl text-white mb-2 leading-tight relative z-10 drop-shadow-[0_0_10px_rgba(255,255,255,0.4)] text-center">Knowledge is Power.</h3>
+              <div className="w-10 h-[0.5px] bg-gradient-to-r from-transparent via-white/40 to-transparent mb-2 relative z-10" />
             <p className="font-display text-[9px] tracking-[0.4em] text-white/50 uppercase relative z-10 font-bold">Francis Bacon</p>
           </motion.div>
         </div>
@@ -919,6 +1065,7 @@ export default function App() {
   const [allWordData, setAllWordData] = useState<any[]>([]);
   const [vocabSearchTerm, setVocabSearchTerm] = useState("");
   const [isFetchingVocab, setIsFetchingVocab] = useState(false);
+  const [notes, setNotes] = useState<StudyNote[]>([]);
   
   // Activity tracking
   const lastActivityRef = useRef(Date.now());
@@ -1040,6 +1187,11 @@ export default function App() {
     onSnapshot(query(collection(db, 'users', uid, 'logs'), where('timestamp', '!=', null)), (snapshot) => {
       const newLogs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PointLog));
       setLogs(newLogs.sort((a, b) => b.timestamp?.toMillis() - a.timestamp?.toMillis()));
+    });
+
+    onSnapshot(collection(db, 'users', uid, 'notes'), (snapshot) => {
+      const newNotes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as StudyNote));
+      setNotes(newNotes.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
     });
   };
 
@@ -1569,6 +1721,22 @@ export default function App() {
     setShowCheckIn(false);
   };
 
+  const handleSaveNote = async (note: Partial<StudyNote>) => {
+    if (!user) return;
+    const noteRef = doc(db, 'users', user.uid, 'notes', note.id!);
+    await setDoc(noteRef, {
+      ...note,
+      date: note.date || new Date().toLocaleString(),
+      type: note.type || 'text'
+    }, { merge: true });
+  };
+
+  const handleDeleteNote = async (id: string) => {
+    if (!user) return;
+    if (!window.confirm("Are you sure you want to delete this note?")) return;
+    await deleteDoc(doc(db, 'users', user.uid, 'notes', id));
+  };
+
   return (
     <div className="min-h-screen relative">
       <GalaxyBackground />
@@ -1958,7 +2126,7 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6 min-h-[400px] relative">
                 {showSubjects ? (
                   <div className="col-span-full">
                     <BilingualSubjectsView 
@@ -1969,25 +2137,74 @@ export default function App() {
                     />
                   </div>
                 ) : (
-                  GEMS[currentStrand as keyof typeof GEMS].map((gem, idx) => (
-                    <Gem 
-                      key={idx} 
-                      name={gem.name} 
-                      nameZh={gem.nameZh}
-                      url={gem.url} 
-                      type={gem.type || 'diamond'}
-                      color={STRANDS[currentStrand as keyof typeof STRANDS].color}
-                      onVisit={() => handleVisitGem(gem.name)}
-                      onClick={() => {
-                        if (gem.url === 'subjects') {
-                          setVocabSearchTerm("");
-                          setShowSubjects(true);
-                        } else {
-                          setActivePortalUrl(gem.url);
-                        }
-                      }}
-                    />
-                  ))
+                  GEMS[currentStrand as keyof typeof GEMS].map((gem, idx) => {
+                    const totalGems = GEMS[currentStrand as keyof typeof GEMS].length;
+                    let customStyle = {};
+                    let customWrapperClass = "";
+                    let customClass = "";
+
+                    if (currentStrand === 'grammar') {
+                      // Comet layout (2 gems)
+                      const isLeft = idx === 0;
+                      customWrapperClass = "absolute";
+                      customStyle = {
+                        left: isLeft ? '20%' : '60%',
+                        top: isLeft ? '30%' : '50%',
+                        animation: `float ${3 + idx}s ease-in-out infinite alternate`
+                      };
+                      customClass = "gem-comet";
+                    } else if (currentStrand === 'pronunciation') {
+                      // Mars rover layout (4 gems)
+                      const positions = [
+                        { left: '40%', top: '30%' }, // Body/Head
+                        { left: '30%', top: '60%' }, // Front wheel
+                        { left: '50%', top: '60%' }, // Back wheel
+                        { left: '60%', top: '40%' }  // Camera/Arm
+                      ];
+                      customWrapperClass = "absolute scale-75 md:scale-100";
+                      customStyle = positions[idx];
+                      customClass = "rover-part";
+                    } else if (currentStrand === 'tests') {
+                      // Big Dipper layout (7 gems)
+                      const positions = [
+                        { left: '10%', top: '20%' },
+                        { left: '20%', top: '35%' },
+                        { left: '35%', top: '45%' },
+                        { left: '50%', top: '55%' }, // Handle pivot
+                        { left: '50%', top: '75%' }, // Bowl bottom
+                        { left: '70%', top: '75%' }, // Bowl corner
+                        { left: '70%', top: '55%' }  // Bowl top
+                      ];
+                      customWrapperClass = "absolute scale-75 md:scale-100";
+                      customStyle = positions[idx] || {};
+                    } else if (currentStrand === 'vocabulary') {
+                      // craters layout (9 gems)
+                      // No absolute positioning for 9 gems grid, use specialized styling
+                      customClass = "gem-crater backdrop-blur-3xl";
+                    }
+
+                    return (
+                      <div key={idx} className={customWrapperClass} style={customStyle}>
+                        <Gem 
+                          name={gem.name} 
+                          nameZh={gem.nameZh}
+                          url={gem.url} 
+                          type={gem.type || 'diamond'}
+                          color={STRANDS[currentStrand as keyof typeof STRANDS].color}
+                          onVisit={() => handleVisitGem(gem.name)}
+                          className={customClass}
+                          onClick={() => {
+                            if (gem.url === 'subjects') {
+                              setVocabSearchTerm("");
+                              setShowSubjects(true);
+                            } else {
+                              setActivePortalUrl(gem.url);
+                            }
+                          }}
+                        />
+                      </div>
+                    );
+                  })
                 )}
               </div>
             </motion.div>
@@ -2001,6 +2218,15 @@ export default function App() {
           <FloatingPet pet={petData} onReturn={handleReturnPet} />
         )}
       </AnimatePresence>
+
+      {/* Study NotePad */}
+      {user && (
+        <NotePad 
+          notes={notes} 
+          onSave={handleSaveNote} 
+          onDelete={handleDeleteNote} 
+        />
+      )}
 
       {/* Moon Base Card Modal */}
       <AnimatePresence>
