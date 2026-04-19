@@ -262,27 +262,30 @@ const NotePad = ({ notes, onSave, onDelete }: { notes: StudyNote[], onSave: (not
             dragControls={dragControls}
             dragListener={false}
             dragMomentum={false}
-            initial={{ scale: 0.9, opacity: 0, x: 100 }}
-            animate={{ scale: 1, opacity: 1, x: 0 }}
-            exit={{ scale: 0.9, opacity: 0, x: 100 }}
-            className="fixed bottom-40 right-8 w-[400px] h-[550px] bg-neutral-900/95 backdrop-blur-2xl border border-white/10 rounded-[2rem] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] z-[2200] overflow-hidden flex flex-col pointer-events-auto"
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className="fixed top-24 right-8 w-[400px] h-[600px] bg-neutral-900/98 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.7)] z-[2500] overflow-hidden flex flex-col pointer-events-auto"
           >
-            {/* Draggable Header */}
+            {/* Draggable Header - Grab handle */}
             <div 
               onPointerDown={(e) => dragControls.start(e)}
-              className="p-4 border-b border-white/5 flex items-center justify-between bg-white/[0.03] cursor-move"
+              className="h-14 flex items-center justify-between px-6 bg-white/[0.03] border-b border-white/5 cursor-grab active:cursor-grabbing select-none"
             >
               <div className="flex items-center gap-3">
-                <div className="flex gap-1">
-                  <div className="w-2 h-2 rounded-full bg-red-500/50" />
-                  <div className="w-2 h-2 rounded-full bg-yellow-500/50" />
-                  <div className="w-2 h-2 rounded-full bg-green-500/50" />
+                <div className="flex gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-red-500/40" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/40" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-green-500/40" />
                 </div>
-                <h3 className="text-xs font-bold text-white/40 uppercase tracking-widest">Space Log v1.0</h3>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-black text-white/50 uppercase tracking-[0.2em] leading-none">Universal Log</span>
+                  <span className="text-[7px] font-bold text-cyan-400/60 uppercase tracking-widest mt-1">Sync: Active</span>
+                </div>
               </div>
               <button 
                 onClick={() => setIsOpen(false)} 
-                className="p-1.5 hover:bg-white/10 rounded-lg text-white/20 hover:text-white transition-colors"
+                className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-xl text-white/20 hover:text-white transition-all"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -290,23 +293,23 @@ const NotePad = ({ notes, onSave, onDelete }: { notes: StudyNote[], onSave: (not
 
             {/* Note Controls */}
             {currentNote && (
-              <div className="px-4 py-2 border-b border-white/5 flex items-center justify-between gap-4">
-                <div className="flex bg-white/5 rounded-lg p-0.5">
+              <div className="px-6 py-3 border-b border-white/5 flex items-center justify-between gap-4 bg-white/[0.01]">
+                <div className="flex bg-white/5 rounded-xl p-1">
                   <button 
                     onClick={() => setActiveTab('text')}
-                    className={cn("px-3 py-1 text-[10px] font-bold rounded-md transition-all", activeTab === 'text' ? "bg-white text-black" : "text-white/40")}
+                    className={cn("px-4 py-1.5 text-[10px] font-black rounded-lg transition-all tracking-wider", activeTab === 'text' ? "bg-white text-black shadow-lg" : "text-white/30 hover:text-white/50")}
                   >TEXT</button>
                   <button 
                     onClick={() => setActiveTab('drawing')}
-                    className={cn("px-3 py-1 text-[10px] font-bold rounded-md transition-all", activeTab === 'drawing' ? "bg-white text-black" : "text-white/40")}
+                    className={cn("px-4 py-1.5 text-[10px] font-black rounded-lg transition-all tracking-wider", activeTab === 'drawing' ? "bg-white text-black shadow-lg" : "text-white/30 hover:text-white/50")}
                   >DRAW</button>
                 </div>
-                <div className="flex gap-1">
+                <div className="flex gap-1.5">
                   {colors.map(c => (
                     <button 
                       key={c}
                       onClick={() => setColor(c)}
-                      className={cn("w-4 h-4 rounded-full border transition-all", color === c ? "border-white scale-110" : "border-transparent opacity-40")}
+                      className={cn("w-5 h-5 rounded-full border-2 transition-all", color === c ? "border-white scale-110 shadow-[0_0_10px_rgba(255,255,255,0.3)]" : "border-transparent opacity-30 hover:opacity-100")}
                       style={{ backgroundColor: c }}
                     />
                   ))}
