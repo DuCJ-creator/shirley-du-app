@@ -242,7 +242,7 @@ const NotePad = ({ notes, onSave, onDelete }: { notes: StudyNote[], onSave: (not
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-32 right-8 w-14 h-14 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl flex items-center justify-center shadow-2xl z-[100] group pointer-events-auto"
+        className="fixed bottom-32 right-8 w-14 h-14 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl flex items-center justify-center shadow-2xl z-[2100] group pointer-events-auto"
       >
         <FileText className="w-6 h-6 text-white group-hover:text-cyan-400 transition-colors" />
         <div className="absolute -top-1 -right-1 w-4 h-4 bg-cyan-500 rounded-full text-[8px] flex items-center justify-center font-bold">{notes.length}</div>
@@ -256,7 +256,7 @@ const NotePad = ({ notes, onSave, onDelete }: { notes: StudyNote[], onSave: (not
             initial={{ scale: 0.9, opacity: 0, x: 100 }}
             animate={{ scale: 1, opacity: 1, x: 0 }}
             exit={{ scale: 0.9, opacity: 0, x: 100 }}
-            className="fixed bottom-40 right-8 w-[400px] h-[550px] bg-neutral-900/95 backdrop-blur-2xl border border-white/10 rounded-[2rem] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] z-[150] overflow-hidden flex flex-col pointer-events-auto"
+            className="fixed bottom-40 right-8 w-[400px] h-[550px] bg-neutral-900/95 backdrop-blur-2xl border border-white/10 rounded-[2rem] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] z-[2200] overflow-hidden flex flex-col pointer-events-auto"
           >
             {/* Draggable Header */}
             <div className="p-4 border-b border-white/5 flex items-center justify-between bg-white/[0.03] cursor-move">
@@ -2261,8 +2261,9 @@ export default function App() {
                       const isLeft = idx === 0;
                       customWrapperClass = "absolute";
                       customStyle = {
-                        left: isLeft ? '20%' : '60%',
-                        top: isLeft ? '30%' : '50%',
+                        left: isLeft ? '25%' : '75%',
+                        top: isLeft ? '30%' : '60%',
+                        transform: 'translate(-50%, -50%)',
                         animation: `float ${3 + idx}s ease-in-out infinite alternate`
                       };
                       customClass = "gem-comet";
@@ -2270,36 +2271,43 @@ export default function App() {
                       // Mars rover layout (4 gems)
                       const positions = [
                         { left: '40%', top: '30%' }, // Body/Head
-                        { left: '30%', top: '60%' }, // Front wheel
-                        { left: '50%', top: '60%' }, // Back wheel
-                        { left: '60%', top: '40%' }  // Camera/Arm
+                        { left: '20%', top: '65%' }, // Front wheel
+                        { left: '60%', top: '65%' }, // Back wheel
+                        { left: '80%', top: '40%' }  // Camera/Arm
                       ];
                       customWrapperClass = "absolute scale-75 md:scale-100";
-                      customStyle = positions[idx];
+                      customStyle = { ...positions[idx], transform: 'translate(-50%, -50%)' };
                       customClass = "rover-part";
                     } else if (currentStrand === 'tests') {
                       // Big Dipper layout (7 gems) - Spread further to avoid overlap
                       const positions = [
-                        { left: '2%', top: '10%' },
-                        { left: '15%', top: '30%' },
-                        { left: '30%', top: '45%' },
-                        { left: '48%', top: '55%' }, // Handle pivot
-                        { left: '48%', top: '80%' }, // Bowl bottom
-                        { left: '75%', top: '80%' }, // Bowl corner
-                        { left: '75%', top: '55%' }  // Bowl top
+                        { left: '8%', top: '15%' },
+                        { left: '25%', top: '35%' },
+                        { left: '42%', top: '48%' },
+                        { left: '60%', top: '58%' }, // Handle pivot
+                        { left: '55%', top: '85%' }, // Bowl bottom
+                        { left: '85%', top: '85%' }, // Bowl corner
+                        { left: '90%', top: '55%' }  // Bowl top
                       ];
                       customWrapperClass = "absolute scale-75 md:scale-90";
-                      customStyle = positions[idx] || {};
+                      customStyle = { ...(positions[idx] || {}), transform: 'translate(-50%, -50%)' };
                     } else if (currentStrand === 'vocabulary') {
-                      // craters layout (9 gems) - Randomized spread
-                      // Seeded random based on index for stability within a session
-                      const seed = (idx + 1) * 1234.5678;
-                      const randomL = Math.sin(seed) * 35 + 50; // 15% to 85% range
-                      const randomT = Math.cos(seed) * 35 + 50;
+                      // craters layout (9 gems) - Fixed Scattered layout to avoid overlap
+                      const positions = [
+                        { left: '15%', top: '20%' },
+                        { left: '45%', top: '15%' },
+                        { left: '75%', top: '25%' },
+                        { left: '20%', top: '50%' },
+                        { left: '50%', top: '45%' },
+                        { left: '80%', top: '55%' },
+                        { left: '15%', top: '80%' },
+                        { left: '45%', top: '85%' },
+                        { left: '85%', top: '80%' }
+                      ];
                       customWrapperClass = "absolute";
                       customStyle = {
-                        left: `${randomL}%`,
-                        top: `${randomT}%`,
+                        left: positions[idx].left,
+                        top: positions[idx].top,
                         transform: 'translate(-50%, -50%)'
                       };
                       customClass = "gem-crater backdrop-blur-3xl scale-90";
