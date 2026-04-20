@@ -102,6 +102,8 @@ const STRANDS = {
 
 const UserAvatarCenter = ({ userData, onUpdate }: { userData: any, onUpdate: (data: any) => void }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   
   const avatars = {
     cosmic: "https://images.unsplash.com/photo-1614728263952-84ea256f9679?auto=format&fit=crop&w=400&h=400&q=80",
@@ -112,16 +114,31 @@ const UserAvatarCenter = ({ userData, onUpdate }: { userData: any, onUpdate: (da
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
     if (file) {
+      if (file.size > 800 * 1024) { // 800KB limit for safety (Firestore b64 overhead)
+        setErrorMessage("Image too large! Maximum allowed is 800KB.");
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
+      }
+
       const reader = new FileReader();
       reader.onloadend = () => {
         onUpdate({ avatarUrl: reader.result as string, avatarType: 'custom' });
+        setSuccessMessage("Avatar updated!");
+        setTimeout(() => setSuccessMessage(null), 3000);
+      };
+      reader.onerror = () => {
+        setErrorMessage("Failed to read file.");
       };
       reader.readAsDataURL(file);
     }
   };
 
   const toggleAvatar = () => {
+    setErrorMessage(null);
     if (userData?.avatarType === 'cosmic') {
       onUpdate({ avatarType: 'cute', avatarUrl: null });
     } else if (userData?.avatarType === 'cute') {
@@ -132,12 +149,12 @@ const UserAvatarCenter = ({ userData, onUpdate }: { userData: any, onUpdate: (da
   };
 
   return (
-    <div className="relative z-30 group">
+    <div className="relative z-30 group flex flex-col items-center">
       <motion.div
         animate={{ 
-          boxShadow: ["0 0 40px 10px rgba(255, 255, 255, 0.1)", "0 0 70px 25px rgba(255, 255, 255, 0.2)", "0 0 40px 10px rgba(255, 255, 255, 0.1)"]
+          boxShadow: ["0 0 20px 5px rgba(255, 255, 255, 0.1)", "0 0 40px 15px rgba(255, 255, 255, 0.15)", "0 0 20px 5px rgba(255, 255, 255, 0.1)"]
         }}
-        transition={{ duration: 4, repeat: Infinity }}
+        transition={{ duration: 6, repeat: Infinity }}
         className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white/20 overflow-hidden cursor-pointer relative"
         onClick={toggleAvatar}
       >
@@ -148,15 +165,44 @@ const UserAvatarCenter = ({ userData, onUpdate }: { userData: any, onUpdate: (da
         />
         <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors" />
         <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/20 opacity-0 group-hover:opacity-100 transition-opacity">
-          <span className="text-[10px] text-white/80 font-bold tracking-widest uppercase">Change</span>
+          <p className="text-[8px] text-white font-bold uppercase tracking-widest whitespace-nowrap">Switch Mode</p>
         </div>
       </motion.div>
+
+      <div className="mt-4 flex flex-col items-center gap-1">
+        <p className="text-[9px] text-white/40 uppercase tracking-[0.2em] font-medium">Click avatar to switch styles or upload</p>
+        <p className="text-[7px] text-cyan-400/50 uppercase tracking-[0.1em] font-bold italic">Max size: 800KB for best speed</p>
+        
+        <AnimatePresence>
+          {errorMessage && (
+            <motion.p 
+              initial={{ opacity: 0, y: -5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="text-[9px] text-red-400 font-bold mt-1"
+            >
+              {errorMessage}
+            </motion.p>
+          )}
+          {successMessage && (
+            <motion.p 
+              initial={{ opacity: 0, y: -5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="text-[9px] text-green-400 font-bold mt-1"
+            >
+              {successMessage}
+            </motion.p>
+          )}
+        </AnimatePresence>
+      </div>
+
       <input 
         type="file" 
         ref={fileInputRef} 
         onChange={handleFileChange} 
-        accept="image/*" 
         className="hidden" 
+        accept="image/*"
       />
     </div>
   );
@@ -173,11 +219,11 @@ const UniverseDisplay = ({ user, userData, onStrandClick, onUpdateAvatar }: { us
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const orbitDistances = isMobile ? [90, 150, 210, 270, 330] : [160, 240, 320, 400, 480];
+  const orbitDistances = isMobile ? [90, 150, 210, 270, 330] : [140, 210, 280, 350, 420];
   
   // Adjusted angles for better visibility and avoiding overlap with side branding
   // Grammar (Mercury), Vocab (Venus), Pronunciation (Mars), Tests (Jupiter), Tools (Saturn)
-  const desktopAngles = [45, 120, 200, 280, 70];
+  const desktopAngles = [45, 120, 190, 250, 310];
   
   if (isMobile) {
     // S-Curve logic for mobile
@@ -788,12 +834,16 @@ const MobiusRing = () => {
     resize();
 
     const render = () => {
-      time += 0.003; // Slowed down
+      animationFrameId = requestAnimationFrame(render);
+
+      // Stop rendering if tab is hidden
+      if (document.hidden) return;
+
+      time += 0.002; // Slower time step
       
-      // Throttle rendering to ~30 FPS for device cooling
+      // Throttle rendering to ~24 FPS for efficiency (cinematic feel)
       const now = Date.now();
-      if (lastRenderRef.current && now - lastRenderRef.current < 33) {
-        animationFrameId = requestAnimationFrame(render);
+      if (lastRenderRef.current && now - lastRenderRef.current < 41) {
         return;
       }
       lastRenderRef.current = now;
@@ -804,29 +854,28 @@ const MobiusRing = () => {
       const centerY = canvas.height / 2;
       const scale = Math.min(canvas.width, canvas.height) * 0.35;
 
-      // Lower resolution loop for performance
-      for (let u = 0; u < Math.PI * 2; u += 0.08) { // Increased step (0.05 -> 0.08)
+      // Lower resolution loop - optimization for CPU/GPU heat
+      ctx.fillStyle = "rgba(200, 220, 255, 0.2)";
+      for (let u = 0; u < Math.PI * 2; u += 0.15) { // Significant reduction in points (0.08 -> 0.15)
         for (let v = -0.5; v <= 0.5; v += 0.5) {
-          const x = (1 + v * Math.cos(u / 2 + time)) * Math.cos(u + time * 0.5);
-          const y = (1 + v * Math.cos(u / 2 + time)) * Math.sin(u + time * 0.5);
-          const z = v * Math.sin(u / 2 + time);
+          const uStep = u + time * 0.5;
+          const uHalf = u / 2 + time;
+          const cosUHalf = Math.cos(uHalf);
+          
+          const x = (1 + v * cosUHalf) * Math.cos(uStep);
+          const y = (1 + v * cosUHalf) * Math.sin(uStep);
+          const z = v * Math.sin(uHalf);
 
-          // Simple 3D to 2D projection
           const perspective = 1 / (2 - z);
           const px = centerX + x * scale * perspective;
           const py = centerY + y * scale * perspective;
 
-          const size = (1 + z) * 1.5;
-          const alpha = (1 + z) * 0.3;
-
-          ctx.fillStyle = `rgba(200, 220, 255, ${alpha})`;
+          const size = (1 + z) * 1.2;
           ctx.beginPath();
           ctx.arc(px, py, size, 0, Math.PI * 2);
           ctx.fill();
         }
       }
-
-      animationFrameId = requestAnimationFrame(render);
     };
 
     render();
@@ -860,11 +909,10 @@ const Planet = ({ strand, info, onClick, disabled, isHovered }: { strand: Strand
       whileHover={!disabled ? { scale: 1.05 } : {}}
       whileTap={!disabled ? { scale: 0.95 } : {}}
       animate={{ 
-        y: [0, -5, 0],
-        rotate: [0, 1, 0, -1, 0]
+        y: [0, -3, 0]
       }}
       transition={{ 
-        duration: 10,
+        duration: 12,
         repeat: Infinity,
         ease: "easeInOut"
       }}
