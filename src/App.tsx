@@ -17,7 +17,7 @@ import { GoogleGenAI } from "@google/genai";
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 
 // --- Types ---
-type Strand = 'vocabulary' | 'pronunciation' | 'grammar' | 'tests' | 'saturn' | 'home' | 'pet' | 'logs';
+type Strand = 'grammar' | 'vocabulary' | 'pronunciation' | 'tests' | 'saturn' | 'home' | 'pet' | 'logs';
 
 interface PointLog {
   id: string;
@@ -55,6 +55,8 @@ interface UserData {
     quoteData: any;
   }>;
   notes?: StudyNote[];
+  avatarUrl?: string;
+  avatarType?: 'cosmic' | 'cute' | 'custom';
 }
 
 interface StudyNote {
@@ -91,11 +93,200 @@ const PET_TYPES = [
 ];
 
 const STRANDS = {
-  vocabulary: { name: 'Vocabulary', nameZh: '單字', planet: 'Venus', color: '#ffd700', icon: BookOpen, class: 'planet-venus', size: 0.95 },
-  pronunciation: { name: 'Pronunciation', nameZh: '發音', planet: 'Mars', color: '#ff4500', icon: Mic2, class: 'planet-mars', size: 0.53 },
-  grammar: { name: 'Grammar', nameZh: '文法', planet: 'Mercury', color: '#a9a9a9', icon: PenTool, class: 'planet-mercury', size: 0.38 },
-  tests: { name: 'Tests', nameZh: '測驗', planet: 'Jupiter', color: '#deb887', icon: GraduationCap, class: 'planet-jupiter', size: 2.2 }, // Capped Jupiter size for UI
-  saturn: { name: 'Tools', nameZh: '工具', planet: 'Saturn', color: '#f4a460', icon: Zap, class: 'planet-saturn', size: 1.5 },
+  grammar: { name: 'Grammar', nameZh: '文法', planet: 'Mercury', color: '#a9a9a9', icon: PenTool, class: 'planet-mercury', size: 0.45, orbit: 1 },
+  vocabulary: { name: 'Vocabulary', nameZh: '單字', planet: 'Venus', color: '#ffd700', icon: BookOpen, class: 'planet-venus', size: 0.75, orbit: 2 },
+  pronunciation: { name: 'Pronunciation', nameZh: '發音', planet: 'Mars', color: '#ff4500', icon: Mic2, class: 'planet-mars', size: 0.6, orbit: 3 },
+  tests: { name: 'Tests', nameZh: '測驗', planet: 'Jupiter', color: '#deb887', icon: GraduationCap, class: 'planet-jupiter', size: 1.25, orbit: 4 },
+  saturn: { name: 'Tools', nameZh: '工具', planet: 'Saturn', color: '#f4a460', icon: Zap, class: 'planet-saturn', size: 0.95, orbit: 5 },
+};
+
+const UserAvatarCenter = ({ userData, onUpdate }: { userData: any, onUpdate: (data: any) => void }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const avatars = {
+    cosmic: "https://images.unsplash.com/photo-1614728263952-84ea256f9679?auto=format&fit=crop&w=400&h=400&q=80",
+    cute: "https://images.unsplash.com/photo-1543589923-a8e820e4751e?auto=format&fit=crop&w=400&h=400&q=80"
+  };
+
+  const currentAvatar = userData?.avatarUrl || (userData?.avatarType === 'cute' ? avatars.cute : avatars.cosmic);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        onUpdate({ avatarUrl: reader.result as string, avatarType: 'custom' });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const toggleAvatar = () => {
+    if (userData?.avatarType === 'cosmic') {
+      onUpdate({ avatarType: 'cute', avatarUrl: null });
+    } else if (userData?.avatarType === 'cute') {
+      fileInputRef.current?.click();
+    } else {
+      onUpdate({ avatarType: 'cosmic', avatarUrl: null });
+    }
+  };
+
+  return (
+    <div className="relative z-30 group">
+      <motion.div
+        animate={{ 
+          boxShadow: ["0 0 40px 10px rgba(255, 255, 255, 0.1)", "0 0 70px 25px rgba(255, 255, 255, 0.2)", "0 0 40px 10px rgba(255, 255, 255, 0.1)"]
+        }}
+        transition={{ duration: 4, repeat: Infinity }}
+        className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white/20 overflow-hidden cursor-pointer relative"
+        onClick={toggleAvatar}
+      >
+        <img 
+          src={currentAvatar} 
+          alt="User Avatar" 
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+        />
+        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors" />
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/20 opacity-0 group-hover:opacity-100 transition-opacity">
+          <span className="text-[10px] text-white/80 font-bold tracking-widest uppercase">Change</span>
+        </div>
+      </motion.div>
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        onChange={handleFileChange} 
+        accept="image/*" 
+        className="hidden" 
+      />
+    </div>
+  );
+};
+
+const UniverseDisplay = ({ user, userData, onStrandClick, onUpdateAvatar }: { user: any, userData: any, onStrandClick: (s: Strand) => void, onUpdateAvatar: (d: any) => void }) => {
+  const [hoveredOrbit, setHoveredOrbit] = useState<number | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const orbitDistances = isMobile ? [90, 150, 210, 270, 330] : [160, 240, 320, 400, 480];
+  
+  // Adjusted angles for better visibility and avoiding overlap with side branding
+  // Grammar (Mercury), Vocab (Venus), Pronunciation (Mars), Tests (Jupiter), Tools (Saturn)
+  const desktopAngles = [45, 120, 200, 280, 70];
+  
+  if (isMobile) {
+    // S-Curve logic for mobile
+    return (
+      <div className="relative w-full min-h-[90vh] flex flex-col items-center justify-start overflow-visible pt-10">
+        {/* Origin Corner Accent (Bottom Left) */}
+        <div className="absolute bottom-[-100px] left-[-100px] w-64 h-64 bg-blue-500/10 blur-[100px] rounded-full" />
+        
+        <div className="mb-20">
+          <UserAvatarCenter userData={userData} onUpdate={onUpdateAvatar} />
+        </div>
+
+        <div className="relative w-full h-[700px]">
+          {Object.entries(STRANDS).map(([key, info], index) => {
+            const orbitIdx = info.orbit - 1;
+            const dist = orbitDistances[orbitIdx];
+            
+            // Generate S-curve offset
+            // Alternating left and right logic
+            const isLeft = index % 2 === 0;
+            const xOffset = isLeft ? -70 : 70;
+            const yOffset = orbitIdx * 130;
+
+            return (
+              <div 
+                key={key}
+                className="absolute left-1/2"
+                style={{ 
+                  transform: `translate(calc(-50% + ${xOffset}px), ${yOffset}px)`
+                }}
+              >
+                <div 
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-20"
+                  style={{ 
+                    width: `${dist * 2.2}px`, 
+                    height: `${dist * 2.2}px`,
+                    borderTop: '1px dotted rgba(255,255,255,0.3)',
+                    borderRadius: '50%',
+                    transform: `translate(-50%, -50%) rotate(${isLeft ? -45 : 45}deg)`
+                  }}
+                />
+                <Planet 
+                  strand={key as Strand} 
+                  info={info} 
+                  onClick={() => onStrandClick(key as Strand)}
+                  disabled={!user}
+                />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative w-full h-[85vh] flex items-center justify-center">
+      {/* Central Star Glow - Enhanced for Depth */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-sky-500/5 blur-[150px] rounded-full pointer-events-none" />
+      
+      {/* Orbital Rings - Thinner and more subtle */}
+      <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+        {orbitDistances.map((dist, i) => (
+          <motion.div 
+            key={i}
+            animate={{ 
+              borderColor: hoveredOrbit === i + 1 ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.04)',
+              scale: hoveredOrbit === i + 1 ? 1.005 : 1
+            }}
+            className="absolute border border-dotted rounded-full"
+            style={{ width: dist * 2, height: dist * 2 }}
+          />
+        ))}
+      </div>
+
+      <div className="scale-75 lg:scale-100">
+        <UserAvatarCenter userData={userData} onUpdate={onUpdateAvatar} />
+      </div>
+
+      {/* Planets */}
+      {Object.entries(STRANDS).map(([key, info], index) => {
+        const orbitIdx = info.orbit - 1;
+        const angle = desktopAngles[index];
+        const distance = orbitDistances[orbitIdx];
+        const x = Math.cos((angle * Math.PI) / 180) * distance;
+        const y = Math.sin((angle * Math.PI) / 180) * distance;
+
+        return (
+          <div 
+            key={key}
+            className="absolute top-1/2 left-1/2"
+            style={{ 
+              transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`
+            }}
+            onMouseEnter={() => setHoveredOrbit(info.orbit)}
+            onMouseLeave={() => setHoveredOrbit(null)}
+          >
+            <Planet 
+              strand={key as Strand} 
+              info={info} 
+              onClick={() => onStrandClick(key as Strand)}
+              disabled={!user}
+              isHovered={hoveredOrbit === info.orbit}
+            />
+          </div>
+        );
+      })}
+    </div>
+  );
 };
 
 const GEMS = {
@@ -660,72 +851,82 @@ const GalaxyBackground = React.memo(() => (
   </div>
 ));
 
-const Planet = ({ strand, info, onClick, disabled }: { strand: Strand, info: any, onClick: () => void, disabled: boolean, key?: any }) => {
-  const baseSize = 100;
+const Planet = ({ strand, info, onClick, disabled, isHovered }: { strand: Strand, info: any, onClick: () => void, disabled: boolean, isHovered?: boolean }) => {
+  const baseSize = 80;
   const scaledSize = baseSize * (info.size || 1);
   
   return (
     <motion.div
-      whileHover={!disabled ? { scale: 1.05, rotate: 2 } : {}}
+      whileHover={!disabled ? { scale: 1.05 } : {}}
       whileTap={!disabled ? { scale: 0.95 } : {}}
+      animate={{ 
+        y: [0, -5, 0],
+        rotate: [0, 1, 0, -1, 0]
+      }}
+      transition={{ 
+        duration: 10,
+        repeat: Infinity,
+        ease: "easeInOut"
+      }}
       className={cn(
         "relative flex flex-col items-center cursor-pointer group",
         disabled && "opacity-50 cursor-not-allowed"
       )}
       onClick={onClick}
     >
-      <div 
-        className={cn(
-          "rounded-full moon-glow transition-all duration-700 relative overflow-hidden",
-          info.class,
-          !disabled && "group-hover:shadow-[0_0_60px_rgba(255,255,255,0.3)]"
-        )}
-        style={{ 
-          width: `${scaledSize}px`, 
-          height: `${scaledSize}px`,
-        }}
-      >
-        {/* Artistic Textures */}
-        <div className="absolute inset-0 opacity-40 mix-blend-overlay planet-texture" />
-        <div className="absolute inset-0 bg-gradient-to-tr from-black/60 via-transparent to-white/20" />
-        
-        {/* Atmospheric Glow */}
-        <div className="absolute inset-[-2px] rounded-full border border-white/10 opacity-50" />
-        
-        {/* Saturn Rings */}
-        {strand === 'saturn' && (
-          <>
-            <div 
-              className="saturn-rings"
-              style={{ 
-                width: `${scaledSize * 2.4}px`, 
-                height: `${scaledSize * 2.4}px` 
-              }}
-            />
-            <div 
-              className="saturn-rings-outer"
-              style={{ 
-                width: `${scaledSize * 3.2}px`, 
-                height: `${scaledSize * 3.2}px` 
-              }}
-            />
-          </>
+      <div className="relative">
+        {/* Mercury Halo */}
+        {strand === 'grammar' && (
+          <div className="absolute inset-[-20%] rounded-full mercury-halo pointer-events-none" />
         )}
 
-        <div className="absolute inset-0 flex items-center justify-center z-10">
-          <info.icon className="w-8 h-8 text-white/80 group-hover:text-white drop-shadow-lg" />
+        <div 
+          className={cn(
+            "rounded-full moon-glow transition-all duration-700 relative",
+            info.class,
+            !disabled && "group-hover:shadow-[0_0_60px_rgba(255,255,255,0.4)]",
+            isHovered && "shadow-[0_0_80px_rgba(255,255,255,0.5)]"
+          )}
+          style={{ 
+            width: `${scaledSize}px`, 
+            height: `${scaledSize}px`,
+          }}
+        >
+          {/* Internal Art Textures */}
+          <div className="absolute inset-0 opacity-40 mix-blend-overlay planet-texture rounded-full overflow-hidden" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-black/60 via-transparent to-white/20 rounded-full" />
+          
+          {/* Atmospheric Glow */}
+          <div className="absolute inset-[-2px] rounded-full border border-white/10 opacity-50" />
+          
+          {/* Saturn Rings - Moved out of the clipped area if needed, but we removed overflow-hidden */}
+          {strand === 'saturn' && (
+            <div className="absolute inset-0 pointer-events-none flex items-center justify-center translate-y-[-5%] overflow-visible">
+              <div className="saturn-ring-belt" style={{ width: '220%', height: '220%', position: 'absolute' }} />
+              <div className="saturn-ring-belt" style={{ width: '260%', height: '260%', opacity: 0.5, position: 'absolute' }} />
+              <div className="saturn-ring-belt" style={{ width: '300%', height: '300%', opacity: 0.2, position: 'absolute' }} />
+            </div>
+          )}
+
+          <div className="absolute inset-0 flex items-center justify-center z-10">
+            <info.icon className="w-1/2 h-1/2 text-white/80 group-hover:text-white drop-shadow-xl" />
+          </div>
         </div>
+
+        {/* Hidden expanded touch target */}
+        <div className="absolute inset-[-15px] rounded-full z-0 cursor-pointer" />
       </div>
+
       <div className="mt-4 flex flex-col items-center text-center">
-        <span className="font-display text-lg font-bold tracking-tight text-white/90 group-hover:text-white transition-colors">
+        <span className="font-display text-sm font-bold tracking-tight text-white/90 group-hover:text-white transition-colors">
           {info.name}
         </span>
         <div className="flex items-center gap-2">
-          <span className="text-xs font-zh font-medium text-white/40 group-hover:text-white/60 transition-colors">
+          <span className="text-[10px] font-zh font-medium text-white/40 group-hover:text-white/60 transition-colors">
             {info.nameZh}
           </span>
           <span className="w-1 h-1 rounded-full bg-white/20" />
-          <span className="text-[9px] text-white/20 uppercase tracking-[0.2em] font-bold">{info.planet}</span>
+          <span className="text-[8px] text-white/20 uppercase tracking-[0.2em] font-bold">{info.planet}</span>
         </div>
       </div>
     </motion.div>
@@ -2003,6 +2204,16 @@ export default function App() {
     setShowSubjects(false);
   };
 
+  const handleUpdateAvatar = async (data: any) => {
+    if (!user) return;
+    const userRef = doc(db, 'users', user.uid);
+    try {
+      await updateDoc(userRef, data);
+    } catch (e) {
+      console.error("Avatar update failed", e);
+    }
+  };
+
   const handleAdoptPet = async (selectedPet: typeof PET_TYPES[0]) => {
     if (!user || !userData || userData.points < 100) return;
     const userRef = doc(db, 'users', user.uid);
@@ -2205,8 +2416,54 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen relative overflow-x-hidden">
       <GalaxyBackground />
+
+      <div className="fixed top-0 left-0 h-screen flex flex-col items-center justify-start py-24 px-4 z-[40] pointer-events-none w-16 lg:w-48">
+        <div className="pointer-events-auto flex flex-col items-center gap-6">
+          <motion.div
+            animate={{ 
+              boxShadow: ["0 0 30px 10px rgba(255, 255, 255, 0.1)", "0 0 60px 20px rgba(255, 255, 255, 0.2)", "0 0 30px 10px rgba(255, 255, 255, 0.1)"]
+            }}
+            transition={{ duration: 4, repeat: Infinity }}
+            className="w-16 h-16 lg:w-40 lg:h-40 rounded-full bg-white moon-glow flex flex-col items-center justify-center text-black p-1 lg:p-4 text-center cursor-pointer overflow-hidden relative shadow-[0_0_50px_rgba(255,255,255,0.3)] border-2 border-white/20"
+            onClick={!user ? handleLogin : () => setShowCheckIn(true)}
+          >
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/[0.05] to-black/[0.1] pointer-events-none" />
+            <div className="flex flex-col items-center w-full px-1 lg:px-2 z-10">
+              <span className="text-[7px] lg:text-xl font-artistic tracking-[0.05em] leading-tight break-words max-w-full font-bold">Tr. Shirley Du</span>
+              <span className="text-[5px] lg:text-xs font-zh tracking-[0.1em] opacity-80 mt-0.5 lg:mt-1 leading-tight break-words max-w-full font-bold uppercase underline">英文Surely DO</span>
+            </div>
+            
+            {!user ? (
+              <div className="hidden lg:flex items-center gap-1 text-[8px] font-bold opacity-30 mt-2 z-10">
+                <LogIn className="w-2.5 h-2.5" /> LOGIN
+              </div>
+            ) : (
+              <div className="flex items-center gap-0.5 lg:gap-2 text-[6px] lg:text-[10px] font-bold text-green-600 mt-1 lg:mt-2 z-10">
+                <Zap className="w-2 h-2 lg:w-3 lg:h-3" /> ACTIVE
+              </div>
+            )}
+          </motion.div>
+
+          {user && userData && currentStrand === 'home' && (
+            <motion.div
+              initial={{ x: -100, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              whileHover={{ x: 5 }}
+              onClick={() => setShowCheckIn(true)}
+              className="hidden lg:flex flex-col bg-white/[0.03] backdrop-blur-3xl border border-white/10 p-4 rounded-[1.5rem] w-full max-w-[180px] cursor-pointer transition-all shadow-[0_0_40px_rgba(255,255,255,0.05)]"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-1 h-1 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+                <p className="text-[7px] uppercase tracking-[0.3em] text-blue-200/40 font-bold">Daily Stream</p>
+              </div>
+              <p className="text-xs font-display font-bold text-white/90 line-clamp-1">{userData.dailyWord}</p>
+              <p className="text-[8px] text-white/40 italic line-clamp-2 mt-1">"{userData.dailyQuote}"</p>
+            </motion.div>
+          )}
+        </div>
+      </div>
       
       {/* Header / Stats */}
       <header className="fixed top-0 left-0 w-full p-6 z-50 flex justify-between items-center pointer-events-none">
@@ -2276,7 +2533,7 @@ export default function App() {
         </div>
       </header>
 
-      <main className="container mx-auto px-6 pt-32 pb-20">
+      <main className="container mx-auto px-6 pt-24 pb-20">
         <AnimatePresence mode="wait">
           {currentStrand === 'home' ? (
             <motion.div
@@ -2284,118 +2541,81 @@ export default function App() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="relative min-h-[80vh] w-full"
+              className="relative w-full min-h-[85vh] flex flex-col items-center justify-center"
             >
               {/* ET Character */}
               <ETCharacter onClick={() => setActivePortalUrl("https://ducj-creator.github.io/etgame.html")} />
 
-              {/* Moon / Check-in - Positioned under stats on the very left */}
-              <div className="md:absolute md:top-4 md:left-[-2rem] z-20 flex flex-col items-center md:items-start gap-6">
-                <motion.div
-                  animate={{ 
-                    boxShadow: ["0 0 30px 5px rgba(255, 255, 255, 0.05)", "0 0 50px 15px rgba(255, 255, 255, 0.1)", "0 0 30px 5px rgba(255, 255, 255, 0.05)"]
-                  }}
-                  transition={{ duration: 4, repeat: Infinity }}
-                  className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-white moon-glow flex flex-col items-center justify-center text-black p-4 text-center cursor-pointer overflow-hidden relative shadow-2xl"
-                  onClick={!user ? handleLogin : () => setShowCheckIn(true)}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/[0.02] to-black/[0.05] pointer-events-none" />
-                  <h1 className="flex flex-col items-center w-full px-2 z-10">
-                    <span className="text-lg md:text-xl font-artistic tracking-[0.05em] leading-tight break-words max-w-full">Tr. Shirley Du</span>
-                    <span className="text-[10px] md:text-xs font-zh tracking-[0.1em] opacity-80 mt-1 leading-tight break-words max-w-full">英文Surely DO</span>
-                  </h1>
-                  {!user ? (
-                    <div className="flex items-center gap-2 text-[10px] font-medium opacity-50 mt-2 z-10">
-                      <LogIn className="w-3 h-3" /> Check-in
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2 text-[10px] font-medium text-green-600 mt-2 z-10">
-                      <Zap className="w-3 h-3" /> Active
-                    </div>
-                  )}
-                </motion.div>
-                
-                {/* Daily Word/Quote Bubble */}
-                {user && userData && (
+              {/* Check-in Pop-out Modal */}
+              <AnimatePresence>
+                {showCheckIn && userData && (
                   <motion.div
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ 
-                      scale: 1, 
-                      opacity: 1,
-                      y: [0, -5, 0]
-                    }}
-                    transition={{ 
-                      scale: { duration: 0.5 },
-                      opacity: { duration: 0.5 },
-                      y: { duration: 4, repeat: Infinity, ease: "easeInOut" }
-                    }}
-                    whileHover={{ scale: 1.05, y: -10 }}
-                    onClick={() => setShowCheckIn(true)}
-                    className="bg-white/[0.03] backdrop-blur-3xl border border-white/10 p-4 rounded-[1.5rem] w-full max-w-[200px] cursor-pointer transition-all shadow-[0_0_40px_rgba(255,255,255,0.05)] hover:shadow-[0_0_50px_rgba(100,200,255,0.15)] group z-20"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-[300] flex items-center justify-center px-6"
                   >
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-1 h-1 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
-                      <p className="text-[7px] uppercase tracking-[0.3em] text-blue-200/40 font-bold">Daily Inspiration</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-sm font-display font-bold text-white/90 group-hover:text-white transition-colors leading-tight">
-                        {userData.dailyWord}
-                      </p>
-                      <p className="text-[9px] text-white/40 italic leading-relaxed line-clamp-2">
-                        "{userData.dailyQuote}"
-                      </p>
-                    </div>
-                    <div className="mt-3 pt-2 border-t border-white/5 flex items-center justify-between">
-                      <span className="text-[6px] uppercase tracking-[0.2em] text-blue-200/20 font-bold">Open Pass</span>
-                      <Sparkles className="w-2 h-2 text-blue-200/20" />
-                    </div>
+                    <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setShowCheckIn(false)} />
+                    <motion.div
+                      initial={{ scale: 0.9, y: 20 }}
+                      animate={{ scale: 1, y: 0 }}
+                      exit={{ scale: 0.9, y: 20 }}
+                      className="relative w-full max-w-md robotic-panel p-8 rounded-[2.5rem] border-2 border-cyan-500/40 shadow-[0_0_50px_rgba(0,242,255,0.2)]"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button 
+                        onClick={() => setShowCheckIn(false)}
+                        className="absolute top-6 right-6 text-white/20 hover:text-white transition-colors"
+                      >
+                        <X className="w-6 h-6" />
+                      </button>
+
+                      <div className="flex flex-col items-center text-center">
+                        <div className="w-20 h-20 rounded-full bg-cyan-500/10 flex items-center justify-center mb-6 border border-cyan-500/30 shadow-[0_0_20px_rgba(34,211,238,0.2)]">
+                          <Sparkles className="w-10 h-10 text-cyan-400" />
+                        </div>
+                        
+                        <h3 className="text-[10px] font-mono font-bold text-cyan-400 uppercase tracking-[0.4em] mb-4">Transmission Received</h3>
+                        <div className="space-y-4 mb-8">
+                          <h2 className="text-4xl font-display font-bold text-white leading-tight underline decoration-cyan-500/30">
+                            {userData.dailyWord}
+                          </h2>
+                          <p className="text-lg text-white/60 italic leading-relaxed font-serif">
+                            "{userData.dailyQuote}"
+                          </p>
+                        </div>
+
+                        <div className="w-full grid grid-cols-2 gap-4">
+                          <div className="p-4 rounded-2xl bg-white/5 border border-white/10 flex flex-col items-center">
+                            <p className="text-[8px] uppercase tracking-widest text-white/30 mb-1 font-bold">Today's Streak</p>
+                            <p className="text-xl font-bold flex items-center justify-center gap-2">
+                              <Zap className="w-4 h-4 text-yellow-400" /> ACTIVE
+                            </p>
+                          </div>
+                          <div className="p-4 rounded-2xl bg-white/5 border border-white/10 flex flex-col items-center">
+                            <p className="text-[8px] uppercase tracking-widest text-white/30 mb-1 font-bold">XP Bonus</p>
+                            <p className="text-xl font-bold text-cyan-400">+50 XP</p>
+                          </div>
+                        </div>
+
+                        <button 
+                          onClick={() => setShowCheckIn(false)}
+                          className="mt-8 w-full py-4 bg-cyan-500 hover:bg-cyan-400 text-black font-bold rounded-2xl transition-all shadow-[0_0_20px_rgba(0,242,255,0.3)] uppercase tracking-widest"
+                        >
+                          Engage Mission
+                        </button>
+                      </div>
+                    </motion.div>
                   </motion.div>
                 )}
-              </div>
+              </AnimatePresence>
 
-              {/* Planets Grid / Solar System Layout - Centered */}
-              <div className="relative w-full min-h-[600px] flex items-center justify-center pt-20 md:pt-0">
-                {/* Central Star Glow */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-blue-500/10 blur-[80px] rounded-full pointer-events-none" />
-                
-                {/* Orbital Rings */}
-                <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                  <div className="absolute w-[200px] h-[200px] border border-white/5 rounded-full" />
-                  <div className="absolute w-[320px] h-[320px] border border-white/5 rounded-full" />
-                  <div className="absolute w-[440px] h-[440px] border border-white/5 rounded-full" />
-                  <div className="absolute w-[560px] h-[560px] border border-white/5 rounded-full" />
-                  <div className="absolute w-[680px] h-[680px] border border-white/5 rounded-full" />
-                </div>
-
-                {/* Planets */}
-                <div className="relative w-full h-full flex items-center justify-center translate-x-12">
-                  {Object.entries(STRANDS).map(([key, info], index) => {
-                    const angles = [36, 108, 180, 252, 324];
-                    const distances = [120, 180, 240, 300, 360];
-                    const angle = angles[index];
-                    const distance = distances[index];
-                    const x = Math.cos((angle * Math.PI) / 180) * distance;
-                    const y = Math.sin((angle * Math.PI) / 180) * distance;
-
-                    return (
-                      <div 
-                        key={key}
-                        className="absolute"
-                        style={{ 
-                          transform: `translate(${x}px, ${y}px)`
-                        }}
-                      >
-                        <Planet 
-                          strand={key as Strand} 
-                          info={info} 
-                          onClick={() => handleStrandClick(key as Strand)}
-                          disabled={!user}
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+              <UniverseDisplay 
+                user={user} 
+                userData={userData} 
+                onStrandClick={handleStrandClick} 
+                onUpdateAvatar={handleUpdateAvatar} 
+              />
             </motion.div>
           ) : currentStrand === 'pet' ? (
             <motion.div
