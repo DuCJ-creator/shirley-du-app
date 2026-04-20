@@ -2288,20 +2288,20 @@ export default function App() {
               {/* ET Character */}
               <ETCharacter onClick={() => setActivePortalUrl("https://ducj-creator.github.io/etgame.html")} />
 
-              {/* Moon / Check-in - Positioned under stats on the left */}
-              <div className="md:absolute md:top-0 md:left-0 z-20 flex flex-col items-center md:items-start gap-6">
+              {/* Moon / Check-in - Positioned under stats on the very left */}
+              <div className="md:absolute md:top-4 md:left-[-2rem] z-20 flex flex-col items-center md:items-start gap-6">
                 <motion.div
                   animate={{ 
-                    boxShadow: ["0 0 40px 10px rgba(255, 255, 255, 0.05)", "0 0 60px 20px rgba(255, 255, 255, 0.15)", "0 0 40px 10px rgba(255, 255, 255, 0.05)"]
+                    boxShadow: ["0 0 30px 5px rgba(255, 255, 255, 0.05)", "0 0 50px 15px rgba(255, 255, 255, 0.1)", "0 0 30px 5px rgba(255, 255, 255, 0.05)"]
                   }}
                   transition={{ duration: 4, repeat: Infinity }}
-                  className="w-40 h-40 md:w-52 md:h-52 rounded-full bg-white moon-glow flex flex-col items-center justify-center text-black p-4 text-center cursor-pointer overflow-hidden relative shadow-2xl"
+                  className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-white moon-glow flex flex-col items-center justify-center text-black p-4 text-center cursor-pointer overflow-hidden relative shadow-2xl"
                   onClick={!user ? handleLogin : () => setShowCheckIn(true)}
                 >
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/[0.02] to-black/[0.05] pointer-events-none" />
                   <h1 className="flex flex-col items-center w-full px-2 z-10">
-                    <span className="text-xl md:text-2xl font-artistic tracking-[0.05em] leading-tight break-words max-w-full">Tr. Shirley Du</span>
-                    <span className="text-sm md:text-base font-zh tracking-[0.1em] opacity-80 mt-1 leading-tight break-words max-w-full">英文Surely DO</span>
+                    <span className="text-lg md:text-xl font-artistic tracking-[0.05em] leading-tight break-words max-w-full">Tr. Shirley Du</span>
+                    <span className="text-[10px] md:text-xs font-zh tracking-[0.1em] opacity-80 mt-1 leading-tight break-words max-w-full">英文Surely DO</span>
                   </h1>
                   {!user ? (
                     <div className="flex items-center gap-2 text-[10px] font-medium opacity-50 mt-2 z-10">
@@ -2367,9 +2367,9 @@ export default function App() {
                 </div>
 
                 {/* Planets */}
-                <div className="relative w-full h-full flex items-center justify-center">
+                <div className="relative w-full h-full flex items-center justify-center translate-x-12">
                   {Object.entries(STRANDS).map(([key, info], index) => {
-                    const angles = [0, 72, 144, 216, 288];
+                    const angles = [36, 108, 180, 252, 324];
                     const distances = [120, 180, 240, 300, 360];
                     const angle = angles[index];
                     const distance = distances[index];
