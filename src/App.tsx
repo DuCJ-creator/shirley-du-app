@@ -1010,37 +1010,46 @@ const Gem = ({ name, nameZh, url, color, type, onVisit, onClick, className }: { 
 );
 
 const ETCharacter = ({ onClick }: { onClick: () => void }) => {
-  const [pos, setPos] = useState({ x: 10, y: 40 });
-  
-  useEffect(() => {
-    const moveInterval = setInterval(() => {
-      // Random wandering logic
-      const nextX = Math.random() * 80 + 5; // 5% to 85% range
-      const nextY = Math.random() * 60 + 20; // 20% to 80% range
-      setPos({ x: nextX, y: nextY });
-    }, 6000); // Move every 6 seconds
+  const [pos, setPos] = useState({ x: 20, y: 30 });
+  const [screenSize, setScreenSize] = useState({ w: typeof window !== 'undefined' ? window.innerWidth : 1000, h: typeof window !== 'undefined' ? window.innerHeight : 1000 });
 
-    return () => clearInterval(moveInterval);
+  useEffect(() => {
+    const handleResize = () => setScreenSize({ w: window.innerWidth, h: window.innerHeight });
+    window.addEventListener('resize', handleResize);
+    
+    const moveInterval = setInterval(() => {
+      // Conservative 15% to 65% range to ensure the 112px (w-28) robot and bubble stay visible
+      const nextX = Math.random() * 50 + 15; 
+      const nextY = Math.random() * 40 + 25; 
+      setPos({ x: nextX, y: nextY });
+    }, 8000); // Slower movement
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearInterval(moveInterval);
+    };
   }, []);
 
   return (
     <motion.div
       initial={{ x: `${pos.x}vw`, y: `${pos.y}vh`, opacity: 0 }}
       animate={{ 
-        left: `${pos.x}vw`, 
-        top: `${pos.y}vh`, 
+        x: `${pos.x}vw`, 
+        y: `${pos.y}vh`, 
         opacity: 1,
         rotate: [0, 5, -5, 0],
       }}
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.9 }}
       transition={{ 
-        left: { duration: 5, ease: "easeInOut" },
-        top: { duration: 5, ease: "easeInOut" },
+        x: { duration: 6, ease: "easeInOut" },
+        y: { duration: 6, ease: "easeInOut" },
         rotate: { duration: 4, repeat: Infinity, ease: "easeInOut" },
         opacity: { duration: 1 }
       }}
       className="fixed z-[150] cursor-pointer group"
+      style={{ left: 0, top: 0, touchAction: 'none' }}
       onClick={onClick}
-      style={{ touchAction: 'none' }}
     >
       <div className="relative">
         {/* Message Bubble - Robotic Style */}
@@ -1381,7 +1390,10 @@ const FloatingPet = ({ pet, onReturn }: { pet: PetData, onReturn: () => void }) 
       onDragStart={() => isDragging.current = true}
       onDragEnd={(_, info) => {
         isDragging.current = false;
-        setPos({ x: info.point.x, y: info.point.y });
+        // Clamp position on drop
+        const newX = Math.max(20, Math.min(window.innerWidth - 100, info.point.x));
+        const newY = Math.max(20, Math.min(window.innerHeight - 100, info.point.y));
+        setPos({ x: newX, y: newY });
       }}
       onDoubleClick={onReturn}
       animate={{ 
