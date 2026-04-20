@@ -694,13 +694,22 @@ const Planet = ({ strand, info, onClick, disabled }: { strand: Strand, info: any
         
         {/* Saturn Rings */}
         {strand === 'saturn' && (
-          <div 
-            className="saturn-rings"
-            style={{ 
-              width: `${scaledSize * 2.2}px`, 
-              height: `${scaledSize * 2.2}px` 
-            }}
-          />
+          <>
+            <div 
+              className="saturn-rings"
+              style={{ 
+                width: `${scaledSize * 2.4}px`, 
+                height: `${scaledSize * 2.4}px` 
+              }}
+            />
+            <div 
+              className="saturn-rings-outer"
+              style={{ 
+                width: `${scaledSize * 3.2}px`, 
+                height: `${scaledSize * 3.2}px` 
+              }}
+            />
+          </>
         )}
 
         <div className="absolute inset-0 flex items-center justify-center z-10">
@@ -752,44 +761,109 @@ const Gem = ({ name, nameZh, url, color, type, onVisit, onClick, className }: { 
 );
 
 const ETCharacter = ({ onClick }: { onClick: () => void }) => {
+  const [pos, setPos] = useState({ x: 10, y: 40 });
+  
+  useEffect(() => {
+    const moveInterval = setInterval(() => {
+      // Random wandering logic
+      const nextX = Math.random() * 80 + 5; // 5% to 85% range
+      const nextY = Math.random() * 60 + 20; // 20% to 80% range
+      setPos({ x: nextX, y: nextY });
+    }, 6000); // Move every 6 seconds
+
+    return () => clearInterval(moveInterval);
+  }, []);
+
   return (
     <motion.div
-      initial={{ x: 100, opacity: 0 }}
+      initial={{ x: `${pos.x}vw`, y: `${pos.y}vh`, opacity: 0 }}
       animate={{ 
-        x: 0, 
+        left: `${pos.x}vw`, 
+        top: `${pos.y}vh`, 
         opacity: 1,
-        y: [0, -20, 0],
+        rotate: [0, 5, -5, 0],
       }}
       transition={{ 
-        y: { duration: 4, repeat: Infinity, ease: "easeInOut" },
-        x: { duration: 1 }
+        left: { duration: 5, ease: "easeInOut" },
+        top: { duration: 5, ease: "easeInOut" },
+        rotate: { duration: 4, repeat: Infinity, ease: "easeInOut" },
+        opacity: { duration: 1 }
       }}
-      className="fixed bottom-40 left-10 md:left-20 z-[150] cursor-pointer group"
+      className="fixed z-[150] cursor-pointer group"
       onClick={onClick}
+      style={{ touchAction: 'none' }}
     >
       <div className="relative">
-        {/* Message Bubble */}
+        {/* Message Bubble - Robotic Style */}
         <motion.div
-          animate={{ scale: [1, 1.02, 1] }}
-          transition={{ duration: 2, repeat: Infinity }}
-          className="absolute -top-16 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-xl border border-white/20 px-4 py-2 rounded-2xl whitespace-nowrap"
+          animate={{ scale: [1, 1.05, 1], y: [0, -5, 0] }}
+          transition={{ duration: 3, repeat: Infinity }}
+          className="absolute -top-20 left-1/2 -translate-x-1/2 robotic-panel border-cyan-500/30 px-5 py-2.5 rounded-xl whitespace-nowrap shadow-[0_0_20px_rgba(0,242,255,0.1)] border"
         >
-          <span className="text-[10px] font-bold text-white tracking-widest uppercase">To my world, beat me first!</span>
-          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-black/60 rotate-45 border-r border-b border-white/20" />
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+            <span className="text-[10px] font-mono font-bold text-cyan-100 tracking-wider uppercase">To my world, beat me first!</span>
+          </div>
+          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 robotic-panel rotate-45 border-r border-b border-cyan-500/30" />
         </motion.div>
 
-        {/* ET Visual */}
-        <div className="w-24 h-24 relative">
-          <div className="absolute inset-0 bg-blue-500/20 blur-2xl rounded-full animate-pulse" />
-          <div className="relative w-full h-full bg-gradient-to-b from-blue-400 to-indigo-600 rounded-full border-2 border-white/30 flex items-center justify-center overflow-hidden shadow-[0_0_30px_rgba(59,130,246,0.5)]">
-            <div className="absolute top-1/4 left-1/4 w-3 h-4 bg-white rounded-full" />
-            <div className="absolute top-1/4 right-1/4 w-3 h-4 bg-white rounded-full" />
-            <div className="absolute bottom-1/4 w-8 h-1 w-white/30 rounded-full" />
+        {/* Robotic ET Visual */}
+        <div className="w-28 h-28 relative">
+          {/* Core Energy Field */}
+          <div className="absolute inset-[-10px] bg-cyan-500/10 blur-3xl rounded-full animate-pulse" />
+          
+          {/* Mechanical Body */}
+          <div className="relative w-full h-full robotic-hull rounded-[2rem] border-2 border-white/20 flex flex-col items-center justify-center overflow-visible group-hover:border-cyan-400/50 transition-colors">
             
-            {/* Antenna */}
-            <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-1 h-6 bg-white/40" />
-            <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-2 h-2 bg-blue-400 rounded-full animate-ping" />
+            {/* HUD / Scanning line */}
+            <div className="absolute inset-0 overflow-hidden rounded-[2rem] pointer-events-none">
+              <motion.div 
+                animate={{ top: ['0%', '100%', '0%'] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                className="absolute left-0 w-full h-[1px] bg-cyan-400/30 shadow-[0_0_5px_cyan]"
+              />
+            </div>
+
+            {/* Glowing Eyes */}
+            <div className="flex gap-4 mb-2">
+              <div className="w-4 h-4 robotic-glow rounded-full relative">
+                <div className="absolute inset-0 bg-white/40 blur-[2px] rounded-full" />
+              </div>
+              <div className="w-4 h-4 robotic-glow rounded-full relative">
+                <div className="absolute inset-0 bg-white/40 blur-[2px] rounded-full" />
+              </div>
+            </div>
+
+            {/* Mouth / Speaker Grille */}
+            <div className="w-10 h-1 bg-black/40 rounded-full flex gap-1 justify-center px-1">
+              {[1,2,3,4].map(i => (
+                <motion.div 
+                  key={i}
+                  animate={{ height: [2, 4, 2] }}
+                  transition={{ duration: 0.5, repeat: Infinity, delay: i * 0.1 }}
+                  className="w-1 bg-cyan-400/50 rounded-full mt-[-1.5px]" 
+                />
+              ))}
+            </div>
+
+            {/* Side Antennas / Wings */}
+            <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-4 h-12 robotic-hull border border-white/10 rounded-full transform -rotate-12" />
+            <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-4 h-12 robotic-hull border border-white/10 rounded-full transform rotate-12" />
+            
+            {/* Central Power Core */}
+            <div className="absolute -bottom-2 w-12 h-4 bg-black/60 rounded-full border border-cyan-500/30 flex items-center justify-center">
+              <div className="w-8 h-1 robotic-glow rounded-full blur-[1px]" />
+            </div>
           </div>
+
+          {/* Floating Orbitals */}
+          <motion.div 
+            animate={{ rotate: 360 }}
+            transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+            className="absolute inset-0 pointer-events-none"
+          >
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-2 h-2 robotic-glow rounded-full" />
+          </motion.div>
         </div>
       </div>
     </motion.div>
