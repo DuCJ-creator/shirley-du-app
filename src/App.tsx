@@ -1706,19 +1706,63 @@ export default function App() {
   const syncTimerRef = useRef<any>(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (u) => {
+    let unsubs: (() => void)[] = [];
+
+    const unsubscribeAuth = onAuthStateChanged(auth, (u) => {
       setUser(u);
       setIsAuthReady(true);
+      
+      // Cleanup previous listeners
+      unsubs.forEach(unsub => unsub());
+      unsubs = [];
+
       if (u) {
         handleCheckIn(u);
-        setupRealtimeListeners(u.uid);
+        
+        // Start new listeners
+        const u1 = onSnapshot(doc(db, 'users', u.uid), {
+          next: (snapshot) => snapshot.exists() && setUserData(snapshot.data() as UserData),
+          error: (err) => console.error(`Firestore [users/${u.uid}] listener error:`, err)
+        });
+        unsubs.push(u1);
+
+        const u2 = onSnapshot(collection(db, 'users', u.uid, 'pets'), {
+          next: (snapshot) => !snapshot.empty && setPetData(snapshot.docs[0].data() as PetData),
+          error: (err) => console.error(`Firestore [users/${u.uid}/pets] listener error:`, err)
+        });
+        unsubs.push(u2);
+
+        const u3 = onSnapshot(collection(db, 'users', u.uid, 'logs'), {
+          next: (snapshot) => {
+            const newLogs = snapshot.docs
+              .map(doc => ({ id: doc.id, ...doc.data() } as PointLog))
+              .filter(l => l.timestamp != null);
+            setLogs(newLogs.sort((a, b) => (b.timestamp?.toMillis?.() || 0) - (a.timestamp?.toMillis?.() || 0)));
+          },
+          error: (err) => console.error(`Firestore [users/${u.uid}/logs] listener error:`, err)
+        });
+        unsubs.push(u3);
+
+        const u4 = onSnapshot(collection(db, 'users', u.uid, 'notes'), {
+          next: (snapshot) => {
+            const newNotes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as StudyNote));
+            setNotes(newNotes.sort((a, b) => {
+              const timeA = new Date(a.date).getTime() || 0;
+              const timeB = new Date(b.date).getTime() || 0;
+              return timeB - timeA;
+            }));
+          },
+          error: (err) => console.error(`Firestore [users/${u.uid}/notes] listener error:`, err)
+        });
+        unsubs.push(u4);
+
         startStudyTimer(u.uid);
       } else {
         stopStudyTimer();
       }
     });
 
-    // Activity listeners
+    // ... Activity listeners ...
     const handleActivity = () => {
       lastActivityRef.current = Date.now();
     };
@@ -1738,7 +1782,8 @@ export default function App() {
     window.addEventListener('blur', handleBlur);
 
     return () => {
-      unsubscribe();
+      unsubscribeAuth();
+      unsubs.forEach(unsub => unsub());
       stopStudyTimer();
       window.removeEventListener('scroll', handleActivity);
       window.removeEventListener('mousemove', handleActivity);
@@ -1804,34 +1849,6 @@ export default function App() {
     fetchVocab();
   }, []);
 
-  const setupRealtimeListeners = (uid: string) => {
-    onSnapshot(doc(db, 'users', uid), (snapshot) => {
-      if (snapshot.exists()) {
-        setUserData(snapshot.data() as UserData);
-      }
-    });
-
-    onSnapshot(collection(db, 'users', uid, 'pets'), (snapshot) => {
-      if (!snapshot.empty) {
-        setPetData(snapshot.docs[0].data() as PetData);
-      }
-    });
-
-    onSnapshot(query(collection(db, 'users', uid, 'logs'), where('timestamp', '!=', null)), (snapshot) => {
-      const newLogs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PointLog));
-      setLogs(newLogs.sort((a, b) => b.timestamp?.toMillis() - a.timestamp?.toMillis()));
-    });
-
-    onSnapshot(collection(db, 'users', uid, 'notes'), (snapshot) => {
-      const newNotes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as StudyNote));
-      setNotes(newNotes.sort((a, b) => {
-        const timeA = new Date(a.date).getTime() || 0;
-        const timeB = new Date(b.date).getTime() || 0;
-        return timeB - timeA;
-      }));
-    });
-  };
-
   const addPointLog = async (uid: string, type: string, points: number, description: string) => {
     try {
       const logRef = collection(db, 'users', uid, 'logs');
@@ -1885,9 +1902,10 @@ export default function App() {
           streak: newStreak
         }).catch(async () => {
           await setDoc(userRef, {
-            email: u.email,
-            displayName: u.displayName,
-            points: 10 - petDrain,
+          uid: u.uid,
+          email: u.email,
+          displayName: u.displayName,
+          points: 10 - petDrain,
             lastCheckIn: serverTimestamp(),
             studyTimeTotal: 0,
             streak: 1
@@ -2222,6 +2240,7 @@ export default function App() {
     await addPointLog(user.uid, 'pet', -100, `Adopted ${selectedPet.name} the ${selectedPet.type}`);
     const petRef = doc(db, 'users', user.uid, 'pets', 'main_pet');
     await setDoc(petRef, {
+      ownerId: user.uid,
       name: selectedPet.name,
       type: selectedPet.type,
       image: selectedPet.image,
@@ -2230,7 +2249,6 @@ export default function App() {
       level: 1,
       xp: 0,
       maxXp: 100,
-      ownerId: user.uid,
       lastFed: serverTimestamp()
     });
   };

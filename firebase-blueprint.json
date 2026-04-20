@@ -43,6 +43,18 @@
         "color": { "type": "string" },
         "type": { "type": "string", "enum": ["text", "drawing"] }
       }
+    },
+    "PointLog": {
+      "title": "Point Log",
+      "description": "Log of earned/spent points",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string" },
+        "points": { "type": "number" },
+        "description": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["type", "points", "description", "timestamp"]
     }
   },
   "firestore": {
@@ -57,6 +69,10 @@
     "/users/{userId}/notes/{noteId}": {
       "schema": "StudyNote",
       "description": "User's notes"
+    },
+    "/users/{userId}/logs/{logId}": {
+      "schema": "PointLog",
+      "description": "Activity logs"
     }
   }
 }
