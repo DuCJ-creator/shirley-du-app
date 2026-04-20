@@ -136,6 +136,20 @@
 .planet-mars { background: radial-gradient(circle at 30% 30%, #ff4500, #8b0000 60%, #3a0000); }
 .planet-mercury { background: radial-gradient(circle at 30% 30%, #dadada, #696969 60%, #2f2f2f); }
 .planet-jupiter { background: radial-gradient(circle at 30% 30%, #deb887, #a0522d 40%, #5d2e17 70%, #2b1509); }
+.planet-saturn { background: radial-gradient(circle at 30% 30%, #f4a460, #cd853f 60%, #8b4513); }
+
+/* Saturn Rings */
+.saturn-rings {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotateX(75deg);
+  border-radius: 50%;
+  border: 12px double rgba(244, 164, 96, 0.4);
+  box-shadow: 0 0 20px rgba(244, 164, 96, 0.2);
+  pointer-events: none;
+  z-index: -1;
+}
 
 .planet-texture {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");

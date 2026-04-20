@@ -17,7 +17,7 @@ import { GoogleGenAI } from "@google/genai";
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 
 // --- Types ---
-type Strand = 'vocabulary' | 'pronunciation' | 'grammar' | 'tests' | 'home' | 'pet' | 'logs';
+type Strand = 'vocabulary' | 'pronunciation' | 'grammar' | 'tests' | 'saturn' | 'home' | 'pet' | 'logs';
 
 interface PointLog {
   id: string;
@@ -95,6 +95,7 @@ const STRANDS = {
   pronunciation: { name: 'Pronunciation', nameZh: '發音', planet: 'Mars', color: '#ff4500', icon: Mic2, class: 'planet-mars', size: 0.53 },
   grammar: { name: 'Grammar', nameZh: '文法', planet: 'Mercury', color: '#a9a9a9', icon: PenTool, class: 'planet-mercury', size: 0.38 },
   tests: { name: 'Tests', nameZh: '測驗', planet: 'Jupiter', color: '#deb887', icon: GraduationCap, class: 'planet-jupiter', size: 2.2 }, // Capped Jupiter size for UI
+  saturn: { name: 'Tools', nameZh: '工具', planet: 'Saturn', color: '#f4a460', icon: Zap, class: 'planet-saturn', size: 1.5 },
 };
 
 const GEMS = {
@@ -106,6 +107,7 @@ const GEMS = {
     { name: 'Common Collocations', nameZh: '常用搭配', url: 'https://ducj-creator.github.io/Shirley-Grammar/collocations', type: 'amethyst' },
     { name: 'Buzzwords', nameZh: '流行術語', url: 'https://ducj-creator.github.io/Shirley-Grammar/buzzwords', type: 'topaz' },
     { name: 'Roots & Affixes', nameZh: '詞根詞綴', url: 'https://ducj-creator.github.io/Shirley-Grammar/root%20and%20affix/', type: 'opal' },
+    { name: 'Level 1-6 Vocab', nameZh: '六級單字', url: 'https://ducj-creator.github.io/iVocab-Self-Practice/levels1-6.html', type: 'diamond' },
     { name: 'TOEIC Core Vocab', nameZh: 'TOEIC 多益核心單字', url: 'https://ducj-creator.github.io/Shirley-Grammar/TOEIC%20vocab', type: 'ruby' },
     { name: 'Bilingual Subjects', nameZh: '雙語學科', url: 'subjects', type: 'diamond' },
   ],
@@ -114,6 +116,7 @@ const GEMS = {
     { name: 'International Phonics', nameZh: '國際音標', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/ipa.html', type: 'ruby' },
     { name: 'Vowel Clusters', nameZh: '母音字群', url: 'https://hexagon-of-vowels.vercel.app/', type: 'emerald' },
     { name: 'Consonant Blends', nameZh: '子音字群', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/consonant.html', type: 'amethyst' },
+    { name: 'Sentence Practice', nameZh: '例句語音練習', url: 'https://ducj-creator.github.io/Shirley-AI-Sentence-Practice/bank.html', type: 'ruby' },
   ],
   grammar: [
     { name: 'Grammar Lemon Tree', nameZh: '文法檸檬樹', url: 'https://ducj-creator.github.io/Shirley-Grammar/', type: 'emerald' },
@@ -127,6 +130,13 @@ const GEMS = {
     { name: 'GSAT Comprehensive', nameZh: '學測綜合測驗', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/GSAT%20Comprehensive.html', type: 'amethyst' },
     { name: 'GSAT Cloze', nameZh: '學測克漏字', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/GSAT%20cloze.html', type: 'topaz' },
     { name: 'GSAT Reading', nameZh: '學測閱讀', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/gsat%20reading.html', type: 'opal' },
+  ],
+  saturn: [
+    { name: 'My Own Words', nameZh: '自主單字練習', url: 'https://ducj-creator.github.io/iVocab-Self-Practice/entry.html', type: 'diamond' },
+    { name: 'Word Search Maker', nameZh: '尋字工坊', url: 'https://ducj-creator.github.io/Shirley%20Word%20Search%20Maker.html', type: 'ruby' },
+    { name: 'Cross Word Maker', nameZh: '字謎生成', url: 'https://ducj-creator.github.io/Shirley%20Crossword%20Maker.html', type: 'emerald' },
+    { name: 'Flip Card Maker', nameZh: '翻轉卡製作', url: 'https://ducj-creator.github.io/Shirley%20Flip%20Card.html', type: 'sapphire' },
+    { name: 'My Own Sentences', nameZh: '自主句子練習', url: 'https://ducj-creator.github.io/Shirley-AI-Sentence-Practice/entry.html', type: 'amethyst' },
   ]
 };
 
@@ -682,6 +692,17 @@ const Planet = ({ strand, info, onClick, disabled }: { strand: Strand, info: any
         {/* Atmospheric Glow */}
         <div className="absolute inset-[-2px] rounded-full border border-white/10 opacity-50" />
         
+        {/* Saturn Rings */}
+        {strand === 'saturn' && (
+          <div 
+            className="saturn-rings"
+            style={{ 
+              width: `${scaledSize * 2.2}px`, 
+              height: `${scaledSize * 2.2}px` 
+            }}
+          />
+        )}
+
         <div className="absolute inset-0 flex items-center justify-center z-10">
           <info.icon className="w-8 h-8 text-white/80 group-hover:text-white drop-shadow-lg" />
         </div>
@@ -729,6 +750,51 @@ const Gem = ({ name, nameZh, url, color, type, onVisit, onClick, className }: { 
     <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
   </motion.button>
 );
+
+const ETCharacter = ({ onClick }: { onClick: () => void }) => {
+  return (
+    <motion.div
+      initial={{ x: 100, opacity: 0 }}
+      animate={{ 
+        x: 0, 
+        opacity: 1,
+        y: [0, -20, 0],
+      }}
+      transition={{ 
+        y: { duration: 4, repeat: Infinity, ease: "easeInOut" },
+        x: { duration: 1 }
+      }}
+      className="fixed bottom-40 left-10 md:left-20 z-[150] cursor-pointer group"
+      onClick={onClick}
+    >
+      <div className="relative">
+        {/* Message Bubble */}
+        <motion.div
+          animate={{ scale: [1, 1.02, 1] }}
+          transition={{ duration: 2, repeat: Infinity }}
+          className="absolute -top-16 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-xl border border-white/20 px-4 py-2 rounded-2xl whitespace-nowrap"
+        >
+          <span className="text-[10px] font-bold text-white tracking-widest uppercase">To my world, beat me first!</span>
+          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-black/60 rotate-45 border-r border-b border-white/20" />
+        </motion.div>
+
+        {/* ET Visual */}
+        <div className="w-24 h-24 relative">
+          <div className="absolute inset-0 bg-blue-500/20 blur-2xl rounded-full animate-pulse" />
+          <div className="relative w-full h-full bg-gradient-to-b from-blue-400 to-indigo-600 rounded-full border-2 border-white/30 flex items-center justify-center overflow-hidden shadow-[0_0_30px_rgba(59,130,246,0.5)]">
+            <div className="absolute top-1/4 left-1/4 w-3 h-4 bg-white rounded-full" />
+            <div className="absolute top-1/4 right-1/4 w-3 h-4 bg-white rounded-full" />
+            <div className="absolute bottom-1/4 w-8 h-1 w-white/30 rounded-full" />
+            
+            {/* Antenna */}
+            <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-1 h-6 bg-white/40" />
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-2 h-2 bg-blue-400 rounded-full animate-ping" />
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
 
 const EmbeddedPortal = ({ url, onClose }: { url: string, onClose: () => void }) => {
   return (
@@ -2145,6 +2211,9 @@ export default function App() {
               exit={{ opacity: 0 }}
               className="relative min-h-[80vh] w-full"
             >
+              {/* ET Character */}
+              <ETCharacter onClick={() => setActivePortalUrl("https://ducj-creator.github.io/etgame.html")} />
+
               {/* Moon / Check-in - Positioned under stats on the left */}
               <div className="md:absolute md:top-0 md:left-0 z-20 flex flex-col items-center md:items-start gap-6">
                 <motion.div
@@ -2220,13 +2289,14 @@ export default function App() {
                   <div className="absolute w-[320px] h-[320px] border border-white/5 rounded-full" />
                   <div className="absolute w-[440px] h-[440px] border border-white/5 rounded-full" />
                   <div className="absolute w-[560px] h-[560px] border border-white/5 rounded-full" />
+                  <div className="absolute w-[680px] h-[680px] border border-white/5 rounded-full" />
                 </div>
 
                 {/* Planets */}
                 <div className="relative w-full h-full flex items-center justify-center">
                   {Object.entries(STRANDS).map(([key, info], index) => {
-                    const angles = [45, 135, 225, 315];
-                    const distances = [100, 160, 220, 280];
+                    const angles = [0, 72, 144, 216, 288];
+                    const distances = [120, 180, 240, 300, 360];
                     const angle = angles[index];
                     const distance = distances[index];
                     const x = Math.cos((angle * Math.PI) / 180) * distance;
@@ -2481,15 +2551,16 @@ export default function App() {
                       };
                       customClass = "gem-comet";
                     } else if (currentStrand === 'pronunciation') {
-                      // Mars rover layout (4 gems)
+                      // Mars rover layout (5 gems)
                       const positions = [
                         { left: '40%', top: '30%' }, // Body/Head
                         { left: '20%', top: '65%' }, // Front wheel
                         { left: '60%', top: '65%' }, // Back wheel
-                        { left: '80%', top: '40%' }  // Camera/Arm
+                        { left: '80%', top: '40%' }, // Camera/Arm
+                        { left: '50%', top: '85%' }  // Core link
                       ];
                       customWrapperClass = "absolute scale-75 md:scale-100";
-                      customStyle = { ...positions[idx], transform: 'translate(-50%, -50%)' };
+                      customStyle = { ...(positions[idx] || {}), transform: 'translate(-50%, -50%)' };
                       customClass = "rover-part";
                     } else if (currentStrand === 'tests') {
                       // Big Dipper layout (7 gems) - Spread further to avoid overlap
@@ -2505,25 +2576,39 @@ export default function App() {
                       customWrapperClass = "absolute scale-75 md:scale-90";
                       customStyle = { ...(positions[idx] || {}), transform: 'translate(-50%, -50%)' };
                     } else if (currentStrand === 'vocabulary') {
-                      // craters layout (9 gems) - Fixed Scattered layout to avoid overlap
+                      // craters layout (10 gems)
                       const positions = [
-                        { left: '15%', top: '20%' },
-                        { left: '45%', top: '15%' },
-                        { left: '75%', top: '25%' },
-                        { left: '20%', top: '50%' },
-                        { left: '50%', top: '45%' },
-                        { left: '80%', top: '55%' },
-                        { left: '15%', top: '80%' },
-                        { left: '45%', top: '85%' },
-                        { left: '85%', top: '80%' }
+                        { left: '15%', top: '15%' },
+                        { left: '45%', top: '10%' },
+                        { left: '75%', top: '20%' },
+                        { left: '85%', top: '50%' },
+                        { left: '55%', top: '40%' },
+                        { left: '25%', top: '45%' },
+                        { left: '12%', top: '75%' },
+                        { left: '42%', top: '75%' },
+                        { left: '72%', top: '80%' },
+                        { left: '92%', top: '85%' }
                       ];
                       customWrapperClass = "absolute";
                       customStyle = {
-                        left: positions[idx].left,
-                        top: positions[idx].top,
+                        left: positions[idx]?.left || '50%',
+                        top: positions[idx]?.top || '50%',
                         transform: 'translate(-50%, -50%)'
                       };
                       customClass = "gem-crater backdrop-blur-3xl scale-90";
+                    } else if (currentStrand === 'saturn') {
+                      // Ring layout (5 gems)
+                      const angles = [0, 72, 144, 216, 288];
+                      const angle = angles[idx];
+                      const x = 50 + Math.cos((angle * Math.PI) / 180) * 35;
+                      const y = 50 + Math.sin((angle * Math.PI) / 180) * 35;
+                      customWrapperClass = "absolute";
+                      customStyle = {
+                        left: `${x}%`,
+                        top: `${y}%`,
+                        transform: 'translate(-50%, -50%)'
+                      };
+                      customClass = "gem-saturn-orbit";
                     }
 
                     return (
