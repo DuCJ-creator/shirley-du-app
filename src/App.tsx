@@ -909,6 +909,7 @@ const EmbeddedPortal = ({ url, onClose }: { url: string, onClose: () => void }) 
             title="Embedded Subject Content"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; microphone"
             allowFullScreen
+            sandbox="allow-scripts allow-same-origin allow-downloads allow-forms"
           />
           
           {/* Decorative Corner Accents */}
