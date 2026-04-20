@@ -1,6 +1,8 @@
 {
   "name": "Teacher Shirley Du; 英文 Surely Do",
   "description": "An artistic celestial-themed English learning app focusing on Vocabulary, Pronunciation, Grammar, and Tests with a points-based pet system.",
-  "requestFramePermissions": [],
+  "requestFramePermissions": [
+    "microphone"
+  ],
   "majorCapabilities": []
 }

@@ -907,7 +907,7 @@ const EmbeddedPortal = ({ url, onClose }: { url: string, onClose: () => void }) 
             src={url} 
             className="w-full h-full border-none bg-white/5"
             title="Embedded Subject Content"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; microphone"
             allowFullScreen
           />
           
