@@ -1,115 +1,17 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // --- Global Safety Net ---
+    // Default deny
     match /{document=**} {
       allow read, write: if false;
     }
 
-    // --- Helpers ---
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
-    function isValidId(id) {
-      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
-    }
-
-    function incoming() {
-      return request.resource.data;
-    }
-
-    function existing() {
-      return resource.data;
-    }
-
-    // --- Validation Blueprints ---
-    
-    function isValidUser(data) {
-      return (data.get('uid', request.auth.uid) == request.auth.uid) &&
-             (data.get('email', '') is string) &&
-             (data.get('points', 0) is number) &&
-             (data.get('streak', 0) is number);
-    }
-
-    function isValidPet(data) {
-      return (data.get('ownerId', request.auth.uid) == request.auth.uid) &&
-             (data.get('name', '') is string) &&
-             (data.get('type', '') is string) &&
-             (data.get('hunger', 0) is number) &&
-             (data.get('happiness', 0) is number) &&
-             (data.get('level', 1) is number);
-    }
-
-    function isValidLog(data) {
-       return data.keys().hasAll(['type', 'points', 'description', 'timestamp']) &&
-              data.type is string &&
-              data.points is number &&
-              data.description is string &&
-              data.timestamp == request.time; // Mandatory server timestamp
-    }
-
-    function isValidNote(data) {
-       return data.get('content', '') is string &&
-              data.get('content', '').size() <= 65536 &&
-              data.get('date', '') is string &&
-              (data.get('drawingData', '') is string);
-    }
-
-    // --- Collection Routes ---
-
+    // Direct owner access
     match /users/{userId} {
-      allow get: if isOwner(userId) && isValidId(userId);
-      allow list: if isOwner(userId); // Explicitly restricted to owner
+      allow read, write: if request.auth != null && request.auth.uid == userId;
       
-      allow create: if isOwner(userId) && isValidUser(incoming());
-      
-      allow update: if isOwner(userId) && isValidUser(incoming()) && (
-        (incoming().get('uid', request.auth.uid) == request.auth.uid) &&
-        (incoming().get('email', request.auth.token.email) == request.auth.token.email) &&
-        incoming().diff(existing()).affectedKeys().hasOnly([
-          'points', 'streak', 'lastCheckIn', 'lastActivity', 'studyTimeTotal', 
-          'dailyWord', 'dailyQuote', 'dailyWordData', 'dailyQuoteData', 
-          'avatarUrl', 'avatarType', 'uid', 'email', 'collectedCards'
-        ])
-      );
-
-      match /pets/{petId} {
-        allow get: if isOwner(userId) && isValidId(petId);
-        allow list: if isOwner(userId);
-        
-        allow create: if isOwner(userId) && isValidPet(incoming());
-        
-        allow update: if isOwner(userId) && isValidPet(incoming()) && (
-          incoming().ownerId == existing().ownerId &&
-          incoming().diff(existing()).affectedKeys().hasOnly([
-            'hunger', 'happiness', 'level', 'xp', 'maxXp', 'lastFed', 'name', 'image', 'isPlaying'
-          ])
-        );
-        
-        allow delete: if isOwner(userId);
-      }
-
-      match /logs/{logId} {
-        allow get: if isOwner(userId) && isValidId(logId);
-        allow list: if isOwner(userId);
-        
-        allow create: if isOwner(userId) && isValidLog(incoming());
-        
-        allow update, delete: if false; // POINT LOGS ARE IMMUTABLE
-      }
-
-      match /notes/{noteId} {
-        allow get: if isOwner(userId) && isValidId(noteId);
-        allow list: if isOwner(userId);
-        
-        allow create: if isOwner(userId) && isValidNote(incoming());
-        allow update: if isOwner(userId) && isValidNote(incoming());
-        allow delete: if isOwner(userId);
+      match /{allSubcollections=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
       }
     }
   }

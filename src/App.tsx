@@ -1964,10 +1964,20 @@ export default function App() {
       
       const today = getLocalDateString();
       const data = snap.data() as UserData | undefined;
-      const lastCheckIn = snap.exists() ? (data?.lastCheckIn ? getLocalDateString(data.lastCheckIn.toDate()) : null) : null;
-
+      
+      let lastCheckInStr: string | null = null;
+      if (data?.lastCheckIn) {
+        if (typeof data.lastCheckIn.toDate === 'function') {
+          lastCheckInStr = getLocalDateString(data.lastCheckIn.toDate());
+        } else if (data.lastCheckIn instanceof Date) {
+          lastCheckInStr = getLocalDateString(data.lastCheckIn);
+        } else if (typeof data.lastCheckIn === 'string') {
+          lastCheckInStr = data.lastCheckIn.slice(0, 10);
+        }
+      }
+      
       let newStreak = data?.streak || 0;
-      let isNewDay = lastCheckIn !== today;
+      let isNewDay = lastCheckInStr !== today;
 
       if (isNewDay) {
         // Calculate streak
@@ -1975,7 +1985,7 @@ export default function App() {
         yesterdayDate.setDate(yesterdayDate.getDate() - 1);
         const yesterday = getLocalDateString(yesterdayDate);
         
-        if (lastCheckIn === yesterday) {
+        if (lastCheckInStr === yesterday) {
           newStreak += 1;
         } else {
           newStreak = 1;
@@ -2151,7 +2161,7 @@ export default function App() {
             if (isMissingFields) {
               try {
                 const fillResult = await ai.models.generateContent({
-                  model: "gemini-2.0-flash-exp",
+              model: "gemini-1.5-flash",
                   contents: [{ parts: [{ text: `You are an expert English teacher. Complete the following language learning data for a "Daily English" feature.
                   
                   Current Data (some fields may be empty or missing):
@@ -2219,7 +2229,7 @@ export default function App() {
           } else {
             // Fallback to Gemini
             const result = await ai.models.generateContent({
-              model: "gemini-2.0-flash-exp",
+              model: "gemini-1.5-flash",
               contents: [{ parts: [{ text: `Generate a unique 'Daily English Word' and an 'Inspirational Quote' for an English learning app. 
               Return as JSON: { 
                 word: string, 
@@ -2357,8 +2367,9 @@ export default function App() {
       // Force local update if needed, but onSnapshot should catch it
     } catch (e: any) {
       console.error("Adoption failed", e);
-      setPetError(e.message || "Adoption failed. Please check your connection.");
-      // Role back points or inform user
+      const errorMsg = e.code ? `[${e.code}] ${e.message}` : (e.message || "Adoption failed. Please check your connection.");
+      setPetError(errorMsg);
+      setIsAdopting(false);
     } finally {
       setIsAdopting(false);
     }
