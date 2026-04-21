@@ -43,7 +43,11 @@ Object.entries(individualConfig).forEach(([key, value]) => {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 // @ts-ignore
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+const databaseId = firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId !== 'undefined' 
+  ? firebaseConfig.firestoreDatabaseId 
+  : undefined;
+
+export const db = getFirestore(app, databaseId);
 export const googleProvider = new GoogleAuthProvider();
 
 export { signInWithPopup, signOut, onAuthStateChanged, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, query, where, increment, serverTimestamp, arrayUnion, deleteDoc };

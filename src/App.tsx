@@ -1957,7 +1957,7 @@ export default function App() {
     }
   };
 
-  const handleCheckIn = async (u: any) => {
+  const handleCheckIn = async (u: any, isManual: boolean = false) => {
     try {
       const userRef = doc(db, 'users', u.uid);
       const snap = await getDoc(userRef);
@@ -1979,7 +1979,7 @@ export default function App() {
       let newStreak = data?.streak || 0;
       let isNewDay = lastCheckInStr !== today;
 
-      if (isNewDay) {
+      if (isNewDay || isManual) {
         // Calculate streak
         const yesterdayDate = new Date();
         yesterdayDate.setDate(yesterdayDate.getDate() - 1);
@@ -1987,7 +1987,7 @@ export default function App() {
         
         if (lastCheckInStr === yesterday) {
           newStreak += 1;
-        } else {
+        } else if (isNewDay) {
           newStreak = 1;
         }
 
@@ -2025,7 +2025,7 @@ export default function App() {
       }
 
       // Fetch Daily Inspiration from CSVs or Gemini
-      const needsUpdate = !data?.dailyWordData?.sentEn || !data?.dailyWordData?.sentCn || !data?.dailyQuoteData?.quote || !data?.dailyQuoteData?.trans || isNewDay;
+      const needsUpdate = !data?.dailyWordData?.sentEn || !data?.dailyWordData?.sentCn || !data?.dailyQuoteData?.quote || !data?.dailyQuoteData?.trans || isNewDay || isManual;
       
       if (needsUpdate) {
         try {
@@ -2343,16 +2343,28 @@ export default function App() {
   };
 
   const handleAdoptPet = async (selectedPet: typeof PET_TYPES[0]) => {
-    if (!user || !userData || userData.points < 100) return;
+    if (!user || !userData || userData.points < 100) {
+      setPetError("Insufficient points or not logged in.");
+      return;
+    }
     setIsAdopting(true);
     setPetError(null);
     try {
-      const userRef = doc(db, 'users', user.uid);
-      await updateDoc(userRef, { points: increment(-100) });
+      const { writeBatch, serverTimestamp } = await import('firebase/firestore');
+      const batch = writeBatch(db);
       
-      await addPointLog(user.uid, 'pet', -100, `Adopted ${selectedPet.name} the ${selectedPet.type}`);
+      const userRef = doc(db, 'users', user.uid);
       const petRef = doc(db, 'users', user.uid, 'pets', 'main_pet');
-      await setDoc(petRef, {
+      const logRef = doc(collection(db, 'users', user.uid, 'logs'));
+      
+      batch.set(userRef, { points: increment(-100) }, { merge: true });
+      batch.set(logRef, {
+        type: 'pet',
+        points: -100,
+        description: `Adopted ${selectedPet.name} the ${selectedPet.type}`,
+        timestamp: serverTimestamp()
+      });
+      batch.set(petRef, {
         ownerId: user.uid,
         name: selectedPet.name,
         type: selectedPet.type,
@@ -2362,14 +2374,19 @@ export default function App() {
         level: 1,
         xp: 0,
         maxXp: 100,
-        lastFed: serverTimestamp()
+        lastFed: serverTimestamp(),
+        createdAt: serverTimestamp()
       });
-      // Force local update if needed, but onSnapshot should catch it
+      
+      await batch.commit();
     } catch (e: any) {
       console.error("Adoption failed", e);
-      const errorMsg = e.code ? `[${e.code}] ${e.message}` : (e.message || "Adoption failed. Please check your connection.");
+      // More detailed error reporting
+      let errorMsg = e.message || "Adoption failed.";
+      if (e.code) errorMsg = `[${e.code}] ${errorMsg}`;
+      if (e.stack && e.stack.includes('permission-denied')) errorMsg = "[permission-denied] Check Firestore rules or database ID.";
+      
       setPetError(errorMsg);
-      setIsAdopting(false);
     } finally {
       setIsAdopting(false);
     }
@@ -2711,6 +2728,14 @@ export default function App() {
                       </button>
 
                       <div className="flex flex-col items-center text-center">
+                        <div className="flex w-full justify-end mb-2">
+                          <button 
+                            onClick={() => user && handleCheckIn(user, true)}
+                            className="text-[9px] text-white/20 hover:text-cyan-400 flex items-center gap-1 transition-all uppercase tracking-widest font-bold"
+                          >
+                            <RefreshCw className="w-3 h-3" /> Force Refresh
+                          </button>
+                        </div>
                         <div className="w-20 h-20 rounded-full bg-cyan-500/10 flex items-center justify-center mb-6 border border-cyan-500/30 shadow-[0_0_20px_rgba(34,211,238,0.2)]">
                           <Sparkles className="w-10 h-10 text-cyan-400" />
                         </div>
