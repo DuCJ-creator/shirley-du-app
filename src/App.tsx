@@ -154,10 +154,10 @@ const UserAvatarCenter = ({ userData, onUpdate }: { userData: any, onUpdate: (da
     <div className="relative z-30 group flex flex-col items-center">
       <motion.div
         animate={{ 
-          boxShadow: ["0 0 20px 5px rgba(255, 255, 255, 0.1)", "0 0 40px 15px rgba(255, 255, 255, 0.15)", "0 0 20px 5px rgba(255, 255, 255, 0.1)"]
+          opacity: [0.3, 0.6, 0.3]
         }}
-        transition={{ duration: 6, repeat: Infinity }}
-        className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white/20 overflow-hidden cursor-pointer relative"
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white/20 overflow-hidden cursor-pointer relative shadow-[0_0_40px_rgba(255,255,255,0.15)]"
         onClick={toggleAvatar}
       >
         <img 
@@ -289,15 +289,16 @@ const UniverseDisplay = ({ user, userData, onStrandClick, onUpdateAvatar }: { us
       {/* Orbital Rings - Thinner and more subtle */}
       <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
         {orbitDistances.map((dist, i) => (
-          <motion.div 
-            key={i}
-            animate={{ 
-              borderColor: hoveredOrbit === i + 1 ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.04)',
-              scale: hoveredOrbit === i + 1 ? 1.005 : 1
-            }}
-            className="absolute border border-dotted rounded-full"
-            style={{ width: dist * 2, height: dist * 2 }}
-          />
+            <motion.div 
+              key={i}
+              className="absolute border border-dotted rounded-full transition-colors duration-1000"
+              style={{ 
+                width: dist * 2, 
+                height: dist * 2,
+                borderColor: hoveredOrbit === i + 1 ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.04)',
+                transform: hoveredOrbit === i + 1 ? 'scale(1.005)' : 'scale(1)'
+              }}
+            />
         ))}
       </div>
 
@@ -843,9 +844,9 @@ const MobiusRing = () => {
 
       time += 0.002; // Slower time step
       
-      // Throttle rendering to ~24 FPS for efficiency (cinematic feel)
+      // Throttle rendering to ~15 FPS for maximum energy efficiency
       const now = Date.now();
-      if (lastRenderRef.current && now - lastRenderRef.current < 41) {
+      if (lastRenderRef.current && now - lastRenderRef.current < 66) {
         return;
       }
       lastRenderRef.current = now;
@@ -892,14 +893,12 @@ const MobiusRing = () => {
 };
 
 const GalaxyBackground = React.memo(() => (
-  <div className="galaxy-bg">
-    <div className="velvet-texture-fixed" />
-    <div className="galaxy-bg-extra" />
-    <MobiusRing />
-    <div className="shooting-star" style={{ top: '10%', left: '80%', animationDelay: '0s' }} />
-    <div className="shooting-star" style={{ top: '30%', left: '90%', animationDelay: '4s' }} />
-    <div className="shooting-star" style={{ top: '50%', left: '70%', animationDelay: '7s' }} />
-  </div>
+    <div className="galaxy-bg">
+      <div className="velvet-texture-fixed" />
+      <div className="galaxy-bg-extra" />
+      <MobiusRing />
+      <div className="shooting-star" style={{ top: '10%', left: '80%', animationDelay: '0s' }} />
+    </div>
 ));
 
 const Planet = ({ strand, info, onClick, disabled, isHovered }: { strand: Strand, info: any, onClick: () => void, disabled: boolean, isHovered?: boolean }) => {
@@ -914,7 +913,7 @@ const Planet = ({ strand, info, onClick, disabled, isHovered }: { strand: Strand
         y: [0, -3, 0]
       }}
       transition={{ 
-        duration: 12,
+        duration: 20,
         repeat: Infinity,
         ease: "easeInOut"
       }}
@@ -1024,7 +1023,7 @@ const ETCharacter = ({ onClick }: { onClick: () => void }) => {
       const nextX = Math.random() * 50 + 15; 
       const nextY = Math.random() * 40 + 25; 
       setPos({ x: nextX, y: nextY });
-    }, 8000); // Slower movement
+    }, 15000); // Much slower movement
 
     return () => {
       window.removeEventListener('resize', handleResize);
@@ -1044,9 +1043,9 @@ const ETCharacter = ({ onClick }: { onClick: () => void }) => {
       whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.9 }}
       transition={{ 
-        x: { duration: 6, ease: "easeInOut" },
-        y: { duration: 6, ease: "easeInOut" },
-        rotate: { duration: 4, repeat: Infinity, ease: "easeInOut" },
+        x: { duration: 10, ease: "easeInOut" },
+        y: { duration: 10, ease: "easeInOut" },
+        rotate: { duration: 8, repeat: Infinity, ease: "easeInOut" },
         opacity: { duration: 1 }
       }}
       className="fixed z-[150] cursor-pointer group"
@@ -1056,8 +1055,8 @@ const ETCharacter = ({ onClick }: { onClick: () => void }) => {
       <div className="relative">
         {/* Message Bubble - Robotic Style */}
         <motion.div
-          animate={{ scale: [1, 1.05, 1], y: [0, -5, 0] }}
-          transition={{ duration: 3, repeat: Infinity }}
+          animate={{ y: [0, -4, 0] }}
+          transition={{ duration: 6, repeat: Infinity }}
           className="absolute -top-20 left-1/2 -translate-x-1/2 robotic-panel border-cyan-500/30 px-5 py-2.5 rounded-xl whitespace-nowrap shadow-[0_0_20px_rgba(0,242,255,0.1)] border"
         >
           <div className="flex items-center gap-2">
@@ -1099,9 +1098,9 @@ const ETCharacter = ({ onClick }: { onClick: () => void }) => {
               {[1,2,3,4].map(i => (
                 <motion.div 
                   key={i}
-                  animate={{ height: [2, 4, 2] }}
-                  transition={{ duration: 0.5, repeat: Infinity, delay: i * 0.1 }}
-                  className="w-1 bg-cyan-400/50 rounded-full mt-[-1.5px]" 
+                  animate={{ height: [2, 3, 2] }}
+                  transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
+                  className="w-1 bg-cyan-400/50 rounded-full mt-[-1px]" 
                 />
               ))}
             </div>
@@ -1119,7 +1118,7 @@ const ETCharacter = ({ onClick }: { onClick: () => void }) => {
           {/* Floating Orbitals */}
           <motion.div 
             animate={{ rotate: 360 }}
-            transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
             className="absolute inset-0 pointer-events-none"
           >
             <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-2 h-2 robotic-glow rounded-full" />
@@ -1205,28 +1204,28 @@ const PetAvatar = ({ type, isPlaying, isRolling }: { type: string, isPlaying?: b
         rotate: 360,
         scale: [1, 1.2, 1],
       } : {
-        y: [0, -5, 0],
+        y: [0, -4, 0],
       }}
       transition={{
-        duration: isPlaying ? 1.5 : 3,
+        duration: isPlaying ? 2 : 5,
         repeat: Infinity,
         ease: "easeInOut"
       }}
-      className="relative w-full h-full flex items-center justify-center"
+      className="relative w-full h-full flex items-center justify-center font-sans"
     >
       {/* Cartoon Body */}
-      <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-lg">
+      <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-lg transform-gpu">
         <motion.circle 
           cx="50" cy="50" r="40" 
           fill={color} 
-          animate={isPlaying ? { r: [40, 42, 40] } : {}}
-          transition={{ duration: 1, repeat: Infinity }}
+          animate={isPlaying ? { r: [40, 41, 40] } : {}}
+          transition={{ duration: 2, repeat: Infinity }}
         />
         
         {/* Eyes */}
         <motion.g
           animate={{ scaleY: [1, 1, 0.1, 1, 1] }}
-          transition={{ duration: 3, repeat: Infinity, times: [0, 0.4, 0.5, 0.6, 1] }}
+          transition={{ duration: 10, repeat: Infinity, times: [0, 0.8, 0.85, 0.9, 1] }}
         >
           <circle cx="35" cy="45" r="5" fill="white" />
           <circle cx="65" cy="45" r="5" fill="white" />
@@ -1241,8 +1240,8 @@ const PetAvatar = ({ type, isPlaying, isRolling }: { type: string, isPlaying?: b
           strokeWidth="3"
           fill="none"
           strokeLinecap="round"
-          animate={isPlaying ? { d: ["M 40 65 Q 50 75 60 65", "M 40 60 Q 50 80 60 60", "M 40 65 Q 50 75 60 65"] } : {}}
-          transition={{ duration: 1, repeat: Infinity }}
+          animate={isPlaying ? { d: ["M 40 65 Q 50 75 60 65", "M 40 62 Q 50 78 60 62", "M 40 65 Q 50 75 60 65"] } : {}}
+          transition={{ duration: 2, repeat: Infinity }}
         />
 
         {/* Ears/Features based on type */}
@@ -1378,9 +1377,9 @@ const FloatingPet = ({ pet, onReturn }: { pet: PetData, onReturn: () => void }) 
       if (Math.random() > 0.6) {
         const thoughts = ['✨', '🌟', '🛸', '🪐', '❤️', '🐾', '🌈', '🚀', '💎', '🌙'];
         setThought(thoughts[Math.floor(Math.random() * thoughts.length)]);
-        setTimeout(() => setThought(null), 2500);
+        setTimeout(() => setThought(null), 3000);
       }
-    }, 5000);
+    }, 12000); // Slower wandering
 
     return () => clearInterval(interval);
   }, []);
@@ -2580,9 +2579,9 @@ export default function App() {
         <div className="pointer-events-auto flex flex-col items-center gap-6">
           <motion.div
             animate={{ 
-              boxShadow: ["0 0 30px 10px rgba(255, 255, 255, 0.1)", "0 0 60px 20px rgba(255, 255, 255, 0.2)", "0 0 30px 10px rgba(255, 255, 255, 0.1)"]
+              opacity: [0.8, 1, 0.8]
             }}
-            transition={{ duration: 4, repeat: Infinity }}
+            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
             className="w-16 h-16 lg:w-40 lg:h-40 rounded-full bg-white moon-glow flex flex-col items-center justify-center text-black p-1 lg:p-4 text-center cursor-pointer overflow-hidden relative shadow-[0_0_50px_rgba(255,255,255,0.3)] border-2 border-white/20"
             onClick={!user ? handleLogin : () => setShowCheckIn(true)}
           >
