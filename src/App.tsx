@@ -28,6 +28,8 @@ interface PointLog {
 }
 
 interface UserData {
+  uid?: string;
+  email?: string;
   points: number;
   lastCheckIn: any;
   dailyWord: string;
@@ -1432,7 +1434,27 @@ const FloatingPet = ({ pet, onReturn }: { pet: PetData, onReturn: () => void }) 
   );
 };
 
-const PetSection = ({ points, pet, onFeed, onPlay, onAdopt, onRelease, isRolling }: { points: number, pet: PetData | null, onFeed: () => void, onPlay: () => void, onAdopt: (selectedPet: typeof PET_TYPES[0]) => void, onRelease: () => void, isRolling: boolean }) => {
+const PetSection = ({ 
+  points, 
+  pet, 
+  onFeed, 
+  onPlay, 
+  onAdopt, 
+  onRelease, 
+  isRolling,
+  isAdopting,
+  petError
+}: { 
+  points: number, 
+  pet: PetData | null, 
+  onFeed: () => void, 
+  onPlay: () => void, 
+  onAdopt: (selectedPet: typeof PET_TYPES[0]) => void, 
+  onRelease: () => void, 
+  isRolling: boolean,
+  isAdopting?: boolean,
+  petError?: string | null
+}) => {
   const [showShelter, setShowShelter] = useState(false);
   const [selectedShelterPet, setSelectedShelterPet] = useState<typeof PET_TYPES[0] | null>(null);
 
@@ -1492,12 +1514,22 @@ const PetSection = ({ points, pet, onFeed, onPlay, onAdopt, onRelease, isRolling
               <div className="text-white/40 text-xs">Available: {points} pts</div>
             </div>
             <button 
-              disabled={!selectedShelterPet || points < 100}
+              disabled={!selectedShelterPet || points < 100 || isAdopting}
               onClick={() => selectedShelterPet && onAdopt(selectedShelterPet)}
-              className="w-full py-4 bg-white text-black rounded-2xl font-bold disabled:opacity-30 disabled:grayscale transition-all hover:bg-blue-50"
+              className="w-full py-4 bg-white text-black rounded-2xl font-bold disabled:opacity-30 disabled:grayscale transition-all hover:bg-blue-50 flex items-center justify-center gap-2"
             >
-              {selectedShelterPet ? `Adopt ${selectedShelterPet.name}` : "Confirm Selection"}
+              {isAdopting ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  Adopting...
+                </>
+              ) : (
+                selectedShelterPet ? `Adopt ${selectedShelterPet.name}` : "Confirm Selection"
+              )}
             </button>
+            {petError && (
+              <p className="mt-2 text-center text-[10px] text-red-400 font-bold uppercase tracking-wider">{petError}</p>
+            )}
           </div>
         </div>
       )}
@@ -1746,6 +1778,8 @@ export default function App() {
   const [allWordData, setAllWordData] = useState<any[]>([]);
   const [vocabSearchTerm, setVocabSearchTerm] = useState("");
   const [isFetchingVocab, setIsFetchingVocab] = useState(false);
+  const [isAdopting, setIsAdopting] = useState(false);
+  const [petError, setPetError] = useState<string | null>(null);
   const [notes, setNotes] = useState<StudyNote[]>(() => {
     try {
       const saved = localStorage.getItem('space_notes_cache');
@@ -1956,11 +1990,17 @@ export default function App() {
           await addPointLog(u.uid, 'pet-drain', -5, 'Daily Pet Care Cost');
         }
 
-        await updateDoc(userRef, {
+        const updateData: any = {
           points: increment(10 - petDrain),
           lastCheckIn: serverTimestamp(),
           streak: newStreak
-        }).catch(async () => {
+        };
+        
+        // Back-fill missing fields for older user docs
+        if (!data?.uid) updateData.uid = u.uid;
+        if (!data?.email) updateData.email = u.email;
+
+        await updateDoc(userRef, updateData).catch(async () => {
           await setDoc(userRef, {
           uid: u.uid,
           email: u.email,
@@ -2294,23 +2334,34 @@ export default function App() {
 
   const handleAdoptPet = async (selectedPet: typeof PET_TYPES[0]) => {
     if (!user || !userData || userData.points < 100) return;
-    const userRef = doc(db, 'users', user.uid);
-    await updateDoc(userRef, { points: increment(-100) });
-    
-    await addPointLog(user.uid, 'pet', -100, `Adopted ${selectedPet.name} the ${selectedPet.type}`);
-    const petRef = doc(db, 'users', user.uid, 'pets', 'main_pet');
-    await setDoc(petRef, {
-      ownerId: user.uid,
-      name: selectedPet.name,
-      type: selectedPet.type,
-      image: selectedPet.image,
-      hunger: 100,
-      happiness: 100,
-      level: 1,
-      xp: 0,
-      maxXp: 100,
-      lastFed: serverTimestamp()
-    });
+    setIsAdopting(true);
+    setPetError(null);
+    try {
+      const userRef = doc(db, 'users', user.uid);
+      await updateDoc(userRef, { points: increment(-100) });
+      
+      await addPointLog(user.uid, 'pet', -100, `Adopted ${selectedPet.name} the ${selectedPet.type}`);
+      const petRef = doc(db, 'users', user.uid, 'pets', 'main_pet');
+      await setDoc(petRef, {
+        ownerId: user.uid,
+        name: selectedPet.name,
+        type: selectedPet.type,
+        image: selectedPet.image,
+        hunger: 100,
+        happiness: 100,
+        level: 1,
+        xp: 0,
+        maxXp: 100,
+        lastFed: serverTimestamp()
+      });
+      // Force local update if needed, but onSnapshot should catch it
+    } catch (e: any) {
+      console.error("Adoption failed", e);
+      setPetError(e.message || "Adoption failed. Please check your connection.");
+      // Role back points or inform user
+    } finally {
+      setIsAdopting(false);
+    }
   };
 
   const handleReleasePet = async () => {
@@ -2712,6 +2763,8 @@ export default function App() {
                 onAdopt={handleAdoptPet} 
                 onRelease={handleReleasePet}
                 isRolling={isRolling}
+                isAdopting={isAdopting}
+                petError={petError}
               />
             </motion.div>
           ) : currentStrand === 'logs' ? (
