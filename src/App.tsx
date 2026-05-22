@@ -613,201 +613,219 @@ const NotePad = ({ notes, onSave, onDelete }: { notes: StudyNote[], onSave: (not
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            className="fixed top-24 right-8 w-[400px] h-[600px] bg-neutral-900/98 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.7)] z-[2500] overflow-hidden flex flex-col pointer-events-auto"
+            className="fixed top-24 right-8 w-[420px] h-[600px] bg-[#fbf9f3] border border-[#d2cca1]/40 rounded-3xl shadow-[0_30px_70px_rgba(0,0,0,0.5),_0_0_0_1px_rgba(0,0,0,0.06)] z-[2500] flex flex-row pointer-events-auto overflow-hidden"
           >
-            {/* Draggable Header - Grab handle */}
-            <div 
-              onPointerDown={(e) => dragControls.start(e)}
-              className="h-14 flex items-center justify-between px-6 bg-white/[0.03] border-b border-white/5 cursor-grab active:cursor-grabbing select-none"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-red-500/40" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/40" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-green-500/40" />
+            {/* Left spiral side spine with beautiful physical metal wire ring loops */}
+            <div className="w-10 bg-[#ebe7d8]/60 border-r border-[#d4cfbd]/80 relative flex flex-col justify-around py-6 z-20 select-none">
+              {Array.from({ length: 12 }).map((_, idx) => (
+                <div key={idx} className="relative w-full h-4 flex items-center justify-end">
+                  {/* Outer wire ring looping over */}
+                  <div className="absolute -right-3.5 w-7 h-3 rounded-full bg-gradient-to-r from-slate-400 via-slate-100 to-slate-400 border border-slate-500/20 shadow-[0_2px_4px_rgba(0,0,0,0.2)]" />
+                  {/* Left ring hole on binder spine side */}
+                  <div className="absolute left-1.5 w-1.5 h-1.5 rounded-full bg-slate-900/45 shadow-inner" />
+                  {/* Right ring hole on paper side */}
+                  <div className="absolute right-1 w-1.5 h-1.5 rounded-full bg-slate-900/30 shadow-inner" />
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-black text-white/50 uppercase tracking-[0.2em] leading-none">Universal Log</span>
-                  <span className="text-[7px] font-bold text-cyan-400/60 uppercase tracking-widest mt-1">Sync: Active</span>
-                </div>
-              </div>
-              <button 
-                onClick={() => setIsOpen(false)} 
-                className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-xl text-white/20 hover:text-white transition-all"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              ))}
             </div>
 
-            {/* Note Controls */}
-            {currentNote && (
-              <div className="px-6 py-3 border-b border-white/5 flex items-center justify-between gap-4 bg-white/[0.01]">
-                <div className="flex bg-white/5 rounded-xl p-1">
-                  <button 
-                    onClick={() => setActiveTab('text')}
-                    className={cn("px-4 py-1.5 text-[10px] font-black rounded-lg transition-all tracking-wider", activeTab === 'text' ? "bg-white text-black shadow-lg" : "text-white/30 hover:text-white/50")}
-                  >TEXT</button>
-                  <button 
-                    onClick={() => setActiveTab('drawing')}
-                    className={cn("px-4 py-1.5 text-[10px] font-black rounded-lg transition-all tracking-wider", activeTab === 'drawing' ? "bg-white text-black shadow-lg" : "text-white/30 hover:text-white/50")}
-                  >DRAW</button>
+            {/* Notebook Lined Pages container */}
+            <div className="flex-1 flex flex-col h-full bg-[#fdfbf6] text-slate-800">
+              {/* Draggable Header - Grab handle */}
+              <div 
+                onPointerDown={(e) => dragControls.start(e)}
+                className="h-14 flex items-center justify-between px-5 border-b border-[#e5dfcf] cursor-grab active:cursor-grabbing select-none"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex gap-1.5">
+                    <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[11px] font-black text-slate-700 uppercase tracking-[0.2em] leading-none">Universal Log</span>
+                    <span className="text-[7px] font-bold text-indigo-500 uppercase tracking-widest mt-1">Sync: Active</span>
+                  </div>
                 </div>
-                <div className="flex gap-1.5">
-                  {colors.map(c => (
-                    <button 
-                      key={c}
-                      onClick={() => setColor(c)}
-                      className={cn("w-5 h-5 rounded-full border-2 transition-all", color === c ? "border-white scale-110 shadow-[0_0_10px_rgba(255,255,255,0.3)]" : "border-transparent opacity-30 hover:opacity-100")}
-                      style={{ backgroundColor: c }}
-                    />
-                  ))}
-                </div>
+                <button 
+                  onClick={() => setIsOpen(false)} 
+                  className="w-8 h-8 flex items-center justify-center hover:bg-slate-200/50 rounded-xl text-slate-400 hover:text-slate-800 transition-all font-bold"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
-            )}
 
-            {/* Scrollable List or Editor */}
-            <div className="flex-1 overflow-y-auto p-4 scrollbar-hide">
-              {currentNote ? (
-                <div className="h-full flex flex-col gap-4">
-                  <div 
-                    className="flex-1 relative rounded-2xl overflow-hidden shadow-inner group/editor"
-                    style={{ backgroundColor: color }}
-                  >
-                    {/* Unified Canvas + Text Layer */}
-                    <div className="absolute inset-0 z-0">
-                      <canvas 
-                        ref={canvasRef}
-                        width={800}
-                        height={1000}
-                        className={cn(
-                          "w-full h-full",
-                          activeTab === 'drawing' ? "cursor-crosshair z-20 pointer-events-auto" : "pointer-events-none z-0"
-                        )}
-                        onMouseDown={startDrawing}
-                        onMouseMove={draw}
-                        onMouseUp={stopDrawing}
-                        onMouseLeave={stopDrawing}
-                        onTouchStart={startDrawing}
-                        onTouchMove={draw}
-                        onTouchEnd={stopDrawing}
+              {/* Note Controls */}
+              {currentNote && (
+                <div className="px-5 py-2.5 border-b border-[#e5dfcf] flex items-center justify-between gap-4 select-none bg-[#fbf9f3]">
+                  <div className="flex bg-slate-200/50 rounded-xl p-1 border border-slate-300/25">
+                    <button 
+                      onClick={() => setActiveTab('text')}
+                      className={cn("px-4 py-1 flex text-[9px] font-black rounded-lg transition-all tracking-wider uppercase", activeTab === 'text' ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700")}
+                    >TEXT</button>
+                    <button 
+                      onClick={() => setActiveTab('drawing')}
+                      className={cn("px-4 py-1 flex text-[9px] font-black rounded-lg transition-all tracking-wider uppercase", activeTab === 'drawing' ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700")}
+                    >DRAW</button>
+                  </div>
+                  <div className="flex gap-1">
+                    {colors.map(c => (
+                      <button 
+                        key={c}
+                        onClick={() => setColor(c)}
+                        className={cn("w-4 h-4 rounded-full border border-slate-400/40 transition-all", color === c ? "ring-2 ring-slate-800 scale-110 shadow-sm" : "opacity-60 hover:opacity-100")}
+                        style={{ backgroundColor: c }}
                       />
-                    </div>
-                    
-                    <textarea 
-                      autoFocus={activeTab === 'text'}
-                      className={cn(
-                        "absolute inset-0 w-full h-full bg-transparent border-none focus:ring-0 text-neutral-900 font-medium resize-none p-6 leading-relaxed z-10",
-                        activeTab === 'drawing' ? "pointer-events-none opacity-40 select-none" : "pointer-events-auto opacity-100"
-                      )}
-                      value={currentNote.content}
-                      onChange={(e) => setCurrentNote({ ...currentNote, content: e.target.value })}
-                      placeholder={activeTab === 'text' ? "Transmission starts here..." : ""}
-                    />
-
-                    {/* Interaction Hint */}
-                    <div className="absolute top-2 right-4 pointer-events-none">
-                      <span className="text-[8px] font-black uppercase opacity-20 tracking-tighter">
-                        {activeTab === 'drawing' ? "Drawing Mode Active" : "Text Mode Active"}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center gap-2">
-                    <button onClick={() => setCurrentNote(null)} className="text-[10px] font-bold text-white/30 hover:text-white/60 transition-colors uppercase tracking-widest">Discard</button>
-                    <button 
-                      onClick={() => {
-                        onSave({ ...currentNote, color });
-                        setCurrentNote(null);
-                      }}
-                      className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-black text-[10px] font-bold rounded-lg uppercase tracking-widest"
-                    >Save Entry</button>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <header className="flex justify-between items-center mb-4">
-                    <div className="flex flex-col gap-1">
-                      <h4 className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Stored Logs</h4>
-                      <div className="flex gap-2">
-                        <button 
-                          onClick={() => setSelectedIds(new Set(notes.map(n => n.id)))} 
-                          className="text-[8px] font-bold text-cyan-400/40 hover:text-cyan-400 transition-colors uppercase"
-                        >Select All</button>
-                        <button 
-                          onClick={() => setSelectedIds(new Set())} 
-                          className="text-[8px] font-bold text-white/10 hover:text-white/30 transition-colors uppercase"
-                        >Clear</button>
-                      </div>
-                    </div>
-                    <button 
-                      onClick={handleExport} 
-                      disabled={isExporting || selectedIds.size === 0} 
-                      className="text-[10px] font-bold text-white/20 hover:text-white transition-colors flex items-center gap-1.5 ring-1 ring-white/10 px-2 py-1 rounded disabled:opacity-30 disabled:cursor-not-allowed group/btn"
-                    >
-                      <Download className="w-3 h-3 group-hover/btn:text-cyan-400" /> 
-                      {isExporting ? "GENERATING..." : `EXPORT PDF (${selectedIds.size})`}
-                    </button>
-                  </header>
-                  
-                  <button 
-                    onClick={() => {
-                      setCurrentNote({ content: '', id: Math.random().toString(36).substr(2, 9), color, type: 'text' });
-                      setActiveTab('text');
-                    }}
-                    className="w-full h-16 border border-dashed border-white/10 rounded-xl flex items-center justify-center gap-3 hover:bg-white/5 transition-all text-white/20 hover:text-white/60"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span className="text-[11px] font-bold uppercase tracking-wider">New Transmission</span>
-                  </button>
-
-                  <div className="grid grid-cols-1 gap-3">
-                    {notes.map(note => (
-                      <motion.div 
-                        key={note.id} 
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        onClick={() => { setCurrentNote(note); setActiveTab(note.type as any || 'text'); }}
-                        className={cn(
-                          "rounded-xl p-4 group transition-all relative cursor-pointer border-2",
-                          selectedIds.has(note.id) ? "border-cyan-500/50 scale-[1.02]" : "border-transparent"
-                        )}
-                        style={{ backgroundColor: note.color, color: '#1a1a1a' }}
-                      >
-                        {/* Selector bit */}
-                        <div 
-                          onClick={(e) => toggleSelect(note.id, e)}
-                          className={cn(
-                            "absolute -top-2 -left-2 w-6 h-6 rounded-full flex items-center justify-center transition-all z-10 shadow-lg",
-                            selectedIds.has(note.id) ? "bg-cyan-500 text-black border-2 border-white scale-110" : "bg-white/40 text-black/20 hover:bg-white/60 hover:text-black/40"
-                          )}
-                        >
-                          <Check className={cn("w-3 h-3", !selectedIds.has(note.id) && "opacity-0")} />
-                        </div>
-
-                        <div className="flex justify-between items-start mb-2">
-                          <span className="text-[8px] font-black uppercase opacity-30 tracking-tighter">{note.date}</span>
-                          <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button className="p-1 hover:bg-black/10 rounded"><Edit className="w-3 h-3" /></button>
-                            <button onClick={(e) => { e.stopPropagation(); onDelete(note.id); }} className="p-1 hover:bg-black/10 rounded text-red-700/80"><Trash2 className="w-3 h-3" /></button>
-                          </div>
-                        </div>
-                        {note.drawingData ? (
-                          <div className="relative aspect-video bg-white/20 rounded-lg overflow-hidden mb-2">
-                            <img src={note.drawingData} className="w-full h-full object-cover" referrerPolicy="no-referrer" alt="Drawing preview" />
-                          </div>
-                        ) : null}
-                        <p className="text-[11px] font-medium leading-tight line-clamp-2">{note.content}</p>
-                      </motion.div>
                     ))}
-                    {notes.length === 0 && (
-                      <div className="py-12 text-center">
-                        <Moon className="w-5 h-5 text-white/5 mx-auto mb-2" />
-                        <p className="text-[10px] font-bold text-white/10 uppercase tracking-widest">No logs found</p>
-                      </div>
-                    )}
                   </div>
                 </div>
               )}
+
+              {/* Scrollable List or Editor */}
+              <div className="flex-1 overflow-y-auto p-4 scrollbar-hide">
+                {currentNote ? (
+                  <div className="h-full flex flex-col gap-3">
+                    <div 
+                      className="flex-1 relative rounded-xl border border-[#e5dfcf] shadow-inner group/editor overflow-hidden"
+                      style={{ backgroundColor: color || '#ffffff' }}
+                    >
+                      {/* Unified Canvas + Text Layer */}
+                      <div className="absolute inset-0 z-0">
+                        <canvas 
+                          ref={canvasRef}
+                          width={800}
+                          height={1000}
+                          className={cn(
+                            "w-full h-full",
+                            activeTab === 'drawing' ? "cursor-crosshair z-20 pointer-events-auto" : "pointer-events-none z-0"
+                          )}
+                          onMouseDown={startDrawing}
+                          onMouseMove={draw}
+                          onMouseUp={stopDrawing}
+                          onMouseLeave={stopDrawing}
+                          onTouchStart={startDrawing}
+                          onTouchMove={draw}
+                          onTouchEnd={stopDrawing}
+                        />
+                      </div>
+                      
+                      <textarea 
+                        autoFocus={activeTab === 'text'}
+                        className={cn(
+                          "absolute inset-0 w-full h-full bg-transparent border-none focus:ring-0 text-slate-800 font-medium font-sans resize-none p-5 leading-6 z-10 notebook-paper-lined",
+                          activeTab === 'drawing' ? "pointer-events-none opacity-40 select-none" : "pointer-events-auto opacity-100"
+                        )}
+                        value={currentNote.content}
+                        onChange={(e) => setCurrentNote({ ...currentNote, content: e.target.value })}
+                        placeholder={activeTab === 'text' ? "Write your transmission log here..." : ""}
+                      />
+
+                      {/* Interaction Hint */}
+                      <div className="absolute top-2 right-4 pointer-events-none">
+                        <span className="text-[8px] font-black uppercase opacity-25 tracking-tighter text-slate-500">
+                          {activeTab === 'drawing' ? "Drawing Mode Active" : "Text Mode Active"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center gap-2 pt-1 pb-1">
+                      <button onClick={() => setCurrentNote(null)} className="text-[10px] font-bold text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-widest leading-none">Discard</button>
+                      <button 
+                        onClick={() => {
+                          onSave({ ...currentNote, color });
+                          setCurrentNote(null);
+                        }}
+                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-bold rounded-lg uppercase tracking-widest shadow-sm hover:shadow active:scale-95 transition-all"
+                      >Save Entry</button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <header className="flex justify-between items-center mb-1">
+                      <div className="flex flex-col gap-1">
+                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Stored Logs</h4>
+                        <div className="flex gap-2.5">
+                          <button 
+                            onClick={() => setSelectedIds(new Set(notes.map(n => n.id)))} 
+                            className="text-[9px] font-bold text-indigo-600 hover:text-indigo-800 transition-colors uppercase"
+                          >Select All</button>
+                          <button 
+                            onClick={() => setSelectedIds(new Set())} 
+                            className="text-[9px] font-bold text-slate-400 hover:text-slate-600 transition-colors uppercase"
+                          >Clear</button>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={handleExport} 
+                        disabled={isExporting || selectedIds.size === 0} 
+                        className="text-[10px] font-bold text-slate-600 hover:text-slate-800 transition-colors flex items-center gap-1.5 border border-[#e5dfcf] px-2.5 py-1 rounded-lg bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed group/btn shadow-xs active:scale-95"
+                      >
+                        <Download className="w-3 h-3 text-slate-500 group-hover/btn:text-indigo-600" /> 
+                        {isExporting ? "GENERATING..." : `EXPORT PDF (${selectedIds.size})`}
+                      </button>
+                    </header>
+                    
+                    <button 
+                      onClick={() => {
+                        setCurrentNote({ content: '', id: Math.random().toString(36).substr(2, 9), color, type: 'text' });
+                        setActiveTab('text');
+                      }}
+                      className="w-full h-14 border-2 border-dashed border-slate-300 rounded-xl flex items-center justify-center gap-3 hover:bg-[#faf6ea] hover:border-slate-400 transition-all text-slate-400 hover:text-slate-600 bg-white/60 shadow-xs"
+                    >
+                      <Plus className="w-4 h-4 text-slate-400" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider">New Transmission</span>
+                    </button>
+
+                    <div className="grid grid-cols-1 gap-3 max-h-[380px] overflow-y-auto pr-1">
+                      {notes.map(note => (
+                        <motion.div 
+                          key={note.id} 
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          onClick={() => { setCurrentNote(note); setActiveTab(note.type as any || 'text'); }}
+                          className={cn(
+                            "rounded-xl p-4 group transition-all relative cursor-pointer border shadow-sm hover:shadow-md",
+                            selectedIds.has(note.id) ? "border-indigo-500 ring-2 ring-indigo-500/10 scale-[1.01]" : "border-slate-200"
+                          )}
+                          style={{ backgroundColor: note.color || '#ffffff' }}
+                        >
+                          {/* Selector bit */}
+                          <div 
+                            onClick={(e) => toggleSelect(note.id, e)}
+                            className={cn(
+                              "absolute -top-2 -left-2 w-5 h-5 rounded-full flex items-center justify-center transition-all z-10 shadow-md",
+                              selectedIds.has(note.id) ? "bg-indigo-600 text-white border border-white scale-110" : "bg-white/70 text-slate-300 hover:bg-white hover:text-slate-500"
+                            )}
+                          >
+                            <Check className={cn("w-3 h-3", !selectedIds.has(note.id) && "opacity-0")} />
+                          </div>
+
+                          <div className="flex justify-between items-start mb-1.5">
+                            <span className="text-[8px] font-black uppercase opacity-40 tracking-tighter text-slate-600">{note.date}</span>
+                            <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button className="p-1 hover:bg-black/5 rounded"><Edit className="w-3 h-3 text-slate-500" /></button>
+                              <button onClick={(e) => { e.stopPropagation(); onDelete(note.id); }} className="p-1 hover:bg-black/5 rounded text-red-600"><Trash2 className="w-3 h-3" /></button>
+                            </div>
+                          </div>
+                          {note.drawingData ? (
+                            <div className="relative aspect-video bg-white/45 rounded-lg overflow-hidden mb-2 border border-slate-200">
+                              <img src={note.drawingData} className="w-full h-full object-cover" referrerPolicy="no-referrer" alt="Drawing preview" />
+                            </div>
+                          ) : null}
+                          <p className="text-[11px] font-semibold text-slate-800 leading-normal line-clamp-2">{note.content}</p>
+                        </motion.div>
+                      ))}
+                      {notes.length === 0 && (
+                        <div className="py-16 text-center">
+                          <BookOpen className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">No logs found</p>
+                          <p className="text-[9px] text-slate-400/80 mt-1 font-zh">建立新傳輸開始記錄</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </motion.div>
         )}
