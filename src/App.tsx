@@ -1224,18 +1224,6 @@ const EmbeddedPortal = ({ url, onClose }: { url: string, onClose: () => void }) 
                 <span className="text-[9px] opacity-70 font-zh text-indigo-200">關閉星際門</span>
               </div>
             </button>
-
-            <button 
-              onClick={() => window.open(url, '_blank')}
-              className="flex items-center gap-2.5 text-cyan-200 hover:text-white transition-all group px-5 py-2.5 bg-indigo-950/40 hover:bg-indigo-900/60 rounded-full border border-indigo-500/30 shadow-lg backdrop-blur-md active:scale-95"
-              title="Open full page in modern browser window."
-            >
-              <ExternalLink className="w-4 h-4 text-cyan-400 group-hover:scale-110 transition-transform" />
-              <div className="flex flex-col items-start leading-none text-left">
-                <span className="font-bold text-xs tracking-wider uppercase text-cyan-100">Open Fullscreen</span>
-                <span className="text-[9px] opacity-70 font-zh text-indigo-200">全螢幕開啟</span>
-              </div>
-            </button>
           </div>
           
           <div className="flex flex-col items-end">
