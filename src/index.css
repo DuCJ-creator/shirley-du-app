@@ -11,13 +11,12 @@
 
 @layer base {
   body {
-    @apply bg-[#030308] text-white overflow-x-hidden;
+    @apply bg-[#03040c] text-[#f1f5f9] overflow-x-hidden;
     background: 
-      radial-gradient(circle at 50% 0%, rgba(30, 10, 60, 0.5) 0%, transparent 80%),
-      radial-gradient(circle at 0% 100%, rgba(10, 20, 80, 0.4) 0%, transparent 80%),
-      radial-gradient(circle at 100% 100%, rgba(40, 10, 40, 0.4) 0%, transparent 80%),
-      radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.6) 100%),
-      linear-gradient(to bottom, #050510, #030308);
+      radial-gradient(circle at 50% 0%, rgba(67, 56, 202, 0.5) 0%, transparent 70%),
+      radial-gradient(circle at 15% 50%, rgba(29, 78, 216, 0.25) 0%, transparent 60%),
+      radial-gradient(circle at 85% 80%, rgba(139, 92, 246, 0.2) 0%, transparent 60%),
+      linear-gradient(to bottom, #040513, #010206);
     background-attachment: fixed;
   }
 }
@@ -49,10 +48,11 @@
   width: 100%;
   height: 100%;
   z-index: -2;
-  background: radial-gradient(ellipse at bottom, #0a0a1a 0%, #05050a 100%);
+  background: radial-gradient(ellipse at bottom, #06081e 0%, #010206 100%);
   overflow: hidden;
 }
 
+/* Glittering stars like sharp sparkling diamonds */
 .galaxy-bg::before, .galaxy-bg::after {
   content: "";
   position: absolute;
@@ -61,38 +61,45 @@
   width: 100%;
   height: 100%;
   background-image: 
-    radial-gradient(1px 1px at 50px 60px, #fff, rgba(0,0,0,0)),
-    radial-gradient(1.5px 1.5px at 150px 150px, #fff, rgba(0,0,0,0)),
-    radial-gradient(1px 1px at 250px 50px, #fff, rgba(0,0,0,0)),
-    radial-gradient(1.5px 1.5px at 350px 250px, #fff, rgba(0,0,0,0));
+    radial-gradient(1.5px 1.5px at 70px 90px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 180px 180px, #e8f2ff, rgba(0,0,0,0)),
+    radial-gradient(1px 1px at 280px 70px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(2.5px 2.5px at 400px 300px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(1.5px 1.5px at 150px 450px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 520px 120px, #e6f0ff, rgba(0,0,0,0));
   background-repeat: repeat;
-  background-size: 600px 600px;
+  background-size: 550px 550px;
   animation: stars-twinkle 15s ease-in-out infinite;
-  opacity: 0.2;
+  opacity: 0.65;
   will-change: opacity;
 }
 
 .galaxy-bg::after {
-  background-size: 800px 800px;
+  background-size: 750px 750px;
+  background-image: 
+    radial-gradient(2px 2px at 90px 40px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(1.5px 1.5px at 310px 220px, #e0f2fe, rgba(0,0,0,0)),
+    radial-gradient(2.5px 2.5px at 450px 90px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(1.5px 1.5px at 600px 380px, #ffffff, rgba(0,0,0,0));
   animation: stars-twinkle 20s ease-in-out infinite;
-  animation-delay: 5s;
-  opacity: 0.15;
+  animation-delay: 4s;
+  opacity: 0.55;
 }
 
 .galaxy-bg-extra {
-  display: none; /* Removed for performance */
+  display: none;
 }
 
-/* Shooting Star */
+/* Shooting Star with a sharp beautiful icy diamond trail */
 .shooting-star {
   position: absolute;
   top: 0;
   left: 50%;
-  width: 2px;
-  height: 2px;
-  background: #fff;
+  width: 3px;
+  height: 3px;
+  background: #ffffff;
   border-radius: 50%;
-  box-shadow: 0 0 10px #fff;
+  box-shadow: 0 0 15px #e0f2fe, 0 0 5px #ffffff;
   animation: shooting 40s linear infinite;
   opacity: 0;
   will-change: transform, opacity;
@@ -103,21 +110,21 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 60px;
-  height: 1px;
-  background: linear-gradient(90deg, #fff, transparent);
+  width: 90px;
+  height: 1.5px;
+  background: linear-gradient(90deg, #ffffff, rgba(224,242,254,0.3), transparent);
 }
 
 @keyframes shooting {
   0% { transform: rotate(315deg) translateX(0); opacity: 0; }
-  10% { opacity: 1; }
-  30% { transform: rotate(315deg) translateX(-600px); opacity: 0; }
-  100% { transform: rotate(315deg) translateX(-600px); opacity: 0; }
+  8% { opacity: 1; }
+  25% { transform: rotate(315deg) translateX(-700px); opacity: 0; }
+  100% { transform: rotate(315deg) translateX(-700px); opacity: 0; }
 }
 
 @keyframes stars-twinkle {
-  0%, 100% { opacity: 0.2; }
-  50% { opacity: 0.6; }
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.95; }
 }
 
 @keyframes galaxy-move {
@@ -126,51 +133,52 @@
 }
 
 .moon-glow {
-  box-shadow: 0 0 100px 20px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 45px 5px rgba(129, 140, 248, 0.15), inset 0 0 15px rgba(255, 255, 255, 0.4);
 }
 
-.planet-venus { background: radial-gradient(circle at 30% 30%, #ffd700, #b8860b 60%, #4b3a00); }
-.planet-mars { background: radial-gradient(circle at 30% 30%, #ff4500, #8b0000 60%, #3a0000); }
-.planet-mercury { background: radial-gradient(circle at 30% 30%, #dadada, #696969 60%, #2f2f2f); }
-.planet-jupiter { background: radial-gradient(circle at 30% 30%, #deb887, #a0522d 40%, #5d2e17 70%, #2b1509); }
+.planet-venus { background: radial-gradient(circle at 35% 35%, #ffe66d, #d97706 60%, #451a03); }
+.planet-mars { background: radial-gradient(circle at 35% 35%, #fc5c65, #b91c1c 60%, #450a0a); }
+.planet-mercury { background: radial-gradient(circle at 35% 35%, #e2e8f0, #4a5568 60%, #1a202c); }
+.planet-jupiter { background: radial-gradient(circle at 35% 35%, #fed7aa, #c2410c 40%, #7c2d12 70%, #1e1b4b); }
+
 /* Mercury Halo */
 .mercury-halo {
-  box-shadow: 0 0 30px rgba(255, 255, 255, 0.4), 0 0 60px rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 35px rgba(129, 140, 248, 0.45), 0 0 70px rgba(99, 102, 241, 0.25);
   animation: mercury-pulse 10s ease-in-out infinite;
 }
 
 @keyframes mercury-pulse {
-  0%, 100% { opacity: 0.3; transform: scale(1.05); }
-  50% { opacity: 0.6; transform: scale(1.15); }
+  0%, 100% { opacity: 0.4; transform: scale(1.05); }
+  50% { opacity: 0.85; transform: scale(1.15); }
 }
 
-/* Enhanced Saturn Rings */
+/* Saturn Rings */
 .saturn-ring-belt {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%) rotateX(75deg);
   border-radius: 50%;
-  border: 1px solid rgba(244, 164, 96, 0.3);
+  border: 1px solid rgba(251, 191, 36, 0.35);
   pointer-events: none;
-  background: radial-gradient(circle, transparent 70%, rgba(244, 164, 96, 0.15) 75%, transparent 80%);
+  background: radial-gradient(circle, transparent 68%, rgba(251, 191, 36, 0.2) 74%, transparent 82%);
 }
 
 /* Planet Textures */
-.planet-mercury { background: radial-gradient(circle at 30% 30%, #dcdcdc, #a9a9a9 60%, #696969); }
-.planet-venus { background: radial-gradient(circle at 30% 30%, #fffacd, #ffd700 60%, #b8860b); }
-.planet-mars { background: radial-gradient(circle at 30% 30%, #ff6347, #ff4500 60%, #8b0000); }
-.planet-jupiter { background: radial-gradient(circle at 30% 30%, #f5deb3, #deb887 60%, #a0522d); }
-.planet-saturn { background: radial-gradient(circle at 30% 30%, #f4eee0, #f4a460 60%, #8b4513); }
+.planet-mercury { background: radial-gradient(circle at 30% 30%, #e2e8f0, #64748b 60%, #334155); }
+.planet-venus { background: radial-gradient(circle at 30% 30%, #fef08a, #ca8a04 60%, #713f12); }
+.planet-mars { background: radial-gradient(circle at 30% 30%, #fca5a5, #dc2626 60%, #7f1d1d); }
+.planet-jupiter { background: radial-gradient(circle at 30% 30%, #ffedd5, #ea580c 60%, #7c2d12); }
+.planet-saturn { background: radial-gradient(circle at 30% 30%, #fef3c7, #d97706 60%, #78350f); }
 
 .planet-texture {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
-/* Gem Shapes */
+/* Gem Shapes representing study cards */
 .gem-shape {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   position: relative;
   filter: drop-shadow(0 0 15px currentColor);
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
@@ -178,44 +186,38 @@
 
 .gem-diamond {
   clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
-  background: linear-gradient(135deg, #fff 0%, #e0e0e0 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
 }
 
 .gem-ruby {
   clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
-  background: linear-gradient(135deg, #ff4d4d 0%, #800000 100%);
+  background: linear-gradient(135deg, #fda4af 0%, #be123c 100%);
 }
 
 .gem-emerald {
   clip-path: polygon(0% 25%, 25% 0%, 75% 0%, 100% 25%, 100% 75%, 75% 100%, 25% 100%, 0% 75%);
-  background: linear-gradient(135deg, #2ecc71 0%, #145a32 100%);
+  background: linear-gradient(135deg, #6ee7b7 0%, #047857 100%);
 }
 
 .gem-sapphire {
   clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
-  background: linear-gradient(135deg, #3498db 0%, #1a5276 100%);
+  background: linear-gradient(135deg, #93c5fd 0%, #1d4ed8 100%);
 }
 
 .gem-amethyst {
   clip-path: polygon(50% 0%, 95% 25%, 95% 75%, 50% 100%, 5% 75%, 5% 25%);
-  background: linear-gradient(135deg, #9b59b6 0%, #4a235a 100%);
+  background: linear-gradient(135deg, #f5d0fe 0%, #7e22ce 100%);
 }
 
 .gem-topaz {
   clip-path: polygon(20% 0%, 80% 0%, 100% 20%, 100% 80%, 80% 100%, 20% 100%, 0% 80%, 0% 20%);
-  background: linear-gradient(135deg, #f39c12 0%, #7e5109 100%);
+  background: linear-gradient(135deg, #fcd34d 0%, #b45309 100%);
 }
 
 .gem-opal {
   border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #fff, #a2d2ff, #ffafbd);
+  background: radial-gradient(circle at 30% 30%, #ffffff, #93c5fd, #fbcfe8);
   background-size: 200% 200%;
-}
-
-@keyframes opal-shimmer {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
 }
 
 @keyframes float {
@@ -224,8 +226,8 @@
 }
 
 .gem-comet {
-  background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02));
-  box-shadow: 0 0 40px rgba(255,255,255,0.1);
+  background: linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.03));
+  box-shadow: 0 0 40px rgba(255, 255, 255, 0.15);
 }
 
 .gem-comet::after {
@@ -237,7 +239,7 @@
   height: 2px;
   background: linear-gradient(to left, white, transparent);
   transform: rotate(-135deg) translateX(-50px);
-  opacity: 0.3;
+  opacity: 0.4;
 }
 
 .rover-part {
@@ -248,34 +250,41 @@
 
 .gem-crater {
   border-radius: 50%;
-  box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
-  border: 1px solid rgba(255,255,255,0.05);
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.6);
+  border: 1px solid rgba(255,255,255,0.08);
 }
 
 .robotic-panel {
-  background: rgba(8, 20, 30, 0.9);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(0, 242, 255, 0.3);
-  box-shadow: 0 0 15px rgba(0, 242, 255, 0.1);
+  background: rgba(10, 12, 30, 0.82);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(129, 140, 248, 0.35);
+  box-shadow: 0 12px 40px rgba(2, 3, 10, 0.6);
+  color: #f8fafc;
 }
 
 .robotic-hull {
-  background: linear-gradient(135deg, #1a2a3a 0%, #0a1118 100%);
-  box-shadow: inset 0 0 20px rgba(0, 242, 255, 0.1);
+  background: linear-gradient(135deg, #13173a 0%, #050616 100%);
+  box-shadow: inset 0 0 15px rgba(129, 140, 248, 0.18);
+  border-color: rgba(129, 140, 248, 0.28);
 }
 
 .robotic-glow {
-  background: #00f2ff;
-  box-shadow: 0 0 15px #00f2ff;
+  background: #60a5fa;
+  box-shadow: 0 0 15px rgba(96, 165, 250, 0.82);
   animation: robotic-pulse 8s ease-in-out infinite;
 }
 
 @keyframes robotic-pulse {
-  0%, 100% { opacity: 0.6; filter: brightness(1); transform: scale(1); }
-  50% { opacity: 1; filter: brightness(1.4); transform: scale(1.05); }
+  0%, 100% { opacity: 0.7; filter: brightness(1); transform: scale(1); }
+  50% { opacity: 1; filter: brightness(1.6); transform: scale(1.05); }
 }
 
 .title-glow {
-  text-shadow: 0 0 20px rgba(255,255,255,0.5), 0 0 40px rgba(255,255,255,0.2);
+  text-shadow: 0 0 25px rgba(99, 102, 241, 0.45);
+  color: #ffffff;
 }
 
+/* Beautiful custom portal setup to avoid and pause active processes with maximum iPad optimization */
+body:has(#portal-overlay) .shooting-star {
+  display: none !important;
+}

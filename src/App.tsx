@@ -839,8 +839,8 @@ const MobiusRing = () => {
     const render = () => {
       animationFrameId = requestAnimationFrame(render);
 
-      // Stop rendering if tab is hidden
-      if (document.hidden) return;
+      // Stop rendering if tab is hidden or a portal is open (safeguards iPad/mobile performance)
+      if (document.hidden || document.getElementById('portal-overlay')) return;
 
       time += 0.002; // Slower time step
       
@@ -1011,19 +1011,53 @@ const Gem = ({ name, nameZh, url, color, type, onVisit, onClick, className }: { 
 );
 
 const ETCharacter = ({ onClick }: { onClick: () => void }) => {
-  const [pos, setPos] = useState({ x: 20, y: 30 });
+  const [pos, setPos] = useState({ x: 5, y: 15 });
   const [screenSize, setScreenSize] = useState({ w: typeof window !== 'undefined' ? window.innerWidth : 1000, h: typeof window !== 'undefined' ? window.innerHeight : 1000 });
+  const [isHovered, setIsHovered] = useState(false);
+  const isHoveredRef = useRef(false);
+  const currentCoords = useRef({ x: 5, y: 15 });
+
+  useEffect(() => {
+    isHoveredRef.current = isHovered;
+  }, [isHovered]);
 
   useEffect(() => {
     const handleResize = () => setScreenSize({ w: window.innerWidth, h: window.innerHeight });
     window.addEventListener('resize', handleResize);
     
+    // Smooth gliding patrol along the edges to NEVER cover the center planets
+    const zones = [
+      { x: 5, y: 12 },   // Top Left Corner
+      { x: 88, y: 12 },  // Top Right Corner
+      { x: 5, y: 82 },   // Bottom Left Corner
+      { x: 88, y: 82 },  // Bottom Right Corner
+      { x: 4, y: 45 },   // Mid Left Outer margin
+      { x: 90, y: 45 }   // Mid Right Outer margin
+    ];
+
+    let currentZone = 0;
+    
     const moveInterval = setInterval(() => {
-      // Conservative 15% to 65% range to ensure the 112px (w-28) robot and bubble stay visible
-      const nextX = Math.random() * 50 + 15; 
-      const nextY = Math.random() * 40 + 25; 
-      setPos({ x: nextX, y: nextY });
-    }, 15000); // Much slower movement
+      // Do not plan a new position if user is Hovering
+      if (isHoveredRef.current) return;
+
+      // Pick a random zone different from the current one
+      let nextZone = currentZone;
+      while (nextZone === currentZone) {
+        nextZone = Math.floor(Math.random() * zones.length);
+      }
+      currentZone = nextZone;
+      const target = zones[nextZone];
+      
+      // Add slight orbital jitter within the zone
+      const jitterX = Math.random() * 4 - 2;
+      const jitterY = Math.random() * 4 - 2;
+      
+      setPos({ 
+        x: Math.max(3, Math.min(92, target.x + jitterX)), 
+        y: Math.max(10, Math.min(85, target.y + jitterY)) 
+      });
+    }, 4500); // 4.5 seconds instead of 15 seconds! Moves much more swiftly!
 
     return () => {
       window.removeEventListener('resize', handleResize);
@@ -1038,14 +1072,32 @@ const ETCharacter = ({ onClick }: { onClick: () => void }) => {
         x: `${pos.x}vw`, 
         y: `${pos.y}vh`, 
         opacity: 1,
-        rotate: [0, 5, -5, 0],
+        rotate: isHovered ? 0 : [0, 4, -4, 0],
       }}
-      whileHover={{ scale: 1.1 }}
-      whileTap={{ scale: 0.9 }}
+      whileHover={{ scale: 1.18 }}
+      whileTap={{ scale: 0.92 }}
+      onUpdate={(latest) => {
+        // Track the mid-flight coordinate to enable instant pausing
+        if (latest.x && latest.y && !isHoveredRef.current) {
+          const px = parseFloat(latest.x as string);
+          const py = parseFloat(latest.y as string);
+          if (!isNaN(px) && !isNaN(py)) {
+            currentCoords.current = { x: px, y: py };
+          }
+        }
+      }}
+      onMouseEnter={() => {
+        setIsHovered(true);
+        // Lock position precisely at its current coordinate
+        setPos({ x: currentCoords.current.x, y: currentCoords.current.y });
+      }}
+      onMouseLeave={() => {
+        setIsHovered(false);
+      }}
       transition={{ 
-        x: { duration: 10, ease: "easeInOut" },
-        y: { duration: 10, ease: "easeInOut" },
-        rotate: { duration: 8, repeat: Infinity, ease: "easeInOut" },
+        x: { duration: isHovered ? 0.05 : 3.2, ease: "easeInOut" },
+        y: { duration: isHovered ? 0.05 : 3.2, ease: "easeInOut" },
+        rotate: { duration: 4, repeat: Infinity, ease: "easeInOut" },
         opacity: { duration: 1 }
       }}
       className="fixed z-[150] cursor-pointer group"
@@ -1053,76 +1105,97 @@ const ETCharacter = ({ onClick }: { onClick: () => void }) => {
       onClick={onClick}
     >
       <div className="relative">
-        {/* Message Bubble - Robotic Style */}
+        {/* Message Bubble - Cool Holographic Interface style */}
         <motion.div
           animate={{ y: [0, -4, 0] }}
-          transition={{ duration: 6, repeat: Infinity }}
-          className="absolute -top-20 left-1/2 -translate-x-1/2 robotic-panel border-cyan-500/30 px-5 py-2.5 rounded-xl whitespace-nowrap shadow-[0_0_20px_rgba(0,242,255,0.1)] border"
+          transition={{ duration: 4, repeat: Infinity }}
+          className="absolute -top-16 left-1/2 -translate-x-1/2 bg-slate-950/90 backdrop-blur-md border border-cyan-500/50 px-4 py-1.5 rounded-xl whitespace-nowrap shadow-[0_0_25px_rgba(6,182,212,0.35)]"
         >
           <div className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-            <span className="text-[10px] font-mono font-bold text-cyan-100 tracking-wider uppercase">To my world, beat me first!</span>
+            <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
+            <span className="text-[10px] font-mono font-bold text-cyan-200 tracking-wider uppercase">
+              To my world, beat me first!
+            </span>
+            <span className="text-[8px] font-mono text-cyan-400/60 font-medium">SYS_LINK_ONLINE</span>
           </div>
-          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 robotic-panel rotate-45 border-r border-b border-cyan-500/30" />
+          {/* Arrow */}
+          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-950 border-r border-b border-cyan-500/50 rotate-45" />
         </motion.div>
 
-        {/* Robotic ET Visual */}
-        <div className="w-28 h-28 relative">
-          {/* Core Energy Field */}
-          <div className="absolute inset-[-10px] bg-cyan-500/10 blur-3xl rounded-full animate-pulse" />
+        {/* Futuristic Scientific Orbital Drone - Compact Size (w-16 h-16) */}
+        <div className="w-16 h-16 relative flex items-center justify-center">
           
-          {/* Mechanical Body */}
-          <div className="relative w-full h-full robotic-hull rounded-[2rem] border-2 border-white/20 flex flex-col items-center justify-center overflow-visible group-hover:border-cyan-400/50 transition-colors">
+          {/* Quantum Particle Outer Ring (Asynchronous Spinning) */}
+          <div className="absolute w-20 h-20 border border-dashed border-cyan-400/30 rounded-full animate-[spin_10s_linear_infinite]" />
+          <div className="absolute w-22 h-22 border border-dotted border-fuchsia-400/20 rounded-full animate-[spin_14s_linear_infinite_reverse]" />
+
+          {/* Core Ambient Science Field Glow */}
+          <div className="absolute w-14 h-14 bg-gradient-to-tr from-cyan-500/30 to-fuchsia-500/20 rounded-full blur-xl animate-pulse" />
+
+          {/* Sleek Solar-Sails / Thruster stabilizer vector wings */}
+          <div className="absolute -left-4 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
+            <div className="w-1 h-6 bg-cyan-400/80 rounded-full shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+            <div className="w-1.5 h-10 bg-slate-800/90 border border-cyan-500/50 rounded-[4px] shadow-md transform -skew-y-12" />
+          </div>
+          <div className="absolute -right-4 top-1/2 -translate-y-1/2 flex flex-row-reverse items-center gap-0.5">
+            <div className="w-1 h-6 bg-cyan-400/80 rounded-full shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+            <div className="w-1.5 h-10 bg-slate-800/90 border border-cyan-500/50 rounded-[4px] shadow-md transform skew-y-12" />
+          </div>
+
+          {/* Central Circular Scientific Core Box */}
+          <div className="relative w-12 h-12 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 rounded-full border-2 border-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.5)] flex items-center justify-center overflow-visible group-hover:border-fuchsia-400 group-hover:shadow-[0_0_20px_rgba(232,121,249,0.7)] transition-all duration-300">
             
-            {/* HUD / Scanning line */}
-            <div className="absolute inset-0 overflow-hidden rounded-[2rem] pointer-events-none">
+            {/* Holographic Radar Scanner Grid */}
+            <div className="absolute inset-0 rounded-full overflow-hidden opacity-30">
+              <div className="absolute inset-0 border-t border-b border-cyan-400/40 transform rotate-45 scale-110" />
+              <div className="absolute inset-0 border-l border-r border-cyan-400/40 transform rotate-45 scale-110" />
+            </div>
+
+            {/* Precision Laser Matrix (Sleek red scan line) */}
+            <div className="absolute inset-0 overflow-hidden rounded-full pointer-events-none">
               <motion.div 
                 animate={{ top: ['0%', '100%', '0%'] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                className="absolute left-0 w-full h-[1px] bg-cyan-400/30 shadow-[0_0_5px_cyan]"
+                transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute left-0 w-full h-[1.5px] bg-red-500 shadow-[0_0_8px_rgba(239,68,68,1)]"
               />
             </div>
 
-            {/* Glowing Eyes */}
-            <div className="flex gap-4 mb-2">
-              <div className="w-4 h-4 robotic-glow rounded-full relative">
-                <div className="absolute inset-0 bg-white/40 blur-[2px] rounded-full" />
-              </div>
-              <div className="w-4 h-4 robotic-glow rounded-full relative">
-                <div className="absolute inset-0 bg-white/40 blur-[2px] rounded-full" />
+            {/* Scientific Optical Matrix (Concentric Glowing Lenses) */}
+            <div className="relative w-8 h-8 rounded-full bg-slate-950/80 border border-cyan-500/40 flex items-center justify-center">
+              {/* Outer Lens */}
+              <div className="absolute inset-0.5 rounded-full border border-fuchsia-500/50 animate-pulse" />
+              {/* Central Iris Laser Eye */}
+              <div className="w-4 h-4 rounded-full bg-gradient-to-r from-cyan-400 to-indigo-500 flex items-center justify-center shadow-[0_0_12px_#22d3ee]">
+                {/* Micro reflection dot */}
+                <div className="w-1 h-1 bg-white rounded-full absolute top-0.5 left-0.5 opacity-90" />
+                <div className="w-1.5 h-1.5 rounded-full bg-slate-950 flex items-center justify-center">
+                  <div className="w-0.5 h-0.5 rounded-full bg-red-400" />
+                </div>
               </div>
             </div>
 
-            {/* Mouth / Speaker Grille */}
-            <div className="w-10 h-1 bg-black/40 rounded-full flex gap-1 justify-center px-1">
-              {[1,2,3,4].map(i => (
-                <motion.div 
-                  key={i}
-                  animate={{ height: [2, 3, 2] }}
-                  transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
-                  className="w-1 bg-cyan-400/50 rounded-full mt-[-1px]" 
-                />
-              ))}
+            {/* Lower Dynamic Telemetry Dots */}
+            <div className="absolute bottom-1 flex gap-1 justify-center">
+              <div className="w-1 h-1 rounded-full bg-cyan-400 animate-ping" />
+              <div className="w-1 h-1 rounded-full bg-fuchsia-400 animate-pulse delay-75" />
             </div>
 
-            {/* Side Antennas / Wings */}
-            <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-4 h-12 robotic-hull border border-white/10 rounded-full transform -rotate-12" />
-            <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-4 h-12 robotic-hull border border-white/10 rounded-full transform rotate-12" />
-            
-            {/* Central Power Core */}
-            <div className="absolute -bottom-2 w-12 h-4 bg-black/60 rounded-full border border-cyan-500/30 flex items-center justify-center">
-              <div className="w-8 h-1 robotic-glow rounded-full blur-[1px]" />
+            {/* Top Quantum Antenna */}
+            <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-0.5 h-2.5 bg-cyan-400 shadow-[0_0_6px_#22d3ee]">
+              <div className="w-1 h-1 rounded-full bg-fuchsia-400 absolute top-0 -left-[1.5px] animate-pulse" />
             </div>
+
           </div>
 
-          {/* Floating Orbitals */}
+          {/* Micro Orbit Particle Satellite */}
           <motion.div 
-            animate={{ rotate: 360 }}
-            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+            animate={{ rotate: -360 }}
+            transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
             className="absolute inset-0 pointer-events-none"
           >
-            <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-2 h-2 robotic-glow rounded-full" />
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-fuchsia-400 ring-1 ring-white rounded-full shadow-[0_0_8px_#e879f9]" />
           </motion.div>
+
         </div>
       </div>
     </motion.div>
@@ -1132,6 +1205,7 @@ const ETCharacter = ({ onClick }: { onClick: () => void }) => {
 const EmbeddedPortal = ({ url, onClose }: { url: string, onClose: () => void }) => {
   return (
     <motion.div 
+      id="portal-overlay"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -1139,23 +1213,37 @@ const EmbeddedPortal = ({ url, onClose }: { url: string, onClose: () => void }) 
     >
       <div className="flex flex-col w-full h-full p-4 md:p-8 max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-6">
-          <button 
-            onClick={onClose}
-            className="flex items-center gap-3 text-white/60 hover:text-white transition-all group px-4 py-2 bg-white/5 rounded-full border border-white/10"
-          >
-            <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-            <div className="flex flex-col items-start leading-none text-left">
-              <span className="font-bold text-xs tracking-wider uppercase">Close Portal</span>
-              <span className="text-[9px] opacity-50 font-zh">關閉星際門</span>
-            </div>
-          </button>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={onClose}
+              className="flex items-center gap-3 text-white hover:text-white transition-all group px-5 py-2.5 bg-white/10 hover:bg-white/20 rounded-full border border-white/20 shadow-lg backdrop-blur-md active:scale-95"
+            >
+              <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform text-white" />
+              <div className="flex flex-col items-start leading-none text-left">
+                <span className="font-bold text-xs tracking-wider uppercase text-white">Close Portal</span>
+                <span className="text-[9px] opacity-70 font-zh text-indigo-200">關閉星際門</span>
+              </div>
+            </button>
+
+            <button 
+              onClick={() => window.open(url, '_blank')}
+              className="flex items-center gap-2.5 text-cyan-200 hover:text-white transition-all group px-5 py-2.5 bg-indigo-950/40 hover:bg-indigo-900/60 rounded-full border border-indigo-500/30 shadow-lg backdrop-blur-md active:scale-95"
+              title="Open full page in modern browser window."
+            >
+              <ExternalLink className="w-4 h-4 text-cyan-400 group-hover:scale-110 transition-transform" />
+              <div className="flex flex-col items-start leading-none text-left">
+                <span className="font-bold text-xs tracking-wider uppercase text-cyan-100">Open Fullscreen</span>
+                <span className="text-[9px] opacity-70 font-zh text-indigo-200">全螢幕開啟</span>
+              </div>
+            </button>
+          </div>
           
           <div className="flex flex-col items-end">
-            <h3 className="text-[10px] uppercase tracking-[0.4em] text-blue-400 font-bold mb-1">Knowledge Stream Active</h3>
+            <h1 className="text-[10px] uppercase tracking-[0.4em] text-cyan-400 font-bold mb-1">Knowledge Stream Active</h1>
             <div className="flex gap-1">
-              <div className="w-1 h-1 rounded-full bg-blue-400 animate-pulse" />
-              <div className="w-1 h-1 rounded-full bg-blue-400 animate-pulse delay-75" />
-              <div className="w-1 h-1 rounded-full bg-blue-400 animate-pulse delay-150" />
+              <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+              <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse delay-75" />
+              <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse delay-150" />
             </div>
           </div>
         </div>
@@ -2573,9 +2661,11 @@ export default function App() {
 
   return (
     <div className="min-h-screen relative overflow-x-hidden">
-      <GalaxyBackground />
+      {!activePortalUrl && <GalaxyBackground />}
 
-      <div className="fixed top-0 left-0 h-screen flex flex-col items-center justify-start py-24 px-4 z-[40] pointer-events-none w-16 lg:w-48">
+      {!activePortalUrl && (
+        <>
+          <div className="fixed top-0 left-0 h-screen flex flex-col items-center justify-start py-24 px-4 z-[40] pointer-events-none w-16 lg:w-48">
         <div className="pointer-events-auto flex flex-col items-center gap-6">
           <motion.div
             animate={{ 
@@ -3271,6 +3361,9 @@ export default function App() {
           <Star className="w-6 h-6" />
         </button>
       </nav>
+        </>
+      )}
+
       {/* Active Portal Overlay */}
       <AnimatePresence>
         {activePortalUrl && (
