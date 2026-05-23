@@ -361,6 +361,7 @@ const GEMS = {
   grammar: [
     { name: 'Grammar Lemon Tree', nameZh: '文法檸檬樹', url: 'https://ducj-creator.github.io/Shirley-Grammar/', type: 'emerald' },
     { name: 'CAP Grammar', nameZh: '會考文法', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/CAP%20grammar.html', type: 'topaz' },
+    { name: 'Grammar Songs', nameZh: '聽歌學文法', url: 'https://ducj-creator.github.io/Shirley-AI-Music-Studio/learning/index.html', type: 'sapphire' },
   ],
   tests: [
     { name: 'CAP Vocab & Grammar', nameZh: '會考單字與文法', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/CAP%20pastpapers.html', type: 'ruby' },
@@ -1227,25 +1228,25 @@ const EmbeddedPortal = ({ url, onClose }: { url: string, onClose: () => void }) 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[2000] flex flex-col bg-black/95 backdrop-blur-xl"
+      className="fixed inset-0 z-[2000] flex flex-col bg-black/98 backdrop-blur-2xl"
     >
-      <div className="flex flex-col w-full h-full p-4 md:p-8 max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col w-full h-full p-2 sm:p-4 md:p-8 max-w-7xl mx-auto">
+        <div className="flex items-center justify-between mb-3 sm:mb-4 md:mb-6 shrink-0">
           <div className="flex items-center gap-3">
             <button 
               onClick={onClose}
-              className="flex items-center gap-3 text-white hover:text-white transition-all group px-5 py-2.5 bg-white/10 hover:bg-white/20 rounded-full border border-white/20 shadow-lg backdrop-blur-md active:scale-95"
+              className="flex items-center gap-2 text-white hover:text-white transition-all group px-4 py-2 bg-white/10 hover:bg-white/15 rounded-full border border-white/15 shadow-md active:scale-95"
             >
-              <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform text-white" />
+              <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform text-white" />
               <div className="flex flex-col items-start leading-none text-left">
-                <span className="font-bold text-xs tracking-wider uppercase text-white">Close Portal</span>
-                <span className="text-[9px] opacity-70 font-zh text-indigo-200">關閉星際門</span>
+                <span className="font-bold text-[10px] sm:text-xs tracking-wider uppercase text-white">Close Portal</span>
+                <span className="text-[8px] opacity-70 font-zh text-indigo-200">關閉星際門</span>
               </div>
             </button>
           </div>
           
-          <div className="flex flex-col items-end">
-            <h1 className="text-[10px] uppercase tracking-[0.4em] text-cyan-400 font-bold mb-1">Knowledge Stream Active</h1>
+          <div className="flex flex-col items-end leading-none">
+            <h1 className="text-[8px] sm:text-[10px] uppercase tracking-[0.3em] sm:tracking-[0.4em] text-cyan-400 font-bold mb-1">Knowledge Stream Active</h1>
             <div className="flex gap-1">
               <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
               <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse delay-75" />
@@ -1254,7 +1255,7 @@ const EmbeddedPortal = ({ url, onClose }: { url: string, onClose: () => void }) 
           </div>
         </div>
 
-        <div className="flex-1 relative rounded-[2.5rem] overflow-hidden border border-white/10 bg-black/40 shadow-[0_0_100px_rgba(30,58,138,0.2)]">
+        <div className="flex-1 relative rounded-2xl sm:rounded-[2.5rem] overflow-hidden border border-white/10 bg-black/40 shadow-[0_0_100px_rgba(30,58,138,0.2)]">
           <div className="absolute inset-0 z-10 pointer-events-none shadow-[inset_0_0_100px_rgba(0,0,0,0.5)] border-[1px] border-white/5" />
           <iframe 
             src={url} 
@@ -1263,17 +1264,19 @@ const EmbeddedPortal = ({ url, onClose }: { url: string, onClose: () => void }) 
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; microphone"
             allowFullScreen
             sandbox="allow-scripts allow-same-origin allow-downloads allow-forms"
+            scrolling="yes"
+            style={{ WebkitOverflowScrolling: 'touch' }}
           />
           
-          {/* Decorative Corner Accents */}
-          <div className="absolute top-0 left-0 w-20 h-20 border-t-2 border-l-2 border-blue-500/30 rounded-tl-[2.5rem] pointer-events-none" />
-          <div className="absolute top-0 right-0 w-20 h-20 border-t-2 border-r-2 border-blue-500/30 rounded-tr-[2.5rem] pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-20 h-20 border-b-2 border-l-2 border-blue-500/30 rounded-bl-[2.5rem] pointer-events-none" />
-          <div className="absolute bottom-0 right-0 w-20 h-20 border-b-2 border-r-2 border-blue-500/30 rounded-br-[2.5rem] pointer-events-none" />
+          {/* Decorative Corner Accents - Hidden/minimized on mobile */}
+          <div className="hidden sm:block absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-blue-500/20 rounded-tl-[2.5rem] pointer-events-none" />
+          <div className="hidden sm:block absolute top-0 right-0 w-16 h-16 border-t-2 border-r-2 border-blue-500/20 rounded-tr-[2.5rem] pointer-events-none" />
+          <div className="hidden sm:block absolute bottom-0 left-0 w-16 h-16 border-b-2 border-l-2 border-blue-500/20 rounded-bl-[2.5rem] pointer-events-none" />
+          <div className="hidden sm:block absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-blue-500/20 rounded-br-[2.5rem] pointer-events-none" />
         </div>
         
-        <div className="mt-4 text-center">
-          <p className="text-[9px] uppercase tracking-[0.5em] text-white/20 font-medium">Teacher Shirley • Universal Education Cluster</p>
+        <div className="mt-3 text-center shrink-0">
+          <p className="text-[8px] sm:text-[9px] uppercase tracking-[0.4em] text-white/20 font-medium">Teacher Shirley • Universal Education Cluster</p>
         </div>
       </div>
     </motion.div>
@@ -3079,9 +3082,9 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6 min-h-[400px] relative">
+              <div className="relative min-h-[460px] sm:min-h-[520px] md:min-h-[600px] w-full flex items-center justify-center overflow-visible">
                 {showSubjects ? (
-                  <div className="col-span-full">
+                  <div className="w-full">
                     <BilingualSubjectsView 
                       onBack={() => setShowSubjects(false)} 
                       onVisit={(name) => handleVisitGem(name)} 
@@ -3090,106 +3093,88 @@ export default function App() {
                     />
                   </div>
                 ) : (
-                  GEMS[currentStrand as keyof typeof GEMS].map((gem, idx) => {
-                    const totalGems = GEMS[currentStrand as keyof typeof GEMS].length;
-                    let customStyle = {};
-                    let customWrapperClass = "";
-                    let customClass = "";
+                  <div className="relative w-full aspect-square max-w-[580px] min-h-[420px] sm:min-h-[500px] md:min-h-[560px] flex items-center justify-center overflow-visible">
+                    {/* Atmospheric backing orbits for geometric beauty */}
+                    <div className="absolute inset-0 border border-white/[0.03] rounded-full pointer-events-none scale-90" />
+                    <div className="absolute inset-0 border border-dashed border-white/[0.015] rounded-full pointer-events-none scale-75 animate-[spin_180s_linear_infinite]" />
+                    
+                    {GEMS[currentStrand as keyof typeof GEMS].map((gem, idx) => {
+                      const totalGems = GEMS[currentStrand as keyof typeof GEMS].length;
+                      let angleInDegrees = 0;
+                      let rx = 36; // horizontal radius in percent
+                      let ry = 36; // vertical radius in percent
 
-                    if (currentStrand === 'grammar') {
-                      // Comet layout (2 gems)
-                      const isLeft = idx === 0;
-                      customWrapperClass = "absolute";
-                      customStyle = {
-                        left: isLeft ? '25%' : '75%',
-                        top: isLeft ? '30%' : '60%',
-                        transform: 'translate(-50%, -50%)',
-                        animation: `float ${3 + idx}s ease-in-out infinite alternate`
-                      };
-                      customClass = "gem-comet";
-                    } else if (currentStrand === 'pronunciation') {
-                      // Mars rover layout (5 gems)
-                      const positions = [
-                        { left: '40%', top: '30%' }, // Body/Head
-                        { left: '20%', top: '65%' }, // Front wheel
-                        { left: '60%', top: '65%' }, // Back wheel
-                        { left: '80%', top: '40%' }, // Camera/Arm
-                        { left: '50%', top: '85%' }  // Core link
-                      ];
-                      customWrapperClass = "absolute scale-75 md:scale-100";
-                      customStyle = { ...(positions[idx] || {}), transform: 'translate(-50%, -50%)' };
-                      customClass = "rover-part";
-                    } else if (currentStrand === 'tests') {
-                      // Big Dipper layout (7 gems) - Spread further to avoid overlap
-                      const positions = [
-                        { left: '8%', top: '15%' },
-                        { left: '25%', top: '35%' },
-                        { left: '42%', top: '48%' },
-                        { left: '60%', top: '58%' }, // Handle pivot
-                        { left: '55%', top: '85%' }, // Bowl bottom
-                        { left: '85%', top: '85%' }, // Bowl corner
-                        { left: '90%', top: '55%' }  // Bowl top
-                      ];
-                      customWrapperClass = "absolute scale-75 md:scale-90";
-                      customStyle = { ...(positions[idx] || {}), transform: 'translate(-50%, -50%)' };
-                    } else if (currentStrand === 'vocabulary') {
-                      // craters layout (10 gems)
-                      const positions = [
-                        { left: '15%', top: '15%' },
-                        { left: '45%', top: '10%' },
-                        { left: '75%', top: '20%' },
-                        { left: '85%', top: '50%' },
-                        { left: '55%', top: '40%' },
-                        { left: '25%', top: '45%' },
-                        { left: '12%', top: '75%' },
-                        { left: '42%', top: '75%' },
-                        { left: '72%', top: '80%' },
-                        { left: '92%', top: '85%' }
-                      ];
-                      customWrapperClass = "absolute";
-                      customStyle = {
-                        left: positions[idx]?.left || '50%',
-                        top: positions[idx]?.top || '50%',
-                        transform: 'translate(-50%, -50%)'
-                      };
-                      customClass = "gem-crater backdrop-blur-3xl scale-90";
-                    } else if (currentStrand === 'saturn') {
-                      // Ring layout (5 gems)
-                      const angles = [0, 72, 144, 216, 288];
-                      const angle = angles[idx];
-                      const x = 50 + Math.cos((angle * Math.PI) / 180) * 35;
-                      const y = 50 + Math.sin((angle * Math.PI) / 180) * 35;
-                      customWrapperClass = "absolute";
-                      customStyle = {
+                      if (totalGems === 3) {
+                        // Triangle
+                        const triangleAngles = [-90, 30, 150];
+                        angleInDegrees = triangleAngles[idx % 3];
+                      } else if (totalGems === 4) {
+                        // Diamond
+                        const diamondAngles = [-90, 0, 90, 180];
+                        angleInDegrees = diamondAngles[idx % 4];
+                      } else if (totalGems === 5) {
+                        // Five-pointed star
+                        angleInDegrees = -90 + (idx % 5) * 72;
+                      } else if (totalGems === 6) {
+                        // Hexagon
+                        angleInDegrees = -90 + (idx % 6) * 60;
+                      } else if (totalGems === 7) {
+                        // Heptagon
+                        angleInDegrees = -90 + (idx % 7) * (360 / 7);
+                        rx = 38;
+                        ry = 38;
+                      } else if (totalGems === 8) {
+                        // Octagon
+                        angleInDegrees = -90 + (idx % 8) * 45;
+                        rx = 38;
+                        ry = 38;
+                      } else if (totalGems === 10) {
+                        // Decagon
+                        angleInDegrees = -108 + (idx % 10) * 36; // slightly rotated for beautiful symmetry
+                        rx = 40;
+                        ry = 40;
+                      } else {
+                        // General polygon distribution fallback
+                        angleInDegrees = -90 + idx * (360 / totalGems);
+                      }
+
+                      const angleRad = (angleInDegrees * Math.PI) / 180;
+                      const x = 50 + Math.cos(angleRad) * rx;
+                      const y = 50 + Math.sin(angleRad) * ry;
+
+                      const customStyle = {
                         left: `${x}%`,
                         top: `${y}%`,
-                        transform: 'translate(-50%, -50%)'
+                        transform: 'translate(-50%, -50%)',
                       };
-                      customClass = "gem-saturn-orbit";
-                    }
 
-                    return (
-                      <div key={idx} className={customWrapperClass} style={customStyle}>
-                        <Gem 
-                          name={gem.name} 
-                          nameZh={gem.nameZh}
-                          url={gem.url} 
-                          type={gem.type || 'diamond'}
-                          color={STRANDS[currentStrand as keyof typeof STRANDS].color}
-                          onVisit={() => handleVisitGem(gem.name)}
-                          className={customClass}
-                          onClick={() => {
-                            if (gem.url === 'subjects') {
-                              setVocabSearchTerm("");
-                              setShowSubjects(true);
-                            } else {
-                              setActivePortalUrl(gem.url);
-                            }
-                          }}
-                        />
-                      </div>
-                    );
-                  })
+                      const customWrapperClass = "absolute transition-all duration-300 scale-[0.74] sm:scale-95 md:scale-100 hover:scale-[1.03] hover:z-20";
+                      const customClass = "gem-geometric backdrop-blur-3xl";
+
+                      return (
+                        <div key={idx} className={customWrapperClass} style={customStyle}>
+                          <Gem 
+                            name={gem.name} 
+                            nameZh={gem.nameZh}
+                            url={gem.url} 
+                            type={gem.type || 'diamond'}
+                            color={STRANDS[currentStrand as keyof typeof STRANDS].color}
+                            onVisit={() => handleVisitGem(gem.name)}
+                            className={customClass}
+                            onClick={() => {
+                              if (gem.url === 'subjects') {
+                                setVocabSearchTerm("");
+                                { /* Transition back to subjects view smoothly */ }
+                                setShowSubjects(true);
+                              } else {
+                                setActivePortalUrl(gem.url);
+                              }
+                            }}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
                 )}
               </div>
             </motion.div>
