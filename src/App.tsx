@@ -1259,11 +1259,10 @@ const EmbeddedPortal = ({ url, onClose }: { url: string, onClose: () => void }) 
           <div className="absolute inset-0 z-10 pointer-events-none shadow-[inset_0_0_100px_rgba(0,0,0,0.5)] border-[1px] border-white/5" />
           <iframe 
             src={url} 
-            className="w-full h-full border-none bg-white/5"
+            className="absolute inset-0 w-full h-full border-none bg-white/5"
             title="Embedded Subject Content"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; microphone"
             allowFullScreen
-            sandbox="allow-scripts allow-same-origin allow-downloads allow-forms"
             scrolling="yes"
             style={{ WebkitOverflowScrolling: 'touch' }}
           />
