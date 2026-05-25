@@ -3344,46 +3344,48 @@ export default function App() {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="max-w-6xl mx-auto"
+              className="max-w-4xl mx-auto"
             >
               <button 
                 onClick={() => {
                   if (showSubjects) setShowSubjects(false);
                   else setCurrentStrand('home');
                 }}
-                className="mb-12 flex items-center gap-2 text-white/60 hover:text-white transition-colors group"
+                className="mb-4 flex items-center gap-2 text-white/60 hover:text-white transition-colors group"
               >
-                <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" /> 
+                <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> 
                 <div className="flex flex-col items-start leading-none">
-                  <span className="text-sm font-medium">{showSubjects ? "Back to Vocabulary" : "Back to Moon Base"}</span>
-                  <span className="text-[10px] opacity-60">{showSubjects ? "回到單字區" : "回到首頁"}</span>
+                  <span className="text-xs font-medium">{showSubjects ? "Back to Vocabulary" : "Back to Moon Base"}</span>
+                  <span className="text-[9px] opacity-65">{showSubjects ? "回到單字區" : "回到首頁"}</span>
                 </div>
               </button>
 
-              <div className="flex flex-col md:flex-row items-center md:items-start gap-12 mb-12">
+              <div className="flex flex-row items-center gap-4 mb-5 border-b border-white/5 pb-4">
                 <motion.div 
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setCurrentStrand('home')}
                   className={cn(
-                    "w-32 h-32 rounded-full shrink-0 cursor-pointer shadow-[0_0_30px_rgba(255,255,255,0.05)] transition-shadow hover:shadow-[0_0_50px_rgba(255,255,255,0.1)] relative group transform-gpu",
+                    "w-12 h-12 md:w-16 md:h-16 rounded-full shrink-0 cursor-pointer shadow-[0_0_15px_rgba(255,255,255,0.05)] transition-shadow hover:shadow-[0_0_30px_rgba(255,255,255,0.1)] relative group transform-gpu",
                     STRANDS[currentStrand as keyof typeof STRANDS].class
                   )} 
                 >
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 rounded-full">
-                    <span className="text-[10px] text-white font-bold tracking-widest uppercase">Home</span>
+                    <span className="text-[8px] text-white font-bold tracking-widest uppercase">Home</span>
                   </div>
                 </motion.div>
-                <div className="flex-1">
-                  <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-col md:flex-row md:items-baseline justify-between gap-1">
                     <div>
-                      <h2 className="text-5xl md:text-7xl font-display font-bold mb-2 tracking-tighter">
-                        {STRANDS[currentStrand as keyof typeof STRANDS].name}
-                      </h2>
-                      <h3 className="text-3xl md:text-4xl font-display font-medium text-white/60 mb-4">
-                        {STRANDS[currentStrand as keyof typeof STRANDS].nameZh}
-                      </h3>
-                      <p className="text-xl text-white/30 uppercase tracking-[0.3em]">
+                      <div className="flex items-baseline gap-2">
+                        <h2 className="text-2xl md:text-3.5xl font-display font-bold tracking-tight text-white leading-none">
+                          {STRANDS[currentStrand as keyof typeof STRANDS].name}
+                        </h2>
+                        <h3 className="text-lg md:text-2xl font-display font-medium text-white/50 leading-none">
+                          {STRANDS[currentStrand as keyof typeof STRANDS].nameZh}
+                        </h3>
+                      </div>
+                      <p className="text-[10px] md:text-xs text-white/20 uppercase tracking-[0.2em] mt-1">
                         Strand of {STRANDS[currentStrand as keyof typeof STRANDS].planet}
                       </p>
                     </div>
@@ -3391,7 +3393,7 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="relative min-h-[460px] sm:min-h-[520px] md:min-h-[600px] w-full flex items-center justify-center overflow-visible">
+              <div className="relative min-h-[280px] sm:min-h-[340px] md:min-h-[380px] w-full flex items-center justify-center overflow-visible">
                 {showSubjects ? (
                   <div className="w-full">
                     <BilingualSubjectsView 
@@ -3402,7 +3404,7 @@ export default function App() {
                     />
                   </div>
                 ) : (
-                  <div className="relative w-full aspect-square max-w-[580px] min-h-[420px] sm:min-h-[500px] md:min-h-[560px] flex items-center justify-center overflow-visible">
+                  <div className="relative w-full aspect-square max-w-[340px] md:max-w-[380px] min-h-[260px] sm:min-h-[300px] md:min-h-[340px] flex items-center justify-center overflow-visible">
                     {/* Atmospheric backing orbits for geometric beauty */}
                     <div className="absolute inset-0 border border-white/[0.03] rounded-full pointer-events-none scale-90" />
                     <div className="absolute inset-0 border border-dashed border-white/[0.015] rounded-full pointer-events-none scale-75 animate-[spin_180s_linear_infinite]" />
@@ -3410,8 +3412,8 @@ export default function App() {
                     {GEMS[currentStrand as keyof typeof GEMS].map((gem, idx) => {
                       const totalGems = GEMS[currentStrand as keyof typeof GEMS].length;
                       let angleInDegrees = 0;
-                      let rx = 36; // horizontal radius in percent
-                      let ry = 36; // vertical radius in percent
+                      let rx = 35; // horizontal radius in percent
+                      let ry = 35; // vertical radius in percent
 
                       if (totalGems === 3) {
                         // Triangle
@@ -3430,18 +3432,18 @@ export default function App() {
                       } else if (totalGems === 7) {
                         // Heptagon
                         angleInDegrees = -90 + (idx % 7) * (360 / 7);
-                        rx = 38;
-                        ry = 38;
+                        rx = 36;
+                        ry = 36;
                       } else if (totalGems === 8) {
                         // Octagon
                         angleInDegrees = -90 + (idx % 8) * 45;
-                        rx = 38;
-                        ry = 38;
+                        rx = 36;
+                        ry = 36;
                       } else if (totalGems === 10) {
                         // Decagon
                         angleInDegrees = -108 + (idx % 10) * 36; // slightly rotated for beautiful symmetry
-                        rx = 40;
-                        ry = 40;
+                        rx = 38;
+                        ry = 38;
                       } else {
                         // General polygon distribution fallback
                         angleInDegrees = -90 + idx * (360 / totalGems);
@@ -3457,8 +3459,8 @@ export default function App() {
                         transform: 'translate(-50%, -50%)',
                       };
 
-                      const customWrapperClass = "absolute transition-all duration-300 scale-[0.74] sm:scale-95 md:scale-100 hover:scale-[1.03] hover:z-20";
-                      const customClass = "gem-geometric backdrop-blur-3xl";
+                      const customWrapperClass = "absolute transition-all duration-300 scale-[0.68] sm:scale-80 md:scale-[0.88] hover:scale-[0.93] hover:z-20";
+                      const customClass = "gem-geometric backdrop-blur-2xl";
 
                       return (
                         <div key={idx} className={customWrapperClass} style={customStyle}>
