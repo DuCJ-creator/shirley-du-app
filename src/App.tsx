@@ -5,7 +5,7 @@ import {
   Home, User, Trophy, Heart, Coffee, ChevronLeft, ExternalLink,
   LogIn, LogOut, Clock, Zap, RefreshCw, Search, TrendingUp, ChevronRight,
   ClipboardX, FileText, Trash2, Download, Palette, Plus, Save, X, Edit, Pencil, Check,
-  Hammer, Gamepad2
+  Hammer, Gamepad2, Monitor, Tablet, Smartphone, ZoomIn, ZoomOut, RotateCcw
 } from 'lucide-react';
 import { cn } from './lib/utils';
 import { 
@@ -1482,6 +1482,67 @@ const SpaceshipCenter = ({ onClick }: { onClick: () => void }) => {
 };
 
 const EmbeddedPortal = ({ url, onClose }: { url: string, onClose: () => void }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(1024);
+  const [containerHeight, setContainerHeight] = useState(600);
+  
+  // 'responsive' | 'desktop' | 'tablet' | 'mobile'
+  const [deviceMode, setDeviceMode] = useState<'responsive' | 'desktop' | 'tablet' | 'mobile'>('responsive');
+  const [manualScale, setManualScale] = useState<number>(1.0);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setContainerWidth(Math.max(280, entry.contentRect.width || 1024));
+        setContainerHeight(Math.max(200, entry.contentRect.height || 600));
+      }
+    });
+    observer.observe(containerRef.current);
+    
+    setContainerWidth(Math.max(280, containerRef.current.clientWidth || 1024));
+    setContainerHeight(Math.max(200, containerRef.current.clientHeight || 600));
+
+    return () => observer.disconnect();
+  }, []);
+
+  // Determine target simulation widths
+  const targetWidth = useMemo(() => {
+    if (deviceMode === 'desktop') return 1280;
+    if (deviceMode === 'tablet') return 768;
+    if (deviceMode === 'mobile') return 375;
+    return containerWidth;
+  }, [deviceMode, containerWidth]);
+
+  // Determine target simulation heights
+  const targetHeight = useMemo(() => {
+    if (deviceMode === 'desktop') return 800;
+    if (deviceMode === 'tablet') return 1024;
+    if (deviceMode === 'mobile') return 667;
+    return containerHeight;
+  }, [deviceMode, containerHeight]);
+
+  // Base scale is calculated so that simulated designs fit within the actual physics boundaries with padding
+  const baseScale = useMemo(() => {
+    if (deviceMode === 'responsive') return 1.0;
+    const padding = 24; // boundary clearance layout padding
+    const scaleX = (containerWidth - padding) / targetWidth;
+    const scaleY = (containerHeight - padding) / targetHeight;
+    return Math.min(1.0, scaleX, scaleY);
+  }, [deviceMode, targetWidth, targetHeight, containerWidth, containerHeight]);
+
+  // Overall scale including user manual zoom
+  const finalScale = useMemo(() => {
+    return baseScale * manualScale;
+  }, [baseScale, manualScale]);
+
+  const handleZoomIn = () => setManualScale(prev => Math.min(2.0, Math.round((prev + 0.1) * 10) / 10));
+  const handleZoomOut = () => setManualScale(prev => Math.max(0.2, Math.round((prev - 0.1) * 10) / 10));
+  const handleReset = () => {
+    setManualScale(1.0);
+    setDeviceMode('responsive');
+  };
+
   return (
     <motion.div 
       id="portal-overlay"
@@ -1490,50 +1551,163 @@ const EmbeddedPortal = ({ url, onClose }: { url: string, onClose: () => void }) 
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-[2000] flex flex-col bg-black/98 backdrop-blur-2xl"
     >
-      <div className="flex flex-col w-full h-full p-2 sm:p-4 md:p-8 max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-3 sm:mb-4 md:mb-6 shrink-0">
+      <div className="flex flex-col w-full h-full p-2 sm:p-4 md:p-6 max-w-7xl mx-auto">
+        {/* Advanced Interactive Control Toolbar */}
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4 shrink-0 bg-zinc-900/50 p-3 rounded-2xl border border-white/5 shadow-inner">
+          {/* Back Action */}
           <div className="flex items-center gap-3">
             <button 
               onClick={onClose}
-              className="flex items-center gap-2 text-white hover:text-white transition-all group px-4 py-2 bg-white/10 hover:bg-white/15 rounded-full border border-white/15 shadow-md active:scale-95"
+              className="flex items-center gap-2 text-white hover:bg-white/10 transition-all group px-3 py-1.5 bg-white/5 rounded-xl border border-white/10 active:scale-95"
             >
-              <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform text-white" />
+              <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform text-zinc-300" />
               <div className="flex flex-col items-start leading-none text-left">
-                <span className="font-bold text-[10px] sm:text-xs tracking-wider uppercase text-white">Close Portal</span>
-                <span className="text-[8px] opacity-70 font-zh text-indigo-200">關閉星際門</span>
+                <span className="font-bold text-[10px] tracking-wider uppercase text-white">Close</span>
+                <span className="text-[8px] opacity-60 text-zinc-400">關閉</span>
               </div>
             </button>
+            <div className="hidden sm:block h-6 w-px bg-white/10" />
+            <span className="hidden md:inline-block text-[10px] text-zinc-500 font-mono truncate max-w-xs" title={url}>
+              {url}
+            </span>
           </div>
-          
-          <div className="flex flex-col items-end leading-none">
-            <h1 className="text-[8px] sm:text-[10px] uppercase tracking-[0.3em] sm:tracking-[0.4em] text-cyan-400 font-bold mb-1">Knowledge Stream Active</h1>
-            <div className="flex gap-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-              <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse delay-75" />
-              <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse delay-150" />
+
+          {/* Device Selection Presets */}
+          <div className="flex items-center gap-1 bg-black/50 p-1 rounded-xl border border-white/5">
+            <button
+              onClick={() => { setDeviceMode('responsive'); setManualScale(1.0); }}
+              className={cn(
+                "px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all select-none",
+                deviceMode === 'responsive' ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 shadow-md" : "text-zinc-400 hover:text-zinc-200 border border-transparent"
+              )}
+              title="Responsive Mode / 自動適應"
+            >
+              <Monitor className="w-3.5 h-3.5" />
+              <span className="text-[9px] uppercase tracking-wider font-bold">Auto</span>
+            </button>
+            
+            <button
+              onClick={() => { setDeviceMode('desktop'); setManualScale(1.0); }}
+              className={cn(
+                "px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all select-none",
+                deviceMode === 'desktop' ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 shadow-md" : "text-zinc-400 hover:text-zinc-200 border border-transparent"
+              )}
+              title="Desktop Presentation Mode"
+            >
+              <Monitor className="w-3.5 h-3.5" />
+              <span className="text-[9px] uppercase tracking-wider font-bold">PC</span>
+            </button>
+
+            <button
+              onClick={() => { setDeviceMode('tablet'); setManualScale(1.0); }}
+              className={cn(
+                "px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all select-none",
+                deviceMode === 'tablet' ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 shadow-md" : "text-zinc-400 hover:text-zinc-200 border border-transparent"
+              )}
+              title="Tablet Viewport Simulation"
+            >
+              <Tablet className="w-3.5 h-3.5" />
+              <span className="text-[9px] uppercase tracking-wider font-bold">Tablet</span>
+            </button>
+
+            <button
+              onClick={() => { setDeviceMode('mobile'); setManualScale(1.0); }}
+              className={cn(
+                "px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all select-none",
+                deviceMode === 'mobile' ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 shadow-md" : "text-zinc-400 hover:text-zinc-200 border border-transparent"
+              )}
+              title="Mobile Phone Simulation"
+            >
+              <Smartphone className="w-3.5 h-3.5" />
+              <span className="text-[9px] uppercase tracking-wider font-bold">Phone</span>
+            </button>
+          </div>
+
+          {/* Manual Zoom Multipliers & External Redirect Link */}
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 bg-black/50 p-1 rounded-xl border border-white/5">
+              <button 
+                onClick={handleZoomOut}
+                disabled={finalScale <= 0.25}
+                className="p-1 hover:bg-white/5 text-zinc-400 hover:text-white rounded transition-colors disabled:opacity-35" 
+                title="Decrease Scale"
+              >
+                <ZoomOut className="w-3.5 h-3.5" />
+              </button>
+              <span className="text-[10px] font-mono font-bold text-zinc-300 px-1 w-10 text-center select-none">
+                {Math.round(finalScale * 100)}%
+              </span>
+              <button 
+                onClick={handleZoomIn}
+                disabled={finalScale >= 2.0}
+                className="p-1 hover:bg-white/5 text-zinc-400 hover:text-white rounded transition-colors disabled:opacity-35" 
+                title="Increase Scale"
+              >
+                <ZoomIn className="w-3.5 h-3.5" />
+              </button>
+              <button 
+                onClick={handleReset}
+                className="p-1 hover:bg-white/5 text-zinc-400 hover:text-white rounded transition-colors border-l border-white/5 pl-1.5 ml-0.5" 
+                title="Reset Simulation View"
+              >
+                <RotateCcw className="w-3 h-3 text-zinc-400 hover:text-zinc-200" />
+              </button>
             </div>
           </div>
         </div>
 
-        <div className="flex-1 relative rounded-2xl sm:rounded-[2.5rem] overflow-hidden border border-white/10 bg-black/40 shadow-[0_0_100px_rgba(30,58,138,0.2)]">
-          <div className="absolute inset-0 z-10 pointer-events-none shadow-[inset_0_0_100px_rgba(0,0,0,0.5)] border-[1px] border-white/5" />
-          <iframe 
-            src={url} 
-            className="absolute inset-0 w-full h-full border-none bg-white/5"
-            title="Embedded Subject Content"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; microphone"
-            allowFullScreen
-            scrolling="yes"
-            style={{ WebkitOverflowScrolling: 'touch' }}
-          />
+        {/* Scalable Sandbox Workspace Viewport Container */}
+        <div className="flex-1 relative rounded-3xl overflow-hidden border border-white/10 bg-zinc-950/45 shadow-[inset_0_0_80px_rgba(0,0,0,0.6)] flex items-center justify-center">
+          <div 
+            ref={containerRef} 
+            className="absolute inset-0 w-full h-full flex items-center justify-center p-3 sm:p-4 overflow-auto scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent"
+          >
+            {/* The adjustable Simulated Device Chassis */}
+            <motion.div 
+              layout
+              transition={{ type: 'spring', stiffness: 260, damping: 28 }}
+              style={{
+                width: deviceMode === 'responsive' ? '100%' : `${targetWidth}px`,
+                height: deviceMode === 'responsive' ? '100%' : `${targetHeight}px`,
+                transform: `scale(${finalScale})`,
+                transformOrigin: 'center center',
+                flexShrink: 0,
+              }}
+              className={cn(
+                "bg-zinc-900 overflow-hidden relative shadow-2xl transition-all duration-300",
+                deviceMode !== 'responsive' 
+                  ? "rounded-[2rem] border-[10px] border-zinc-800 ring-4 ring-black/70 shadow-[0_20px_60px_rgba(0,0,0,0.8)]" 
+                  : "w-full h-full rounded-2xl"
+              )}
+            >
+              {deviceMode !== 'responsive' && (
+                <div className="absolute top-0 inset-x-0 h-4 bg-zinc-800 flex items-center justify-center pointer-events-none z-30 shrink-0">
+                  <div className="w-16 h-2 rounded-full bg-zinc-950 opacity-40" />
+                </div>
+              )}
+              
+              <div className="w-full h-full pt-0">
+                <iframe 
+                  src={url} 
+                  className="w-full h-full border-none bg-zinc-900"
+                  title="Embedded Subject Content"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; microphone; geolocation"
+                  allowFullScreen
+                  scrolling="yes"
+                  style={{ WebkitOverflowScrolling: 'touch' }}
+                />
+              </div>
+            </motion.div>
+          </div>
           
-          {/* Decorative Corner Accents - Hidden/minimized on mobile */}
-          <div className="hidden sm:block absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-blue-500/20 rounded-tl-[2.5rem] pointer-events-none" />
-          <div className="hidden sm:block absolute top-0 right-0 w-16 h-16 border-t-2 border-r-2 border-blue-500/20 rounded-tr-[2.5rem] pointer-events-none" />
-          <div className="hidden sm:block absolute bottom-0 left-0 w-16 h-16 border-b-2 border-l-2 border-blue-500/20 rounded-bl-[2.5rem] pointer-events-none" />
-          <div className="hidden sm:block absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-blue-500/20 rounded-br-[2.5rem] pointer-events-none" />
+          {/* Subtle glowing decorations under constraints */}
+          <div className="hidden sm:block absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-cyan-500/10 rounded-tl-[2.5rem] pointer-events-none" />
+          <div className="hidden sm:block absolute top-0 right-0 w-16 h-16 border-t-2 border-r-2 border-cyan-500/10 rounded-tr-[2.5rem] pointer-events-none" />
+          <div className="hidden sm:block absolute bottom-0 left-0 w-16 h-16 border-b-2 border-l-2 border-cyan-500/10 rounded-bl-[2.5rem] pointer-events-none" />
+          <div className="hidden sm:block absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-cyan-500/10 rounded-br-[2.5rem] pointer-events-none" />
         </div>
         
+        {/* Footer info bar */}
         <div className="mt-3 text-center shrink-0">
           <p className="text-[8px] sm:text-[9px] uppercase tracking-[0.4em] text-white/20 font-medium">Teacher Shirley • Universal Education Cluster</p>
         </div>
