@@ -1351,7 +1351,6 @@ const SpaceshipCenter = ({ onClick }: { onClick: () => void }) => {
       </div>
 
       <span className="text-[10px] font-mono tracking-widest text-indigo-300 group-hover:text-cyan-300 transition-colors uppercase font-bold mt-2">
-        🛸 Enter Star Battle / 啟動星戰
       </span>
     </div>
   );
