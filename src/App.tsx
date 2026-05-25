@@ -224,7 +224,7 @@ const UniverseDisplay = ({ user, userData, onStrandClick, onUpdateAvatar }: { us
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const orbitDistances = isMobile ? [80, 130, 180, 230, 280, 330, 380] : [130, 185, 240, 295, 350, 405, 460];
+  const orbitDistances = isMobile ? [80, 130, 180, 230, 280, 330, 380] : [95, 135, 175, 215, 255, 295, 335];
   
   // Adjusted angles for better visibility and avoiding overlap with side branding for 7 planets
   const desktopAngles = [35, 85, 135, 185, 235, 285, 335];
@@ -452,32 +452,32 @@ const PreLoginExplorer = ({ onSelectGem, onSelectStrand }: {
   }, [searchQuery, allGemsList]);
 
   return (
-    <div id="star-chart-index" className="w-full max-w-5xl mx-auto mt-16 p-8 rounded-[2rem] bg-zinc-900/60 border border-zinc-800/80 backdrop-blur-xl shadow-2xl relative overflow-hidden text-neutral-200">
-      <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-600/5 blur-[120px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-600/5 blur-[120px] rounded-full pointer-events-none" />
+    <div id="star-chart-index" className="w-full max-w-7xl mx-auto mt-20 p-10 md:p-12 rounded-[2.5rem] bg-zinc-900/80 border-2 border-zinc-800/80 backdrop-blur-2xl shadow-2xl relative overflow-hidden text-neutral-200">
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-cyan-600/5 blur-[150px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-600/5 blur-[150px] rounded-full pointer-events-none" />
       
-      <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 border-b border-zinc-800 pb-6">
+      <div className="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-8 mb-10 border-b-2 border-zinc-800/80 pb-8">
         <div>
-          <h2 className="text-xl md:text-2xl font-sans tracking-tight text-white font-medium flex items-center gap-2">
-            <span className="text-cyan-400">✨</span> Star Chart Index / 星系內容索引
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-white flex items-center gap-3">
+            <span className="text-cyan-400 animate-pulse">✨</span> Star Chart Index / 星系內容索引
           </h2>
-          <p className="text-xs text-neutral-400 mt-1">Explore all interactive planets and educational gems across Tr. Shirley's cosmic academy.</p>
+          <p className="text-sm md:text-base text-neutral-300 font-medium mt-2">Explore all interactive planets and educational gems across Tr. Shirley's cosmic academy.</p>
         </div>
         
         {/* Search Box */}
-        <div className="relative w-full md:max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+        <div className="relative w-full xl:max-w-md">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
           <input
             type="text"
             placeholder="Search gems & planets..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-zinc-950/80 border border-zinc-800 hover:border-zinc-700 focus:border-cyan-500 rounded-full py-2 pl-10 pr-4 text-xs md:text-sm text-white placeholder-neutral-500 focus:outline-none transition-all shadow-inner"
+            className="w-full bg-zinc-950/95 border-2 border-zinc-800 hover:border-zinc-700 focus:border-cyan-400 rounded-2xl py-3.5 pl-12 pr-10 text-sm md:text-base text-white placeholder-neutral-500 focus:outline-none transition-all shadow-inner focus:ring-4 focus:ring-cyan-500/10"
           />
           {searchQuery && (
             <button 
               onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white text-xs"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white text-xs md:text-sm font-semibold hover:underline"
             >
               Clear
             </button>
@@ -487,36 +487,36 @@ const PreLoginExplorer = ({ onSelectGem, onSelectStrand }: {
 
       {searchQuery.trim() ? (
         /* Search Results View */
-        <div className="min-h-[200px]">
-          <p className="text-xs text-neutral-400 mb-4 font-mono">Found {filteredGems.length} cosmic matching gems</p>
+        <div className="min-h-[250px]">
+          <p className="text-sm text-cyan-400 mb-6 font-mono font-bold tracking-widest uppercase">🔭 DISCOVERED {filteredGems.length} MATCHING GEMS IN THIS quadrant</p>
           {filteredGems.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {filteredGems.map((gem, idx) => (
                 <div
                   key={`${gem.name}-${idx}`}
                   onClick={() => onSelectGem(gem, gem.requiresLogin)}
-                  className="p-4 rounded-2xl bg-zinc-950/40 border border-zinc-800/60 hover:border-zinc-700/80 hover:bg-zinc-850/40 transition-all cursor-pointer flex items-center justify-between group"
+                  className="p-5 md:p-6 rounded-3xl bg-zinc-950/70 border-2 border-zinc-800/80 hover:border-cyan-500/50 hover:bg-zinc-900/60 transition-all duration-300 cursor-pointer flex items-center justify-between group shadow-lg"
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-4 min-w-0 mr-3">
                     <span 
-                      className="w-2.5 h-2.5 rounded-full shadow-[0_0_8px_rgba(255,255,255,0.4)] flex-shrink-0" 
+                      className="w-3.5 h-3.5 rounded-full shadow-[0_0_12px_rgba(255,255,255,0.4)] flex-shrink-0 animate-pulse" 
                       style={{ backgroundColor: gem.color }}
                     />
                     <div className="overflow-hidden">
-                      <h4 className="text-sm font-medium text-white group-hover:text-cyan-400 transition-colors truncate">{gem.name}</h4>
-                      <p className="text-xs text-neutral-400 truncate">{gem.nameZh}</p>
-                      <span className="inline-block text-[9px] uppercase tracking-wider text-neutral-500 font-mono mt-1">
-                        {gem.planet} • {gem.strandName}
+                      <h4 className="text-base md:text-lg font-bold text-white group-hover:text-cyan-300 transition-colors truncate">{gem.name}</h4>
+                      <p className="text-xs md:text-sm text-neutral-300 mt-1 truncate">{gem.nameZh}</p>
+                      <span className="inline-block text-[10px] md:text-xs uppercase tracking-wider text-neutral-400 font-mono font-bold mt-2">
+                        🪐 {gem.planet} • {gem.strandName}
                       </span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     {gem.requiresLogin ? (
-                      <span className="text-[10px] bg-red-950/30 border border-red-900/30 text-amber-500 px-2.5 py-0.5 rounded-full flex items-center gap-1 font-mono">
+                      <span className="text-[11px] font-bold bg-amber-950/40 border border-amber-900/50 text-amber-500 px-3 py-1 rounded-full flex items-center gap-1 font-mono">
                         🔒 Gated
                       </span>
                     ) : (
-                      <span className="text-[10px] bg-green-950/30 border border-green-900/30 text-green-400 px-2.5 py-0.5 rounded-full flex items-center gap-1 font-mono">
+                      <span className="text-[11px] font-bold bg-green-950/40 border border-green-900/50 text-emerald-400 px-3 py-1 rounded-full flex items-center gap-1 font-mono">
                         🔓 Guest
                       </span>
                     )}
@@ -525,21 +525,21 @@ const PreLoginExplorer = ({ onSelectGem, onSelectStrand }: {
               ))}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <span className="text-3xl mb-2">🔭</span>
-              <p className="text-sm text-neutral-400">No matching gems discovered in this quadrant.</p>
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <span className="text-5xl mb-4">🔭</span>
+              <p className="text-base md:text-lg text-neutral-300 font-medium">No matching gems discovered in this academy quadrant.</p>
               <button 
                 onClick={() => setSearchQuery('')}
-                className="mt-4 text-xs text-cyan-400 hover:underline"
+                className="mt-4 text-xs md:text-sm text-cyan-400 font-bold hover:underline"
               >
-                Reset Search Index
+                Reset Search Index / 回到星系主目錄
               </button>
             </div>
           )}
         </div>
       ) : (
         /* Regular Table of Contents Grid */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
           {Object.entries(STRANDS).map(([strandKey, info]) => {
             const requiresLogin = !(strandKey === 'uranus' || strandKey === 'neptune');
             const gemsArray = GEMS[strandKey as keyof typeof GEMS] || [];
@@ -548,57 +548,60 @@ const PreLoginExplorer = ({ onSelectGem, onSelectStrand }: {
             return (
               <div 
                 key={strandKey} 
-                className="p-5 rounded-3xl bg-zinc-950/30 border border-zinc-800/40 relative flex flex-col hover:border-zinc-800 transition-all shadow-md"
+                className="p-6 md:p-8 rounded-[2.5rem] bg-zinc-950/50 border-2 border-zinc-800/60 relative flex flex-col hover:border-zinc-700/85 hover:bg-zinc-950/80 transition-all duration-300 shadow-xl"
               >
-                <div className="flex items-center justify-between mb-4 pb-3 border-b border-zinc-900">
-                  <div className="flex items-center gap-2.5 overflow-hidden">
+                <div className="flex items-center justify-between mb-5 pb-5 border-b-2 border-zinc-900/90">
+                  <div className="flex items-center gap-3.5 overflow-hidden">
                     <div 
-                      className="w-7 h-7 rounded-full flex items-center justify-center border flex-shrink-0"
+                      className="w-12 h-12 rounded-2xl flex items-center justify-center border-2 flex-shrink-0 shadow-inner"
                       style={{ 
-                        borderColor: `${info.color}30`,
+                        borderColor: `${info.color}40`,
                         backgroundColor: `${info.color}15`,
                         color: info.color
                       }}
                     >
-                      <PlanetIcon className="w-3.5 h-3.5" />
+                      <PlanetIcon className="w-6 h-6" />
                     </div>
                     <div className="overflow-hidden">
-                      <h3 className="text-sm font-medium text-white flex items-center gap-1 truncate cursor-pointer hover:text-cyan-400 transition-colors" onClick={() => onSelectStrand(strandKey as Strand, requiresLogin)}>
+                      <h3 className="text-base md:text-lg lg:text-xl font-bold text-white flex items-center gap-2 truncate cursor-pointer hover:text-cyan-400 transition-colors" onClick={() => onSelectStrand(strandKey as Strand, requiresLogin)}>
                         {info.name} <span className="text-neutral-500 font-normal">({info.planet})</span>
                       </h3>
-                      <p className="text-xs text-neutral-400 font-sans truncate">{info.nameZh}</p>
+                      <p className="text-xs md:text-sm text-neutral-300 font-sans tracking-wide truncate mt-0.5">{info.nameZh}</p>
                     </div>
                   </div>
                   
                   {requiresLogin ? (
-                    <span className="text-[9px] bg-red-950/20 border border-red-900/30 text-amber-500 px-2 py-0.5 rounded-full font-mono flex items-center gap-0.5 flex-shrink-0" title="Login required to enter this planet">
+                    <span className="text-[11px] font-bold bg-amber-950/30 border border-amber-900/40 text-amber-500 px-3 py-1 rounded-full font-mono flex items-center gap-0.5 flex-shrink-0" title="Login required to enter this planet">
                       🔒 Gated
                     </span>
                   ) : (
-                    <span className="text-[9px] bg-green-950/20 border border-green-900/30 text-emerald-400 px-2 py-0.5 rounded-full font-mono flex items-center gap-0.5 flex-shrink-0" title="Accessible directly without login">
+                    <span className="text-[11px] font-bold bg-green-950/30 border border-green-900/40 text-emerald-400 px-3 py-1 rounded-full font-mono flex items-center gap-0.5 flex-shrink-0" title="Accessible directly without login">
                       🔓 Guest
                     </span>
                   )}
                 </div>
                 
-                <div className="space-y-1.5 flex-1 select-none">
+                <div className="space-y-3 flex-1 select-none">
                   {gemsArray.map((gem: any, gemIdx: number) => (
                     <div
                       key={`${gem.name}-${gemIdx}`}
                       onClick={() => onSelectGem(gem, requiresLogin)}
-                      className="group flex items-center justify-between p-2 rounded-xl hover:bg-zinc-900/80 transition-all cursor-pointer text-xs"
+                      className="group flex items-center justify-between p-3 rounded-2xl hover:bg-zinc-900/90 transition-all duration-300 cursor-pointer text-sm font-semibold"
                     >
-                      <div className="flex items-center gap-2 overflow-hidden mr-2">
+                      <div className="flex items-center gap-3 overflow-hidden mr-2">
                         <span 
-                          className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: info.color }}
+                          className="w-2.5 h-2.5 rounded-full flex-shrink-0 transition-transform group-hover:scale-125"
+                          style={{ 
+                            backgroundColor: info.color,
+                            boxShadow: `0 0 8px ${info.color}`
+                          }}
                         />
                         <div className="truncate">
-                          <span className="text-neutral-200 group-hover:text-cyan-400 transition-colors font-medium block truncate">{gem.name}</span>
-                          <span className="text-[10px] text-neutral-500 block truncate">{gem.nameZh}</span>
+                          <span className="text-sm md:text-base font-bold text-neutral-200 group-hover:text-cyan-300 transition-colors block truncate">{gem.name}</span>
+                          <span className="text-xs text-neutral-400 group-hover:text-neutral-200 transition-colors block truncate mt-0.5">{gem.nameZh}</span>
                         </div>
                       </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-neutral-600 group-hover:text-cyan-400 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+                      <ChevronRight className="w-5 h-5 text-neutral-500 group-hover:text-cyan-300 group-hover:translate-x-1 transition-all flex-shrink-0" />
                     </div>
                   ))}
                 </div>
@@ -3098,24 +3101,22 @@ export default function App() {
                 onUpdateAvatar={handleUpdateAvatar} 
               />
 
-              {!user && (
-                <PreLoginExplorer 
-                  onSelectGem={(gem, requiresLogin) => {
-                    if (requiresLogin) {
-                      setShowLoginModal(true);
-                    } else {
-                      setActivePortalUrl(gem.url);
-                    }
-                  }}
-                  onSelectStrand={(strand, requiresLogin) => {
-                    if (requiresLogin) {
-                      setShowLoginModal(true);
-                    } else {
-                      setCurrentStrand(strand);
-                    }
-                  }}
-                />
-              )}
+              <PreLoginExplorer 
+                onSelectGem={(gem, requiresLogin) => {
+                  if (requiresLogin && !user) {
+                    setShowLoginModal(true);
+                  } else {
+                    setActivePortalUrl(gem.url);
+                  }
+                }}
+                onSelectStrand={(strand, requiresLogin) => {
+                  if (requiresLogin && !user) {
+                    setShowLoginModal(true);
+                  } else {
+                    setCurrentStrand(strand);
+                  }
+                }}
+              />
             </motion.div>
           ) : currentStrand === 'pet' ? (
             <motion.div
