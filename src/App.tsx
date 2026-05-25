@@ -4,7 +4,8 @@ import {
   Moon, Star, Sparkles, BookOpen, Mic2, PenTool, GraduationCap, 
   Home, User, Trophy, Heart, Coffee, ChevronLeft, ExternalLink,
   LogIn, LogOut, Clock, Zap, RefreshCw, Search, TrendingUp, ChevronRight,
-  ClipboardX, FileText, Trash2, Download, Palette, Plus, Save, X, Edit, Pencil, Check
+  ClipboardX, FileText, Trash2, Download, Palette, Plus, Save, X, Edit, Pencil, Check,
+  Hammer, Gamepad2
 } from 'lucide-react';
 import { cn } from './lib/utils';
 import { 
@@ -17,7 +18,7 @@ import { GoogleGenAI } from "@google/genai";
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 
 // --- Types ---
-type Strand = 'grammar' | 'vocabulary' | 'pronunciation' | 'tests' | 'saturn' | 'home' | 'pet' | 'logs';
+type Strand = 'grammar' | 'vocabulary' | 'pronunciation' | 'tests' | 'saturn' | 'uranus' | 'neptune' | 'home' | 'pet' | 'logs';
 
 interface PointLog {
   id: string;
@@ -99,7 +100,9 @@ const STRANDS = {
   vocabulary: { name: 'Vocabulary', nameZh: '單字', planet: 'Venus', color: '#ffd700', icon: BookOpen, class: 'planet-venus', size: 0.75, orbit: 2 },
   pronunciation: { name: 'Pronunciation', nameZh: '發音', planet: 'Mars', color: '#ff4500', icon: Mic2, class: 'planet-mars', size: 0.6, orbit: 3 },
   tests: { name: 'Tests', nameZh: '測驗', planet: 'Jupiter', color: '#deb887', icon: GraduationCap, class: 'planet-jupiter', size: 1.25, orbit: 4 },
-  saturn: { name: 'Tools', nameZh: '工具', planet: 'Saturn', color: '#f4a460', icon: Zap, class: 'planet-saturn', size: 0.95, orbit: 5 },
+  saturn: { name: 'Learning Tools', nameZh: '學習工具', planet: 'Saturn', color: '#f4a460', icon: Zap, class: 'planet-saturn', size: 0.95, orbit: 5 },
+  uranus: { name: 'Handy Tools', nameZh: '小工具', planet: 'Uranus', color: '#40e0d0', icon: Hammer, class: 'planet-uranus', size: 0.8, orbit: 6 },
+  neptune: { name: 'Fun Games', nameZh: '小遊戲', planet: 'Neptune', color: '#1e90ff', icon: Gamepad2, class: 'planet-neptune', size: 0.78, orbit: 7 },
 };
 
 const UserAvatarCenter = ({ userData, onUpdate }: { userData: any, onUpdate: (data: any) => void }) => {
@@ -221,11 +224,10 @@ const UniverseDisplay = ({ user, userData, onStrandClick, onUpdateAvatar }: { us
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const orbitDistances = isMobile ? [90, 150, 210, 270, 330] : [140, 210, 280, 350, 420];
+  const orbitDistances = isMobile ? [80, 130, 180, 230, 280, 330, 380] : [130, 185, 240, 295, 350, 405, 460];
   
-  // Adjusted angles for better visibility and avoiding overlap with side branding
-  // Grammar (Mercury), Vocab (Venus), Pronunciation (Mars), Tests (Jupiter), Tools (Saturn)
-  const desktopAngles = [45, 120, 190, 250, 310];
+  // Adjusted angles for better visibility and avoiding overlap with side branding for 7 planets
+  const desktopAngles = [35, 85, 135, 185, 235, 285, 335];
   
   if (isMobile) {
     // S-Curve logic for mobile
@@ -238,16 +240,16 @@ const UniverseDisplay = ({ user, userData, onStrandClick, onUpdateAvatar }: { us
           <UserAvatarCenter userData={userData} onUpdate={onUpdateAvatar} />
         </div>
 
-        <div className="relative w-full h-[700px]">
+        <div className="relative w-full h-[850px]">
           {Object.entries(STRANDS).map(([key, info], index) => {
             const orbitIdx = info.orbit - 1;
-            const dist = orbitDistances[orbitIdx];
+            const dist = orbitDistances[orbitIdx] || 330;
             
             // Generate S-curve offset
             // Alternating left and right logic
             const isLeft = index % 2 === 0;
             const xOffset = isLeft ? -70 : 70;
-            const yOffset = orbitIdx * 130;
+            const yOffset = orbitIdx * 110;
 
             return (
               <div 
@@ -271,7 +273,7 @@ const UniverseDisplay = ({ user, userData, onStrandClick, onUpdateAvatar }: { us
                   strand={key as Strand} 
                   info={info} 
                   onClick={() => onStrandClick(key as Strand)}
-                  disabled={!user}
+                  disabled={!(key === 'uranus' || key === 'neptune') && !user}
                 />
               </div>
             );
@@ -309,8 +311,8 @@ const UniverseDisplay = ({ user, userData, onStrandClick, onUpdateAvatar }: { us
       {/* Planets */}
       {Object.entries(STRANDS).map(([key, info], index) => {
         const orbitIdx = info.orbit - 1;
-        const angle = desktopAngles[index];
-        const distance = orbitDistances[orbitIdx];
+        const angle = desktopAngles[index] || 0;
+        const distance = orbitDistances[orbitIdx] || 250;
         const x = Math.cos((angle * Math.PI) / 180) * distance;
         const y = Math.sin((angle * Math.PI) / 180) * distance;
 
@@ -328,7 +330,7 @@ const UniverseDisplay = ({ user, userData, onStrandClick, onUpdateAvatar }: { us
               strand={key as Strand} 
               info={info} 
               onClick={() => onStrandClick(key as Strand)}
-              disabled={!user}
+              disabled={!(key === 'uranus' || key === 'neptune') && !user}
               isHovered={hoveredOrbit === info.orbit}
             />
           </div>
@@ -357,6 +359,7 @@ const GEMS = {
     { name: 'Vowel Clusters', nameZh: '母音字群', url: 'https://hexagon-of-vowels.vercel.app/', type: 'emerald' },
     { name: 'Consonant Blends', nameZh: '子音字群', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/consonant.html', type: 'amethyst' },
     { name: 'Sentence Practice', nameZh: '例句語音練習', url: 'https://ducj-creator.github.io/Shirley-AI-Sentence-Practice/bank.html', type: 'ruby' },
+    { name: 'My Own Sentences', nameZh: '自主句子練習', url: 'https://ducj-creator.github.io/Shirley-AI-Sentence-Practice/entry.html', type: 'amethyst' },
   ],
   grammar: [
     { name: 'Grammar Lemon Tree', nameZh: '文法檸檬樹', url: 'https://ducj-creator.github.io/Shirley-Grammar/', type: 'emerald' },
@@ -377,8 +380,25 @@ const GEMS = {
     { name: 'Word Search Maker', nameZh: '尋字工坊', url: 'https://ducj-creator.github.io/Shirley%20Word%20Search%20Maker.html', type: 'ruby' },
     { name: 'Cross Word Maker', nameZh: '字謎生成', url: 'https://ducj-creator.github.io/Shirley%20Crossword%20Maker.html', type: 'emerald' },
     { name: 'Flip Card Maker', nameZh: '翻轉卡製作', url: 'https://ducj-creator.github.io/Shirley%20Flip%20Card.html', type: 'sapphire' },
-    { name: 'My Own Sentences', nameZh: '自主句子練習', url: 'https://ducj-creator.github.io/Shirley-AI-Sentence-Practice/entry.html', type: 'amethyst' },
-  ]
+    { name: 'Writing Coach', nameZh: '寫作教練', url: 'https://ducj-creator.github.io/Shirley-AI-Writing/version2.html', type: 'ruby' },
+    { name: 'Report Formatter', nameZh: '報告格式器', url: 'https://ducj-creator.github.io/report.html', type: 'emerald' },
+  ],
+  uranus: [
+    { name: 'Timer', nameZh: '計時器 ⏱️', url: 'https://ducj-creator.github.io/Shirley%20Timer.html', type: 'diamond' },
+    { name: 'Stopwatch', nameZh: '碼表⌚️', url: 'https://ducj-creator.github.io/Shirley%20Stop%20Watch.html', type: 'ruby' },
+    { name: 'Name/Group Picker', nameZh: '選名/分組🧑🎓', url: 'https://ducj-creator.github.io/namepicker.html', type: 'emerald' },
+    { name: 'Lucky Dice', nameZh: '幸運骰🎲', url: 'https://ducj-creator.github.io/Shirley%20Dice2.html', type: 'sapphire' },
+    { name: 'Grade Analysis', nameZh: '成績分析📈', url: 'https://ducj-creator.github.io/grade%20analysis.html', type: 'amethyst' },
+    { name: 'Quiz Maker', nameZh: '測驗製作', url: 'https://ducj-creator.github.io/Shirley%20Pop%20Quiz%20Maker.html', type: 'topaz' },
+  ],
+  neptune: [
+    { name: 'Sudoku', nameZh: '數獨', url: 'https://ducj-creator.github.io/shirley%20sudoku.html', type: 'diamond' },
+    { name: 'Gomoku', nameZh: '五子棋', url: 'https://ducj-creator.github.io/gomoku.html', type: 'ruby' },
+    { name: 'Go', nameZh: '圍棋', url: 'https://ducj-creator.github.io/go.html', type: 'emerald' },
+    { name: 'LOT', nameZh: '幸運上上簽', url: 'https://ducj-creator.github.io/bestlot.html', type: 'sapphire' },
+    { name: 'EMO Shredder', nameZh: '負能量粉碎機', url: 'https://ducj-creator.github.io/emoshredder.html', type: 'amethyst' },
+    { name: 'Gems', nameZh: '寶石連連看', url: 'https://ducj-creator.github.io/gem.html', type: 'topaz' },
+  ],
 };
 
 const SUBJECT_GEMS = [
@@ -391,6 +411,205 @@ const SUBJECT_GEMS = [
   { name: 'Ast. & Geo', nameZh: '天文地理', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/geography.html', type: 'opal' },
   { name: 'Business', nameZh: '商業', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/business.html', type: 'ruby' },
 ];
+
+const PreLoginExplorer = ({ onSelectGem, onSelectStrand }: {
+  onSelectGem: (gem: any, requiresLogin: boolean) => void,
+  onSelectStrand: (strand: Strand, requiresLogin: boolean) => void
+}) => {
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const allGemsList = useMemo(() => {
+    const list: any[] = [];
+    Object.entries(GEMS).forEach(([strandKey, gemsArray]) => {
+      const info = STRANDS[strandKey as keyof typeof STRANDS];
+      if (!info) return;
+      const requiresLogin = !(strandKey === 'uranus' || strandKey === 'neptune');
+      gemsArray.forEach((gem: any) => {
+        list.push({
+          ...gem,
+          strandKey,
+          strandName: info.name,
+          strandNameZh: info.nameZh,
+          planet: info.planet,
+          color: info.color,
+          requiresLogin
+        });
+      });
+    });
+    return list;
+  }, []);
+
+  const filteredGems = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const query = searchQuery.toLowerCase();
+    return allGemsList.filter(gem => 
+      gem.name.toLowerCase().includes(query) || 
+      gem.nameZh.toLowerCase().includes(query) ||
+      gem.strandName.toLowerCase().includes(query) ||
+      gem.strandNameZh.toLowerCase().includes(query) ||
+      gem.planet.toLowerCase().includes(query)
+    );
+  }, [searchQuery, allGemsList]);
+
+  return (
+    <div id="star-chart-index" className="w-full max-w-5xl mx-auto mt-16 p-8 rounded-[2rem] bg-zinc-900/60 border border-zinc-800/80 backdrop-blur-xl shadow-2xl relative overflow-hidden text-neutral-200">
+      <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-600/5 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-600/5 blur-[120px] rounded-full pointer-events-none" />
+      
+      <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 border-b border-zinc-800 pb-6">
+        <div>
+          <h2 className="text-xl md:text-2xl font-sans tracking-tight text-white font-medium flex items-center gap-2">
+            <span className="text-cyan-400">✨</span> Star Chart Index / 星系內容索引
+          </h2>
+          <p className="text-xs text-neutral-400 mt-1">Explore all interactive planets and educational gems across Tr. Shirley's cosmic academy.</p>
+        </div>
+        
+        {/* Search Box */}
+        <div className="relative w-full md:max-w-xs">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+          <input
+            type="text"
+            placeholder="Search gems & planets..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-zinc-950/80 border border-zinc-800 hover:border-zinc-700 focus:border-cyan-500 rounded-full py-2 pl-10 pr-4 text-xs md:text-sm text-white placeholder-neutral-500 focus:outline-none transition-all shadow-inner"
+          />
+          {searchQuery && (
+            <button 
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white text-xs"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+      </div>
+
+      {searchQuery.trim() ? (
+        /* Search Results View */
+        <div className="min-h-[200px]">
+          <p className="text-xs text-neutral-400 mb-4 font-mono">Found {filteredGems.length} cosmic matching gems</p>
+          {filteredGems.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {filteredGems.map((gem, idx) => (
+                <div
+                  key={`${gem.name}-${idx}`}
+                  onClick={() => onSelectGem(gem, gem.requiresLogin)}
+                  className="p-4 rounded-2xl bg-zinc-950/40 border border-zinc-800/60 hover:border-zinc-700/80 hover:bg-zinc-850/40 transition-all cursor-pointer flex items-center justify-between group"
+                >
+                  <div className="flex items-center gap-3">
+                    <span 
+                      className="w-2.5 h-2.5 rounded-full shadow-[0_0_8px_rgba(255,255,255,0.4)] flex-shrink-0" 
+                      style={{ backgroundColor: gem.color }}
+                    />
+                    <div className="overflow-hidden">
+                      <h4 className="text-sm font-medium text-white group-hover:text-cyan-400 transition-colors truncate">{gem.name}</h4>
+                      <p className="text-xs text-neutral-400 truncate">{gem.nameZh}</p>
+                      <span className="inline-block text-[9px] uppercase tracking-wider text-neutral-500 font-mono mt-1">
+                        {gem.planet} • {gem.strandName}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {gem.requiresLogin ? (
+                      <span className="text-[10px] bg-red-950/30 border border-red-900/30 text-amber-500 px-2.5 py-0.5 rounded-full flex items-center gap-1 font-mono">
+                        🔒 Gated
+                      </span>
+                    ) : (
+                      <span className="text-[10px] bg-green-950/30 border border-green-900/30 text-green-400 px-2.5 py-0.5 rounded-full flex items-center gap-1 font-mono">
+                        🔓 Guest
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <span className="text-3xl mb-2">🔭</span>
+              <p className="text-sm text-neutral-400">No matching gems discovered in this quadrant.</p>
+              <button 
+                onClick={() => setSearchQuery('')}
+                className="mt-4 text-xs text-cyan-400 hover:underline"
+              >
+                Reset Search Index
+              </button>
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Regular Table of Contents Grid */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Object.entries(STRANDS).map(([strandKey, info]) => {
+            const requiresLogin = !(strandKey === 'uranus' || strandKey === 'neptune');
+            const gemsArray = GEMS[strandKey as keyof typeof GEMS] || [];
+            const PlanetIcon = info.icon;
+            
+            return (
+              <div 
+                key={strandKey} 
+                className="p-5 rounded-3xl bg-zinc-950/30 border border-zinc-800/40 relative flex flex-col hover:border-zinc-800 transition-all shadow-md"
+              >
+                <div className="flex items-center justify-between mb-4 pb-3 border-b border-zinc-900">
+                  <div className="flex items-center gap-2.5 overflow-hidden">
+                    <div 
+                      className="w-7 h-7 rounded-full flex items-center justify-center border flex-shrink-0"
+                      style={{ 
+                        borderColor: `${info.color}30`,
+                        backgroundColor: `${info.color}15`,
+                        color: info.color
+                      }}
+                    >
+                      <PlanetIcon className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="overflow-hidden">
+                      <h3 className="text-sm font-medium text-white flex items-center gap-1 truncate cursor-pointer hover:text-cyan-400 transition-colors" onClick={() => onSelectStrand(strandKey as Strand, requiresLogin)}>
+                        {info.name} <span className="text-neutral-500 font-normal">({info.planet})</span>
+                      </h3>
+                      <p className="text-xs text-neutral-400 font-sans truncate">{info.nameZh}</p>
+                    </div>
+                  </div>
+                  
+                  {requiresLogin ? (
+                    <span className="text-[9px] bg-red-950/20 border border-red-900/30 text-amber-500 px-2 py-0.5 rounded-full font-mono flex items-center gap-0.5 flex-shrink-0" title="Login required to enter this planet">
+                      🔒 Gated
+                    </span>
+                  ) : (
+                    <span className="text-[9px] bg-green-950/20 border border-green-900/30 text-emerald-400 px-2 py-0.5 rounded-full font-mono flex items-center gap-0.5 flex-shrink-0" title="Accessible directly without login">
+                      🔓 Guest
+                    </span>
+                  )}
+                </div>
+                
+                <div className="space-y-1.5 flex-1 select-none">
+                  {gemsArray.map((gem: any, gemIdx: number) => (
+                    <div
+                      key={`${gem.name}-${gemIdx}`}
+                      onClick={() => onSelectGem(gem, requiresLogin)}
+                      className="group flex items-center justify-between p-2 rounded-xl hover:bg-zinc-900/80 transition-all cursor-pointer text-xs"
+                    >
+                      <div className="flex items-center gap-2 overflow-hidden mr-2">
+                        <span 
+                          className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: info.color }}
+                        />
+                        <div className="truncate">
+                          <span className="text-neutral-200 group-hover:text-cyan-400 transition-colors font-medium block truncate">{gem.name}</span>
+                          <span className="text-[10px] text-neutral-500 block truncate">{gem.nameZh}</span>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-3.5 h-3.5 text-neutral-600 group-hover:text-cyan-400 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
 
 // --- Helpers ---
 const hashString = (s: string) => {
@@ -1867,6 +2086,7 @@ export default function App() {
   const [showSubjects, setShowSubjects] = useState(false);
   const [selectedCard, setSelectedCard] = useState<any>(null);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const [logs, setLogs] = useState<PointLog[]>([]);
   const [sessionStudyTime, setSessionStudyTime] = useState(0);
   const [isActive, setIsActive] = useState(true);
@@ -2417,10 +2637,9 @@ export default function App() {
   };
 
   const handleStrandClick = (strand: Strand) => {
-    if (!user) {
-      setCurrentStrand('home');
-      // Scroll to moon or show login prompt
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    const requiresLogin = !(strand === 'uranus' || strand === 'neptune');
+    if (requiresLogin && !user) {
+      setShowLoginModal(true);
       return;
     }
     setCurrentStrand(strand);
@@ -2878,6 +3097,25 @@ export default function App() {
                 onStrandClick={handleStrandClick} 
                 onUpdateAvatar={handleUpdateAvatar} 
               />
+
+              {!user && (
+                <PreLoginExplorer 
+                  onSelectGem={(gem, requiresLogin) => {
+                    if (requiresLogin) {
+                      setShowLoginModal(true);
+                    } else {
+                      setActivePortalUrl(gem.url);
+                    }
+                  }}
+                  onSelectStrand={(strand, requiresLogin) => {
+                    if (requiresLogin) {
+                      setShowLoginModal(true);
+                    } else {
+                      setCurrentStrand(strand);
+                    }
+                  }}
+                />
+              )}
             </motion.div>
           ) : currentStrand === 'pet' ? (
             <motion.div
@@ -2933,48 +3171,75 @@ export default function App() {
 
               {logTab === 'points' ? (
                 <>
-                  <div className="bg-white/5 border border-white/10 rounded-[2rem] overflow-hidden backdrop-blur-xl">
-                    <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
-                      <span className="text-white/40 uppercase tracking-widest text-xs">Activity</span>
-                      <div className="flex items-center gap-4">
-                        <button 
-                          onClick={() => user && handleCheckIn(user)}
-                          className="text-[10px] text-white/20 hover:text-white flex items-center gap-1 transition-colors"
-                        >
-                          <RefreshCw className="w-3 h-3" /> Sync Data
-                        </button>
-                        <span className="text-white/40 uppercase tracking-widest text-xs">Points</span>
-                      </div>
+                  <div className="relative bg-[#fbf9f4] border-2 border-[#e6e2da] rounded-3xl overflow-hidden shadow-2xl text-zinc-900">
+                    {/* Ring binder spiral binding look on the left edge */}
+                    <div className="absolute left-0 top-0 bottom-0 w-8 flex flex-col justify-around py-4 bg-[#f3efe6] border-r-2 border-[#e6e2da] z-25 pointer-events-none">
+                      {[...Array(12)].map((_, i) => (
+                        <div key={i} className="flex items-center relative">
+                          {/* Left binder hole inside the margin */}
+                          <div className="w-2.5 h-2.5 rounded-full bg-zinc-950/85 shadow-inner ml-2.5 border border-zinc-700/20" />
+                          {/* Binder ring wire */}
+                          <div className="absolute left-[-2px] w-6 h-2 rounded-full border-[1.5px] border-neutral-400 bg-gradient-to-r from-neutral-300 via-neutral-100 to-neutral-400 opacity-90 shadow-md" />
+                        </div>
+                      ))}
                     </div>
-                    <div className="max-h-[500px] overflow-y-auto">
-                      {logs.length === 0 ? (
-                        <div className="p-12 text-center">
-                          <p className="text-white/20 italic mb-4">No logs found yet. Start studying to earn points!</p>
+
+                    {/* Notebook Pages */}
+                    <div className="pl-12 pr-6 py-6 font-sans relative select-text">
+                      {/* Notebook red vertical margin line */}
+                      <div className="absolute left-[54px] top-0 bottom-0 w-[1.5px] bg-red-400/60 z-10 pointer-events-none" />
+
+                      {/* Header row in notebook */}
+                      <div className="p-4 border-b-2 border-dashed border-zinc-300/80 flex justify-between items-center mb-4 pl-8">
+                        <span className="font-mono text-[10px] text-zinc-500 tracking-widest uppercase font-bold flex items-center gap-1">
+                          🗒️ Captain's Logs / 星際學術日誌
+                        </span>
+                        <div className="flex items-center gap-4">
                           <button 
                             onClick={() => user && handleCheckIn(user)}
-                            className="text-xs text-white/40 hover:text-white underline"
+                            className="text-[10px] text-indigo-600 hover:text-indigo-800 flex items-center gap-1 transition-colors font-semibold"
                           >
-                            Sync Points & Inspiration
+                            <RefreshCw className="w-3 h-3 animate-pulse" /> Sync logs
                           </button>
                         </div>
-                      ) : (
-                        logs.map((log) => (
-                          <div key={log.id} className="p-6 border-b border-white/5 flex justify-between items-center hover:bg-white/5 transition-colors">
-                            <div>
-                              <p className="font-medium text-white/90">{log.description}</p>
-                              <p className="text-[10px] text-white/30 uppercase tracking-wider mt-1">
-                                {log.timestamp?.toDate?.()?.toLocaleString() || 'Just now'}
-                              </p>
-                            </div>
-                            <div className={cn(
-                              "text-lg font-display font-bold",
-                              log.points > 0 ? "text-green-400" : "text-red-400"
-                            )}>
-                              {log.points > 0 ? `+${log.points}` : log.points}
-                            </div>
+                      </div>
+
+                      {/* Log items inside the notebook with horizontal rule line styling */}
+                      <div className="max-h-[500px] overflow-y-auto pl-8">
+                        {logs.length === 0 ? (
+                          <div className="py-20 text-center">
+                            <p className="text-zinc-400 italic mb-4 font-serif">No logs found in this captain's record yet.</p>
+                            <p className="text-xs text-indigo-500 hover:underline cursor-pointer" onClick={() => user && handleCheckIn(user)}>
+                              Tap to sync cosmic data log
+                            </p>
                           </div>
-                        ))
-                      )}
+                        ) : (
+                          <div className="space-y-0 text-zinc-800">
+                            {logs.map((log) => (
+                              <div
+                                key={log.id} 
+                                className="py-5 border-b border-indigo-100/40 flex justify-between items-center hover:bg-neutral-100/50 transition-colors pl-2 pr-4 relative min-h-[5rem]"
+                              >
+                                <div>
+                                  <p className="font-semibold text-zinc-900 text-sm font-sans flex items-center gap-1.5">
+                                    <span className="text-neutral-400 text-xs" title="Record point">📌</span>
+                                    {log.description}
+                                  </p>
+                                  <p className="text-[10px] text-zinc-400 font-mono tracking-wider mt-1 font-bold">
+                                    🕒 {log.timestamp?.toDate?.()?.toLocaleString() || 'Record Registered'}
+                                  </p>
+                                </div>
+                                <div className={cn(
+                                  "text-xs font-mono font-black py-1 px-3 rounded-full shadow-sm text-center leading-none whitespace-nowrap",
+                                  log.points > 0 ? "bg-emerald-100 text-emerald-800 border border-emerald-200" : "bg-red-100 text-red-800 border border-red-200"
+                                )}>
+                                  {log.points > 0 ? `+${log.points}` : log.points} pts
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                   
@@ -3353,6 +3618,63 @@ export default function App() {
       </nav>
         </>
       )}
+
+      {/* Custom Login Prompt Modal */}
+      <AnimatePresence>
+        {showLoginModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[400] flex items-center justify-center px-6"
+          >
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setShowLoginModal(false)} />
+            <motion.div
+              initial={{ scale: 0.95, y: 15 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 15 }}
+              className="relative w-full max-w-md bg-zinc-900 border border-zinc-800 p-8 rounded-[2rem] shadow-[0_0_50px_rgba(255,255,255,0.05)] text-center text-white"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button 
+                onClick={() => setShowLoginModal(false)}
+                className="absolute top-5 right-5 text-neutral-500 hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center mx-auto mb-5 border border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.15)]">
+                <Moon className="w-8 h-8 text-amber-500" />
+              </div>
+              
+              <h3 className="text-lg font-medium text-white mb-2">星際通道受限 / Portal Gated</h3>
+              <p className="text-xs text-neutral-400 leading-relaxed mb-6 font-sans">
+                This planet requires an active cosmic educational frequency. Please sign in via Google to proceed with personalized records, streak bonuses and companions!
+                <br /><br />
+                此星球受限於學術網路頻率。請先登入，以便記錄每日任務、星際寵物成長並解鎖高等密鑰！
+              </p>
+
+              <div className="flex flex-col gap-2.5">
+                <button 
+                  onClick={() => {
+                    setShowLoginModal(false);
+                    handleLogin();
+                  }}
+                  className="w-full py-3 px-4 bg-white hover:bg-neutral-100 text-black font-semibold rounded-2xl transition-all flex items-center justify-center gap-2 text-xs"
+                >
+                  <LogIn className="w-4 h-4" /> Connect with Google / 帳號登入
+                </button>
+                <button 
+                  onClick={() => setShowLoginModal(false)}
+                  className="w-full py-3 px-4 bg-zinc-950 hover:bg-zinc-850 text-neutral-400 font-medium rounded-2xl transition-all border border-zinc-800 text-xs text-center"
+                >
+                  Continue as Guest / 星際漫遊
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Active Portal Overlay */}
       <AnimatePresence>
