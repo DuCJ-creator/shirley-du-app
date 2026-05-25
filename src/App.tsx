@@ -417,6 +417,7 @@ const PreLoginExplorer = ({ onSelectGem, onSelectStrand }: {
   onSelectStrand: (strand: Strand, requiresLogin: boolean) => void
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [subjectsExpanded, setSubjectsExpanded] = useState(false);
 
   const allGemsList = useMemo(() => {
     const list: any[] = [];
@@ -425,15 +426,40 @@ const PreLoginExplorer = ({ onSelectGem, onSelectStrand }: {
       if (!info) return;
       const requiresLogin = !(strandKey === 'uranus' || strandKey === 'neptune');
       gemsArray.forEach((gem: any) => {
-        list.push({
-          ...gem,
-          strandKey,
-          strandName: info.name,
-          strandNameZh: info.nameZh,
-          planet: info.planet,
-          color: info.color,
-          requiresLogin
-        });
+        if (gem.url === 'subjects') {
+          // Add main subject index
+          list.push({
+            ...gem,
+            strandKey,
+            strandName: info.name,
+            strandNameZh: info.nameZh,
+            planet: info.planet,
+            color: info.color,
+            requiresLogin
+          });
+          // Also index all the nested ones so they're searchable and selectable directly
+          SUBJECT_GEMS.forEach((sub) => {
+            list.push({
+              ...sub,
+              strandKey,
+              strandName: `${info.name} • ${gem.name}`,
+              strandNameZh: `${info.nameZh} • ${gem.nameZh}`,
+              planet: info.planet,
+              color: info.color,
+              requiresLogin
+            });
+          });
+        } else {
+          list.push({
+            ...gem,
+            strandKey,
+            strandName: info.name,
+            strandNameZh: info.nameZh,
+            planet: info.planet,
+            color: info.color,
+            requiresLogin
+          });
+        }
       });
     });
     return list;
@@ -527,7 +553,7 @@ const PreLoginExplorer = ({ onSelectGem, onSelectStrand }: {
           ) : (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <span className="text-5xl mb-4">🔭</span>
-              <p className="text-base md:text-lg text-neutral-300 font-medium">No matching gems discovered in this academy quadrant.</p>
+              <p className="text-base md:text-lg text-neutral-350 font-medium">No matching gems discovered in this academy quadrant.</p>
               <button 
                 onClick={() => setSearchQuery('')}
                 className="mt-4 text-xs md:text-sm text-cyan-400 font-bold hover:underline"
@@ -582,28 +608,94 @@ const PreLoginExplorer = ({ onSelectGem, onSelectStrand }: {
                 </div>
                 
                 <div className="space-y-3 flex-1 select-none">
-                  {gemsArray.map((gem: any, gemIdx: number) => (
-                    <div
-                      key={`${gem.name}-${gemIdx}`}
-                      onClick={() => onSelectGem(gem, requiresLogin)}
-                      className="group flex items-center justify-between p-3 rounded-2xl hover:bg-zinc-900/90 transition-all duration-300 cursor-pointer text-sm font-semibold"
-                    >
-                      <div className="flex items-center gap-3 overflow-hidden mr-2">
-                        <span 
-                          className="w-2.5 h-2.5 rounded-full flex-shrink-0 transition-transform group-hover:scale-125"
-                          style={{ 
-                            backgroundColor: info.color,
-                            boxShadow: `0 0 8px ${info.color}`
-                          }}
-                        />
-                        <div className="truncate">
-                          <span className="text-sm md:text-base font-bold text-neutral-200 group-hover:text-cyan-300 transition-colors block truncate">{gem.name}</span>
-                          <span className="text-xs text-neutral-400 group-hover:text-neutral-200 transition-colors block truncate mt-0.5">{gem.nameZh}</span>
+                  {gemsArray.map((gem: any, gemIdx: number) => {
+                    if (gem.url === 'subjects') {
+                      return (
+                        <div key={`${gem.name}-${gemIdx}`} className="flex flex-col">
+                          <div
+                            onClick={() => onSelectGem(gem, requiresLogin)}
+                            className="group flex items-center justify-between p-3 rounded-2xl hover:bg-zinc-900/90 transition-all duration-300 cursor-pointer text-sm font-semibold border-2 border-transparent hover:border-cyan-500/20"
+                          >
+                            <div className="flex items-center gap-3 overflow-hidden mr-2">
+                              <span 
+                                className="w-2.5 h-2.5 rounded-full flex-shrink-0 transition-transform group-hover:scale-125"
+                                style={{ 
+                                  backgroundColor: info.color,
+                                  boxShadow: `0 0 8px ${info.color}`
+                                }}
+                              />
+                              <div className="truncate">
+                                <span className="text-sm md:text-base font-bold text-neutral-200 group-hover:text-cyan-300 transition-colors block truncate">{gem.name}</span>
+                                <span className="text-xs text-neutral-400 group-hover:text-neutral-200 transition-colors block truncate mt-0.5">{gem.nameZh}</span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] text-cyan-400 font-bold bg-cyan-950/40 px-2 py-0.5 rounded-full uppercase border border-cyan-800/30">
+                                {subjectsExpanded ? 'Hide' : 'Expand'}
+                              </span>
+                              <ChevronRight className={`w-5 h-5 text-neutral-500 group-hover:text-cyan-350 transition-transform ${subjectsExpanded ? 'rotate-90 text-cyan-300' : ''}`} />
+                            </div>
+                          </div>
+                          
+                          {subjectsExpanded && (
+                            <div className="mt-2 ml-4 pl-4 border-l-2 border-indigo-500/30 space-y-2">
+                              {SUBJECT_GEMS.map((sub, sIdx) => (
+                                <div
+                                  key={`sub-${sub.name}-${sIdx}`}
+                                  onClick={() => onSelectGem(sub, requiresLogin)}
+                                  className="group flex items-center justify-between p-2.5 rounded-2xl hover:bg-zinc-900/60 transition-all duration-300 cursor-pointer text-xs md:text-sm font-semibold"
+                                >
+                                  <div className="flex items-center gap-2.5 overflow-hidden mr-2">
+                                    <span 
+                                      className="w-2.5 h-2.5 rounded-full flex-shrink-0 transition-transform group-hover:scale-125 animate-pulse"
+                                      style={{ 
+                                        backgroundColor: 
+                                          sub.type === 'diamond' ? '#fff' :
+                                          sub.type === 'ruby' ? '#ff4d4d' :
+                                          sub.type === 'emerald' ? '#2ecc71' :
+                                          sub.type === 'sapphire' ? '#3498db' :
+                                          sub.type === 'amethyst' ? '#9b59b6' :
+                                          sub.type === 'topaz' ? '#f39c12' : '#fff',
+                                        boxShadow: `0 0 8px currentColor`
+                                      }}
+                                    />
+                                    <div className="truncate">
+                                      <span className="text-neutral-200 group-hover:text-cyan-300 transition-colors block truncate">{sub.name}</span>
+                                      <span className="text-[11px] text-neutral-400 group-hover:text-neutral-200 transition-colors block truncate mt-0.5">{sub.nameZh}</span>
+                                    </div>
+                                  </div>
+                                  <ChevronRight className="w-4 h-4 text-neutral-500 group-hover:text-cyan-300 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
+                      );
+                    }
+
+                    return (
+                      <div
+                        key={`${gem.name}-${gemIdx}`}
+                        onClick={() => onSelectGem(gem, requiresLogin)}
+                        className="group flex items-center justify-between p-3 rounded-2xl hover:bg-zinc-900/90 transition-all duration-300 cursor-pointer text-sm font-semibold"
+                      >
+                        <div className="flex items-center gap-3 overflow-hidden mr-2">
+                          <span 
+                            className="w-2.5 h-2.5 rounded-full flex-shrink-0 transition-transform group-hover:scale-125"
+                            style={{ 
+                              backgroundColor: info.color,
+                              boxShadow: `0 0 8px ${info.color}`
+                            }}
+                          />
+                          <div className="truncate">
+                            <span className="text-sm md:text-base font-bold text-neutral-200 group-hover:text-cyan-300 transition-colors block truncate">{gem.name}</span>
+                            <span className="text-xs text-neutral-400 group-hover:text-neutral-200 transition-colors block truncate mt-0.5">{gem.nameZh}</span>
+                          </div>
+                        </div>
+                        <ChevronRight className="w-5 h-5 text-neutral-500 group-hover:text-cyan-300 group-hover:translate-x-1 transition-all flex-shrink-0" />
                       </div>
-                      <ChevronRight className="w-5 h-5 text-neutral-500 group-hover:text-cyan-300 group-hover:translate-x-1 transition-all flex-shrink-0" />
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             );
@@ -3019,7 +3111,14 @@ export default function App() {
                   if (requiresLogin && !user) {
                     setShowLoginModal(true);
                   } else {
-                    setActivePortalUrl(gem.url);
+                    if (gem.url === 'subjects') {
+                      setCurrentStrand('vocabulary');
+                      setVocabSearchTerm("");
+                      setShowSubjects(true);
+                      setActivePortalUrl(null);
+                    } else {
+                      setActivePortalUrl(gem.url);
+                    }
                   }
                 }}
                 onSelectStrand={(strand, requiresLogin) => {
