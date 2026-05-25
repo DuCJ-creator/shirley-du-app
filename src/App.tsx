@@ -2145,9 +2145,7 @@ export default function App() {
   
   // Update localStorage when notes change
   useEffect(() => {
-    if (notes.length > 0) {
-      localStorage.setItem('space_notes_cache', JSON.stringify(notes));
-    }
+    localStorage.setItem('space_notes_cache', JSON.stringify(notes));
   }, [notes]);
   
   // Activity tracking
@@ -2881,8 +2879,6 @@ export default function App() {
   };
 
   const handleSaveNote = async (note: Partial<StudyNote>) => {
-    if (!user) return;
-    
     const noteId = note.id || Math.random().toString(36).substr(2, 9);
     const newNote: StudyNote = {
       ...note,
@@ -2905,25 +2901,28 @@ export default function App() {
       return [newNote, ...prev];
     });
 
-    try {
-      const noteRef = doc(db, 'users', user.uid, 'notes', noteId);
-      await setDoc(noteRef, newNote, { merge: true });
-    } catch (e) {
-      console.error("Firestore save failed, using local storage only", e);
+    if (user) {
+      try {
+        const noteRef = doc(db, 'users', user.uid, 'notes', noteId);
+        await setDoc(noteRef, newNote, { merge: true });
+      } catch (e) {
+        console.error("Firestore save failed, using local storage only", e);
+      }
     }
   };
 
   const handleDeleteNote = async (id: string) => {
-    if (!user) return;
     if (!window.confirm("Are you sure you want to delete this note?")) return;
     
     // Optimistic local update
     setNotes(prev => prev.filter(n => n.id !== id));
 
-    try {
-      await deleteDoc(doc(db, 'users', user.uid, 'notes', id));
-    } catch (e) {
-      console.error("Firestore delete failed", e);
+    if (user) {
+      try {
+        await deleteDoc(doc(db, 'users', user.uid, 'notes', id));
+      } catch (e) {
+        console.error("Firestore delete failed", e);
+      }
     }
   };
 
@@ -3499,15 +3498,6 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Study NotePad */}
-      {user && (
-        <NotePad 
-          notes={notes} 
-          onSave={handleSaveNote} 
-          onDelete={handleDeleteNote} 
-        />
-      )}
-
       {/* Moon Base Card Modal */}
       <AnimatePresence>
         {(showCheckIn || selectedCard) && (
@@ -3721,6 +3711,13 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Study NotePad */}
+      <NotePad 
+        notes={notes} 
+        onSave={handleSaveNote} 
+        onDelete={handleDeleteNote} 
+      />
 
       {/* Active Portal Overlay */}
       <AnimatePresence>
