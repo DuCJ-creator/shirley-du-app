@@ -213,7 +213,7 @@ const UserAvatarCenter = ({ userData, onUpdate }: { userData: any, onUpdate: (da
   );
 };
 
-const UniverseDisplay = ({ user, userData, onStrandClick, onUpdateAvatar }: { user: any, userData: any, onStrandClick: (s: Strand) => void, onUpdateAvatar: (d: any) => void }) => {
+const UniverseDisplay = ({ user, userData, onStrandClick, onUpdateAvatar, onSpaceshipClick }: { user: any, userData: any, onStrandClick: (s: Strand) => void, onUpdateAvatar: (d: any) => void, onSpaceshipClick: () => void }) => {
   const [hoveredOrbit, setHoveredOrbit] = useState<number | null>(null);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -237,7 +237,7 @@ const UniverseDisplay = ({ user, userData, onStrandClick, onUpdateAvatar }: { us
         <div className="absolute bottom-[-100px] left-[-100px] w-64 h-64 bg-blue-500/10 blur-[100px] rounded-full" />
         
         <div className="mb-20">
-          <UserAvatarCenter userData={userData} onUpdate={onUpdateAvatar} />
+          <SpaceshipCenter onClick={onSpaceshipClick} />
         </div>
 
         <div className="relative w-full h-[850px]">
@@ -285,10 +285,10 @@ const UniverseDisplay = ({ user, userData, onStrandClick, onUpdateAvatar }: { us
 
   return (
     <div className="relative w-full h-[85vh] flex items-center justify-center">
-      {/* Central Star Glow - Enhanced for Depth */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-sky-500/5 blur-[150px] rounded-full pointer-events-none" />
+      {/* Central Star Glow - Enhanced for Depth & Vibrancy */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-400/15 blur-[120px] animate-pulse rounded-full pointer-events-none" />
       
-      {/* Orbital Rings - Thinner and more subtle */}
+      {/* Orbital Rings - Vibrant and clear */}
       <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
         {orbitDistances.map((dist, i) => (
             <motion.div 
@@ -297,7 +297,7 @@ const UniverseDisplay = ({ user, userData, onStrandClick, onUpdateAvatar }: { us
               style={{ 
                 width: dist * 2, 
                 height: dist * 2,
-                borderColor: hoveredOrbit === i + 1 ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.04)',
+                borderColor: hoveredOrbit === i + 1 ? 'rgba(34,211,238,0.5)' : 'rgba(255,255,255,0.08)',
                 transform: hoveredOrbit === i + 1 ? 'scale(1.005)' : 'scale(1)'
               }}
             />
@@ -305,7 +305,7 @@ const UniverseDisplay = ({ user, userData, onStrandClick, onUpdateAvatar }: { us
       </div>
 
       <div className="scale-75 lg:scale-100">
-        <UserAvatarCenter userData={userData} onUpdate={onUpdateAvatar} />
+        <SpaceshipCenter onClick={onSpaceshipClick} />
       </div>
 
       {/* Planets */}
@@ -1251,195 +1251,109 @@ const Gem = ({ name, nameZh, url, color, type, onVisit, onClick, className }: { 
   </motion.button>
 );
 
-const ETCharacter = ({ onClick }: { onClick: () => void }) => {
-  const [pos, setPos] = useState({ x: 5, y: 15 });
-  const [screenSize, setScreenSize] = useState({ w: typeof window !== 'undefined' ? window.innerWidth : 1000, h: typeof window !== 'undefined' ? window.innerHeight : 1000 });
-  const [isHovered, setIsHovered] = useState(false);
-  const isHoveredRef = useRef(false);
-  const currentCoords = useRef({ x: 5, y: 15 });
-
-  useEffect(() => {
-    isHoveredRef.current = isHovered;
-  }, [isHovered]);
-
-  useEffect(() => {
-    const handleResize = () => setScreenSize({ w: window.innerWidth, h: window.innerHeight });
-    window.addEventListener('resize', handleResize);
-    
-    // Smooth gliding patrol along the edges to NEVER cover the center planets
-    const zones = [
-      { x: 5, y: 12 },   // Top Left Corner
-      { x: 88, y: 12 },  // Top Right Corner
-      { x: 5, y: 82 },   // Bottom Left Corner
-      { x: 88, y: 82 },  // Bottom Right Corner
-      { x: 4, y: 45 },   // Mid Left Outer margin
-      { x: 90, y: 45 }   // Mid Right Outer margin
-    ];
-
-    let currentZone = 0;
-    
-    const moveInterval = setInterval(() => {
-      // Do not plan a new position if user is Hovering
-      if (isHoveredRef.current) return;
-
-      // Pick a random zone different from the current one
-      let nextZone = currentZone;
-      while (nextZone === currentZone) {
-        nextZone = Math.floor(Math.random() * zones.length);
-      }
-      currentZone = nextZone;
-      const target = zones[nextZone];
-      
-      // Add slight orbital jitter within the zone
-      const jitterX = Math.random() * 4 - 2;
-      const jitterY = Math.random() * 4 - 2;
-      
-      setPos({ 
-        x: Math.max(3, Math.min(92, target.x + jitterX)), 
-        y: Math.max(10, Math.min(85, target.y + jitterY)) 
-      });
-    }, 4500); // 4.5 seconds instead of 15 seconds! Moves much more swiftly!
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      clearInterval(moveInterval);
-    };
-  }, []);
-
+const SpaceshipCenter = ({ onClick }: { onClick: () => void }) => {
   return (
-    <motion.div
-      initial={{ x: `${pos.x}vw`, y: `${pos.y}vh`, opacity: 0 }}
-      animate={{ 
-        x: `${pos.x}vw`, 
-        y: `${pos.y}vh`, 
-        opacity: 1,
-        rotate: isHovered ? 0 : [0, 4, -4, 0],
-      }}
-      whileHover={{ scale: 1.18 }}
-      whileTap={{ scale: 0.92 }}
-      onUpdate={(latest) => {
-        // Track the mid-flight coordinate to enable instant pausing
-        if (latest.x && latest.y && !isHoveredRef.current) {
-          const px = parseFloat(latest.x as string);
-          const py = parseFloat(latest.y as string);
-          if (!isNaN(px) && !isNaN(py)) {
-            currentCoords.current = { x: px, y: py };
-          }
-        }
-      }}
-      onMouseEnter={() => {
-        setIsHovered(true);
-        // Lock position precisely at its current coordinate
-        setPos({ x: currentCoords.current.x, y: currentCoords.current.y });
-      }}
-      onMouseLeave={() => {
-        setIsHovered(false);
-      }}
-      transition={{ 
-        x: { duration: isHovered ? 0.05 : 3.2, ease: "easeInOut" },
-        y: { duration: isHovered ? 0.05 : 3.2, ease: "easeInOut" },
-        rotate: { duration: 4, repeat: Infinity, ease: "easeInOut" },
-        opacity: { duration: 1 }
-      }}
-      className="fixed z-[150] cursor-pointer group"
-      style={{ left: 0, top: 0, touchAction: 'none' }}
-      onClick={onClick}
-    >
-      <div className="relative">
-        {/* Message Bubble - Cool Holographic Interface style */}
+    <div className="relative z-30 flex flex-col items-center justify-center cursor-pointer group select-none" onClick={onClick}>
+      {/* Cool Speech Bubble - Holographic Style */}
+      <motion.div
+        animate={{ y: [0, -5, 0] }}
+        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute -top-16 bg-slate-900 border-2 border-cyan-400 px-4 py-1.5 rounded-2xl whitespace-nowrap shadow-[0_0_20px_rgba(34,211,238,0.5)] z-40"
+      >
+        <div className="flex items-center gap-2">
+          <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
+          <span className="text-[11px] font-mono font-black text-cyan-200 tracking-wider">
+            To my world, beat me first!
+          </span>
+        </div>
+        {/* Little Arrow */}
+        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-900 border-r-2 border-b-2 border-cyan-400 rotate-45" />
+      </motion.div>
+
+      {/* Futuristic Spaceship Vessel */}
+      <div className="relative w-36 h-36 flex items-center justify-center">
+        {/* Energy Rings / Thruster Waves */}
+        <div className="absolute w-28 h-28 border-2 border-dashed border-indigo-400/30 rounded-full animate-[spin_8s_linear_infinite]" />
+        <div className="absolute w-32 h-32 border border-dotted border-pink-400/20 rounded-full animate-[spin_12s_linear_infinite_reverse]" />
+        <div className="absolute w-24 h-24 bg-gradient-to-tr from-indigo-500/20 via-pink-500/25 to-cyan-500/15 rounded-full blur-xl animate-pulse" />
+
+        {/* Glow behind engine */}
+        <div className="absolute h-10 w-4 bg-orange-500/80 rounded-full blur-md bottom-2 animate-[pulse_1s_infinite] shadow-[0_0_25px_rgba(249,115,22,0.8)]" />
+
+        {/* Custom Spaceship SVG */}
         <motion.div
-          animate={{ y: [0, -4, 0] }}
-          transition={{ duration: 4, repeat: Infinity }}
-          className="absolute -top-16 left-1/2 -translate-x-1/2 bg-slate-950/90 backdrop-blur-md border border-cyan-500/50 px-4 py-1.5 rounded-xl whitespace-nowrap shadow-[0_0_25px_rgba(6,182,212,0.35)]"
+          animate={{ y: [0, -3, 0] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          className="relative z-10 w-24 h-24"
         >
-          <div className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
-            <span className="text-[10px] font-mono font-bold text-cyan-200 tracking-wider uppercase">
-              To my world, beat me first!
-            </span>
-            <span className="text-[8px] font-mono text-cyan-400/60 font-medium">SYS_LINK_ONLINE</span>
-          </div>
-          {/* Arrow */}
-          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-950 border-r border-b border-cyan-500/50 rotate-45" />
+          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full drop-shadow-[0_0_15px_rgba(34,211,238,0.6)]">
+            {/* Engine Thruster Flame */}
+            <path d="M50 82 L42 96 L50 90 L58 96 Z" fill="url(#engineFlame)" />
+            {/* Left Helper Wing */}
+            <path d="M22 66 L30 52 L36 68 Z" fill="#6366f1" stroke="#312e81" strokeWidth="1.5" />
+            <path d="M10 66 L22 66 L30 74 Z" fill="#4338ca" />
+            {/* Right Helper Wing */}
+            <path d="M78 66 L70 52 L64 68 Z" fill="#6366f1" stroke="#312e81" strokeWidth="1.5" />
+            <path d="M90 66 L78 66 L70 74 Z" fill="#4338ca" />
+            
+            {/* Upper Tail fins */}
+            <path d="M50 20 L44 38 L50 34 L56 38 Z" fill="#ec4899" stroke="#50072b" strokeWidth="1" />
+
+            {/* Ship Core Body / Hull */}
+            <path d="M50 14 L30 68 L50 80 L70 68 Z" fill="url(#hullGradient)" stroke="#1e1b4b" strokeWidth="2.5" />
+
+            {/* Glowing Panel stripes */}
+            <path d="M50 30 L40 64 L50 72 L60 64 Z" fill="url(#panelGradient)" />
+
+            {/* Cockpit / Windshield Glass */}
+            <path d="M50 28 C45 28 42 38 42 45 C42 55 50 58 50 58 C50 58 58 55 58 45 C58 38 55 28 50 28 Z" fill="url(#cockpitGradient)" stroke="#06b6d4" strokeWidth="2" />
+            {/* Glass glint / reflection highlight */}
+            <ellipse cx="48" cy="40" rx="3" ry="6" fill="#ffffff" transform="rotate(-15, 48, 40)" opacity="0.8" />
+
+            {/* High-tech antenna / tip tip glow */}
+            <circle cx="50" cy="14" r="2.5" fill="#22d3ee" className="animate-ping" />
+            <circle cx="50" cy="14" r="1.5" fill="#ffffff" />
+
+            {/* Navigation Lights */}
+            <circle cx="16" cy="66" r="2" fill="#ef4444" className="animate-pulse" />
+            <circle cx="84" cy="66" r="2" fill="#10b981" className="animate-pulse" />
+
+            <defs>
+              <linearGradient id="hullGradient" x1="50" y1="14" x2="50" y2="80" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#f8fafc" />
+                <stop offset="0.4" stopColor="#e2e8f0" />
+                <stop offset="0.8" stopColor="#94a3b8" />
+                <stop offset="1" stopColor="#475569" />
+              </linearGradient>
+              <linearGradient id="engineFlame" x1="50" y1="82" x2="50" y2="96" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#facc15" />
+                <stop offset="0.5" stopColor="#f97316" />
+                <stop offset="1" stopColor="#ef4444" stopOpacity="0" />
+              </linearGradient>
+              <linearGradient id="cockpitGradient" x1="50" y1="28" x2="50" y2="58" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#22d3ee" />
+                <stop offset="0.7" stopColor="#0891b2" />
+                <stop offset="1" stopColor="#0369a1" />
+              </linearGradient>
+              <linearGradient id="panelGradient" x1="50" y1="30" x2="50" y2="72" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#818cf8" stopOpacity="0.8" />
+                <stop offset="1" stopColor="#c084fc" stopOpacity="0.4" />
+              </linearGradient>
+            </defs>
+          </svg>
         </motion.div>
 
-        {/* Futuristic Scientific Orbital Drone - Compact Size (w-16 h-16) */}
-        <div className="w-16 h-16 relative flex items-center justify-center">
-          
-          {/* Quantum Particle Outer Ring (Asynchronous Spinning) */}
-          <div className="absolute w-20 h-20 border border-dashed border-cyan-400/30 rounded-full animate-[spin_10s_linear_infinite]" />
-          <div className="absolute w-22 h-22 border border-dotted border-fuchsia-400/20 rounded-full animate-[spin_14s_linear_infinite_reverse]" />
-
-          {/* Core Ambient Science Field Glow */}
-          <div className="absolute w-14 h-14 bg-gradient-to-tr from-cyan-500/30 to-fuchsia-500/20 rounded-full blur-xl animate-pulse" />
-
-          {/* Sleek Solar-Sails / Thruster stabilizer vector wings */}
-          <div className="absolute -left-4 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
-            <div className="w-1 h-6 bg-cyan-400/80 rounded-full shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
-            <div className="w-1.5 h-10 bg-slate-800/90 border border-cyan-500/50 rounded-[4px] shadow-md transform -skew-y-12" />
-          </div>
-          <div className="absolute -right-4 top-1/2 -translate-y-1/2 flex flex-row-reverse items-center gap-0.5">
-            <div className="w-1 h-6 bg-cyan-400/80 rounded-full shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
-            <div className="w-1.5 h-10 bg-slate-800/90 border border-cyan-500/50 rounded-[4px] shadow-md transform skew-y-12" />
-          </div>
-
-          {/* Central Circular Scientific Core Box */}
-          <div className="relative w-12 h-12 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 rounded-full border-2 border-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.5)] flex items-center justify-center overflow-visible group-hover:border-fuchsia-400 group-hover:shadow-[0_0_20px_rgba(232,121,249,0.7)] transition-all duration-300">
-            
-            {/* Holographic Radar Scanner Grid */}
-            <div className="absolute inset-0 rounded-full overflow-hidden opacity-30">
-              <div className="absolute inset-0 border-t border-b border-cyan-400/40 transform rotate-45 scale-110" />
-              <div className="absolute inset-0 border-l border-r border-cyan-400/40 transform rotate-45 scale-110" />
-            </div>
-
-            {/* Precision Laser Matrix (Sleek red scan line) */}
-            <div className="absolute inset-0 overflow-hidden rounded-full pointer-events-none">
-              <motion.div 
-                animate={{ top: ['0%', '100%', '0%'] }}
-                transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute left-0 w-full h-[1.5px] bg-red-500 shadow-[0_0_8px_rgba(239,68,68,1)]"
-              />
-            </div>
-
-            {/* Scientific Optical Matrix (Concentric Glowing Lenses) */}
-            <div className="relative w-8 h-8 rounded-full bg-slate-950/80 border border-cyan-500/40 flex items-center justify-center">
-              {/* Outer Lens */}
-              <div className="absolute inset-0.5 rounded-full border border-fuchsia-500/50 animate-pulse" />
-              {/* Central Iris Laser Eye */}
-              <div className="w-4 h-4 rounded-full bg-gradient-to-r from-cyan-400 to-indigo-500 flex items-center justify-center shadow-[0_0_12px_#22d3ee]">
-                {/* Micro reflection dot */}
-                <div className="w-1 h-1 bg-white rounded-full absolute top-0.5 left-0.5 opacity-90" />
-                <div className="w-1.5 h-1.5 rounded-full bg-slate-950 flex items-center justify-center">
-                  <div className="w-0.5 h-0.5 rounded-full bg-red-400" />
-                </div>
-              </div>
-            </div>
-
-            {/* Lower Dynamic Telemetry Dots */}
-            <div className="absolute bottom-1 flex gap-1 justify-center">
-              <div className="w-1 h-1 rounded-full bg-cyan-400 animate-ping" />
-              <div className="w-1 h-1 rounded-full bg-fuchsia-400 animate-pulse delay-75" />
-            </div>
-
-            {/* Top Quantum Antenna */}
-            <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-0.5 h-2.5 bg-cyan-400 shadow-[0_0_6px_#22d3ee]">
-              <div className="w-1 h-1 rounded-full bg-fuchsia-400 absolute top-0 -left-[1.5px] animate-pulse" />
-            </div>
-
-          </div>
-
-          {/* Micro Orbit Particle Satellite */}
-          <motion.div 
-            animate={{ rotate: -360 }}
-            transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
-            className="absolute inset-0 pointer-events-none"
-          >
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-fuchsia-400 ring-1 ring-white rounded-full shadow-[0_0_8px_#e879f9]" />
-          </motion.div>
-
+        {/* Dynamic Thruster Sparkles */}
+        <div className="absolute bottom-[-10px] flex gap-1 justify-center pointer-events-none">
+          <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
+          <div className="w-1 h-1 rounded-full bg-orange-400 animate-pulse delay-75" />
         </div>
       </div>
-    </motion.div>
+
+      <span className="text-[10px] font-mono tracking-widest text-indigo-300 group-hover:text-cyan-300 transition-colors uppercase font-bold mt-2">
+        🛸 Enter Star Battle / 啟動星戰
+      </span>
+    </div>
   );
 };
 
@@ -3019,8 +2933,7 @@ export default function App() {
               exit={{ opacity: 0 }}
               className="relative w-full min-h-[85vh] flex flex-col items-center justify-center"
             >
-              {/* ET Character */}
-              <ETCharacter onClick={() => setActivePortalUrl("https://ducj-creator.github.io/etgame.html")} />
+              {/* Central Planet Map Universe displays the spaceship at its center */}
 
               {/* Check-in Pop-out Modal */}
               <AnimatePresence>
@@ -3099,6 +3012,7 @@ export default function App() {
                 userData={userData} 
                 onStrandClick={handleStrandClick} 
                 onUpdateAvatar={handleUpdateAvatar} 
+                onSpaceshipClick={() => setActivePortalUrl("https://ducj-creator.github.io/etgame.html")}
               />
 
               <PreLoginExplorer 
