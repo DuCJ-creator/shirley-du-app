@@ -412,6 +412,66 @@ const SUBJECT_GEMS = [
   { name: 'Business', nameZh: '商業', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/business.html', type: 'ruby' },
 ];
 
+const RenderMiniGem = ({ type = 'diamond', className = '' }: { type?: string, className?: string }) => {
+  const t = (type || 'diamond').toLowerCase();
+  
+  // High-fidelity custom gradients & clip-paths for distinct gem types
+  let clipPathStyle = 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)'; // diamond fallback
+  let gradientClass = 'from-sky-300 via-cyan-200 to-white';
+  let glowColor = 'rgba(34, 211, 238, 0.7)';
+  
+  if (t === 'diamond') {
+    clipPathStyle = 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)';
+    gradientClass = 'from-cyan-300 via-sky-100 to-white';
+    glowColor = 'rgba(34, 211, 238, 0.7)';
+  } else if (t === 'ruby') {
+    clipPathStyle = 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)';
+    gradientClass = 'from-red-400 via-rose-500 to-rose-700';
+    glowColor = 'rgba(239, 68, 68, 0.7)';
+  } else if (t === 'emerald') {
+    clipPathStyle = 'polygon(0% 25%, 25% 0%, 75% 0%, 100% 25%, 100% 75%, 75% 100%, 25% 100%, 0% 75%)';
+    gradientClass = 'from-emerald-350 via-emerald-450 to-emerald-600';
+    glowColor = 'rgba(16, 185, 129, 0.7)';
+  } else if (t === 'sapphire') {
+    clipPathStyle = 'polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)';
+    gradientClass = 'from-blue-300 via-sky-400 to-blue-700';
+    glowColor = 'rgba(59, 130, 246, 0.7)';
+  } else if (t === 'amethyst') {
+    clipPathStyle = 'polygon(50% 0%, 95% 25%, 95% 75%, 50% 100%, 5% 75%, 5% 25%)';
+    gradientClass = 'from-fuchsia-300 via-purple-400 to-purple-700';
+    glowColor = 'rgba(168, 85, 247, 0.7)';
+  } else if (t === 'topaz') {
+    clipPathStyle = 'polygon(20% 0%, 80% 0%, 100% 20%, 100% 80%, 80% 100%, 20% 100%, 0% 80%, 0% 20%)';
+    gradientClass = 'from-amber-300 via-orange-400 to-amber-600';
+    glowColor = 'rgba(245, 158, 11, 0.7)';
+  } else if (t === 'opal') {
+    clipPathStyle = 'none'; // round opal
+    gradientClass = 'bg-radial from-white via-pink-300 via-purple-300 to-indigo-300';
+    glowColor = 'rgba(236, 72, 153, 0.7)';
+  }
+
+  return (
+    <div 
+      className={cn(
+        "relative w-3.5 h-3.5 flex-shrink-0 transition-transform duration-350 group-hover:scale-135 select-none", 
+        t === 'opal' ? 'rounded-full' : '',
+        className
+      )}
+      style={{
+        clipPath: t === 'opal' ? 'none' : clipPathStyle,
+        filter: `drop-shadow(0 0 5px ${glowColor})`
+      }}
+    >
+      <div 
+        className={cn(
+          "w-full h-full bg-gradient-to-br", 
+          t === 'opal' ? 'bg-radial from-white via-pink-200 via-sky-100 to-blue-300' : gradientClass
+        )} 
+      />
+    </div>
+  );
+};
+
 const PreLoginExplorer = ({ onSelectGem, onSelectStrand }: {
   onSelectGem: (gem: any, requiresLogin: boolean) => void,
   onSelectStrand: (strand: Strand, requiresLogin: boolean) => void
@@ -524,10 +584,7 @@ const PreLoginExplorer = ({ onSelectGem, onSelectStrand }: {
                   className="p-5 md:p-6 rounded-3xl bg-zinc-950/70 border-2 border-zinc-800/80 hover:border-cyan-500/50 hover:bg-zinc-900/60 transition-all duration-300 cursor-pointer flex items-center justify-between group shadow-lg"
                 >
                   <div className="flex items-center gap-4 min-w-0 mr-3">
-                    <span 
-                      className="w-3.5 h-3.5 rounded-full shadow-[0_0_12px_rgba(255,255,255,0.4)] flex-shrink-0 animate-pulse" 
-                      style={{ backgroundColor: gem.color }}
-                    />
+                    <RenderMiniGem type={gem.type} />
                     <div className="overflow-hidden">
                       <h4 className="text-base md:text-lg font-bold text-white group-hover:text-cyan-300 transition-colors truncate">{gem.name}</h4>
                       <p className="text-xs md:text-sm text-neutral-300 mt-1 truncate">{gem.nameZh}</p>
@@ -617,13 +674,7 @@ const PreLoginExplorer = ({ onSelectGem, onSelectStrand }: {
                             className="group flex items-center justify-between p-3 rounded-2xl hover:bg-zinc-900/90 transition-all duration-300 cursor-pointer text-sm font-semibold border-2 border-transparent hover:border-cyan-500/20"
                           >
                             <div className="flex items-center gap-3 overflow-hidden mr-2">
-                              <span 
-                                className="w-2.5 h-2.5 rounded-full flex-shrink-0 transition-transform group-hover:scale-125"
-                                style={{ 
-                                  backgroundColor: info.color,
-                                  boxShadow: `0 0 8px ${info.color}`
-                                }}
-                              />
+                              <RenderMiniGem type={gem.type} />
                               <div className="truncate">
                                 <span className="text-sm md:text-base font-bold text-neutral-200 group-hover:text-cyan-300 transition-colors block truncate">{gem.name}</span>
                                 <span className="text-xs text-neutral-400 group-hover:text-neutral-200 transition-colors block truncate mt-0.5">{gem.nameZh}</span>
@@ -646,19 +697,7 @@ const PreLoginExplorer = ({ onSelectGem, onSelectStrand }: {
                                   className="group flex items-center justify-between p-2.5 rounded-2xl hover:bg-zinc-900/60 transition-all duration-300 cursor-pointer text-xs md:text-sm font-semibold"
                                 >
                                   <div className="flex items-center gap-2.5 overflow-hidden mr-2">
-                                    <span 
-                                      className="w-2.5 h-2.5 rounded-full flex-shrink-0 transition-transform group-hover:scale-125 animate-pulse"
-                                      style={{ 
-                                        backgroundColor: 
-                                          sub.type === 'diamond' ? '#fff' :
-                                          sub.type === 'ruby' ? '#ff4d4d' :
-                                          sub.type === 'emerald' ? '#2ecc71' :
-                                          sub.type === 'sapphire' ? '#3498db' :
-                                          sub.type === 'amethyst' ? '#9b59b6' :
-                                          sub.type === 'topaz' ? '#f39c12' : '#fff',
-                                        boxShadow: `0 0 8px currentColor`
-                                      }}
-                                    />
+                                    <RenderMiniGem type={sub.type} />
                                     <div className="truncate">
                                       <span className="text-neutral-200 group-hover:text-cyan-300 transition-colors block truncate">{sub.name}</span>
                                       <span className="text-[11px] text-neutral-400 group-hover:text-neutral-200 transition-colors block truncate mt-0.5">{sub.nameZh}</span>
@@ -680,13 +719,7 @@ const PreLoginExplorer = ({ onSelectGem, onSelectStrand }: {
                         className="group flex items-center justify-between p-3 rounded-2xl hover:bg-zinc-900/90 transition-all duration-300 cursor-pointer text-sm font-semibold"
                       >
                         <div className="flex items-center gap-3 overflow-hidden mr-2">
-                          <span 
-                            className="w-2.5 h-2.5 rounded-full flex-shrink-0 transition-transform group-hover:scale-125"
-                            style={{ 
-                              backgroundColor: info.color,
-                              boxShadow: `0 0 8px ${info.color}`
-                            }}
-                          />
+                          <RenderMiniGem type={gem.type} />
                           <div className="truncate">
                             <span className="text-sm md:text-base font-bold text-neutral-200 group-hover:text-cyan-300 transition-colors block truncate">{gem.name}</span>
                             <span className="text-xs text-neutral-400 group-hover:text-neutral-200 transition-colors block truncate mt-0.5">{gem.nameZh}</span>
