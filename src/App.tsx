@@ -1298,14 +1298,17 @@ const Planet = ({ strand, info, onClick, disabled, isHovered }: { strand: Strand
 
         <div 
           className={cn(
-            "rounded-full moon-glow transition-all duration-700 relative",
-            info.class,
-            !disabled && "group-hover:shadow-[0_0_60px_rgba(255,255,255,0.4)]",
-            isHovered && "shadow-[0_0_80px_rgba(255,255,255,0.5)]"
+            "rounded-full transition-all duration-700 relative",
+            info.class
           )}
           style={{ 
             width: `${scaledSize}px`, 
             height: `${scaledSize}px`,
+            boxShadow: disabled
+              ? `0 0 15px 1px ${info.color}25, inset 0 0 8px rgba(255, 255, 255, 0.2)`
+              : isHovered 
+                ? `0 0 65px 12px ${info.color}b0, inset 0 0 25px rgba(255, 255, 255, 0.7)` 
+                : `0 0 35px 4px ${info.color}65, inset 0 0 15px rgba(255, 255, 255, 0.45)`
           }}
         >
           {/* Internal Art Textures */}
@@ -1333,16 +1336,16 @@ const Planet = ({ strand, info, onClick, disabled, isHovered }: { strand: Strand
         <div className="absolute inset-[-15px] rounded-full z-0 cursor-pointer" />
       </div>
 
-      <div className="mt-4 flex flex-col items-center text-center">
-        <span className="font-display text-sm font-bold tracking-tight text-white/90 group-hover:text-white transition-colors">
+      <div className="mt-4 flex flex-col items-center text-center px-4 py-2 rounded-2xl bg-slate-950/75 border border-white/5 backdrop-blur-md shadow-[0_5px_15px_rgba(0,0,0,0.6)] group-hover:bg-slate-900/90 group-hover:border-white/12 transition-all">
+        <span className="font-display text-xs md:text-sm font-extrabold tracking-wide text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
           {info.name}
         </span>
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-zh font-medium text-white/40 group-hover:text-white/60 transition-colors">
+        <div className="flex items-center gap-1.5 mt-0.5">
+          <span className="text-[9px] md:text-[10px] font-zh font-semibold text-zinc-300 group-hover:text-white transition-colors">
             {info.nameZh}
           </span>
-          <span className="w-1 h-1 rounded-full bg-white/20" />
-          <span className="text-[8px] text-white/20 uppercase tracking-[0.2em] font-bold">{info.planet}</span>
+          <span className="w-1 h-1 rounded-full bg-white/30" />
+          <span className="text-[7.5px] md:text-[8.5px] text-zinc-400 group-hover:text-cyan-300 font-bold uppercase tracking-wider">{info.planet}</span>
         </div>
       </div>
     </motion.div>
@@ -1380,22 +1383,6 @@ const Gem = ({ name, nameZh, url, color, type, onVisit, onClick, className }: { 
 const SpaceshipCenter = ({ onClick }: { onClick: () => void }) => {
   return (
     <div className="relative z-30 flex flex-col items-center justify-center cursor-pointer group select-none" onClick={onClick}>
-      {/* Cool Speech Bubble - Holographic Style */}
-      <motion.div
-        animate={{ y: [0, -5, 0] }}
-        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute -top-16 bg-slate-900 border-2 border-cyan-400 px-4 py-1.5 rounded-2xl whitespace-nowrap shadow-[0_0_20px_rgba(34,211,238,0.5)] z-40"
-      >
-        <div className="flex items-center gap-2">
-          <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
-          <span className="text-[11px] font-mono font-black text-cyan-200 tracking-wider">
-            To my world, beat me first!
-          </span>
-        </div>
-        {/* Little Arrow */}
-        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-900 border-r-2 border-b-2 border-cyan-400 rotate-45" />
-      </motion.div>
-
       {/* Futuristic Spaceship Vessel */}
       <div className="relative w-36 h-36 flex items-center justify-center">
         {/* Energy Rings / Thruster Waves */}
