@@ -5,7 +5,7 @@ import {
   Home, User, Trophy, Heart, Coffee, ChevronLeft, ExternalLink,
   LogIn, LogOut, Clock, Zap, RefreshCw, Search, TrendingUp, ChevronRight,
   ClipboardX, FileText, Trash2, Download, Palette, Plus, Save, X, Edit, Pencil, Check,
-  Hammer, Gamepad2, Monitor, Tablet, Smartphone, ZoomIn, ZoomOut, RotateCcw
+  Hammer, Gamepad2, Monitor, Tablet, Smartphone, ZoomIn, ZoomOut, RotateCcw, Compass
 } from 'lucide-react';
 import { cn } from './lib/utils';
 import { 
@@ -474,6 +474,110 @@ const RenderMiniGem = ({ type = 'diamond', className = '' }: { type?: string, cl
   );
 };
 
+const RenderMiniPlanet = ({ planet, className = '' }: { planet: string, className?: string }) => {
+  const p = planet.toLowerCase();
+  
+  // Custom styles for each authentic planet sphere in the Milky Way system
+  let backgroundStyle = '';
+  let shadowStyle = '';
+  let borderRing = false;
+  
+  if (p === 'mercury') {
+    // Mercury: Grey, rocky, with realistic cratered shadows
+    backgroundStyle = 'radial-gradient(circle at 35% 35%, #cbd5e1 0%, #64748b 45%, #1e293b 90%)';
+    shadowStyle = '0 0 15px rgba(148, 163, 184, 0.5), inset -2px -2px 6px rgba(0,0,0,0.6)';
+  } else if (p === 'venus') {
+    // Venus: Yellow-gold swirly dense vapor planet
+    backgroundStyle = 'radial-gradient(circle at 35% 35%, #fef08a 0%, #ca8a04 40%, #854d0e 80%, #422006 100%)';
+    shadowStyle = '0 0 18px rgba(234, 179, 8, 0.65), inset -2px -2px 6px rgba(0,0,0,0.6)';
+  } else if (p === 'mars') {
+    // Mars: Iron-oxide desert rust-red sphere with glowing crimson mantle
+    backgroundStyle = 'radial-gradient(circle at 32% 32%, #fca5a5 0%, #f87171 25%, #dc2626 65%, #7f1d1d 95%, #450a0a 100%)';
+    shadowStyle = '0 0 20px rgba(239, 68, 68, 0.75), inset -2px -2px 6px rgba(0,0,0,0.6)';
+  } else if (p === 'jupiter') {
+    // Jupiter: Iconic banded cloud bands and dynamic bronze coloring
+    backgroundStyle = 'radial-gradient(circle at 35% 35%, #ffedd5 0%, #fed7aa 25%, #ea580c 60%, #9a3412 85%, #431407 100%)';
+    shadowStyle = '0 0 22px rgba(249, 115, 22, 0.6), inset -2px -2px 6px rgba(0,0,0,0.6)';
+  } else if (p === 'saturn') {
+    // Saturn: Muted light yellowish cream with majestic planetary gas ring
+    backgroundStyle = 'radial-gradient(circle at 35% 35%, #fffbeb 0%, #fef08a 30%, #ca8a04 70%, #713f12 100%)';
+    shadowStyle = '0 0 16px rgba(234, 179, 8, 0.5), inset -2px -2px 6px rgba(0,0,0,0.5)';
+    borderRing = true;
+  } else if (p === 'uranus') {
+    // Uranus: Pale cyan-blue icy atmospheric cloud sphere
+    backgroundStyle = 'radial-gradient(circle at 35% 35%, #e0f2fe 0%, #38bdf8 35%, #0284c7 75%, #0c4a6e 100%)';
+    shadowStyle = '0 0 18px rgba(56, 189, 248, 0.6), inset -2px -2px 6px rgba(0,0,0,0.5)';
+  } else if (p === 'neptune') {
+    // Neptune: Dynamic deep royal blue storm giant
+    backgroundStyle = 'radial-gradient(circle at 35% 35%, #eff6ff 0%, #3b82f6 30%, #1d4ed8 70%, #1e1b4b 100%)';
+    shadowStyle = '0 0 24px rgba(37, 99, 235, 0.8), inset -2px -2px 6px rgba(0,0,0,0.6)';
+  } else {
+    // Standard stellar nebula bubble
+    backgroundStyle = 'radial-gradient(circle at 35% 35%, #ffffff 0%, #94a3b8 60%, #0f172a 100%)';
+    shadowStyle = '0 0 12px rgba(255, 255, 255, 0.3)';
+  }
+  
+  return (
+    <div className={cn("relative flex items-center justify-center select-none shrink-0", className)}>
+      {/* 3D Sphere of the planet */}
+      <div 
+        className="w-10 h-10 rounded-full relative overflow-hidden"
+        style={{ 
+          background: backgroundStyle,
+          boxShadow: shadowStyle,
+          border: '1px solid rgba(255,255,255,0.12)'
+        }}
+      >
+        {/* Shadow overlays for dramatic three dimensionality */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-black/55 via-transparent to-white/10 pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_12px_12px,rgba(255,255,255,0.15)_0%,transparent_50%)] pointer-events-none" />
+        
+        {/* Fine detail surface texture styling overlays to look authentic */}
+        {p === 'jupiter' && (
+          <div className="absolute inset-0 flex flex-col justify-between opacity-35 mix-blend-overlay pointer-events-none">
+            <div className="h-[2px] bg-amber-950 mt-1" />
+            <div className="h-[3px] bg-amber-900 mt-0.5" />
+            <div className="h-[1.5px] bg-orange-950" />
+            <div className="h-[2px] bg-amber-950 mb-1" />
+            <div className="absolute bottom-2.5 right-2 w-2 h-1.5 rounded-full bg-red-800" />
+          </div>
+        )}
+        {p === 'mars' && (
+          <div className="absolute inset-0 opacity-20 mix-blend-color-burn pointer-events-none">
+            <div className="absolute top-1 left-2 w-4 h-3 bg-red-950 rounded-full filter blur-[1px]" />
+            <div className="absolute bottom-1 right-2 w-3 h-2 bg-red-950 rounded-full filter blur-[1px]" />
+          </div>
+        )}
+        {p === 'mercury' && (
+          <div className="absolute inset-0 opacity-30 mix-blend-color-burn pointer-events-none">
+            <div className="absolute top-2 left-3 w-1.5 h-1.5 bg-black rounded-full filter blur-[0.5px]" />
+            <div className="absolute bottom-3 left-1 w-2.5 h-2 bg-black rounded-full filter blur-[0.5px]" />
+          </div>
+        )}
+        {p === 'neptune' && (
+          <div className="absolute inset-0 opacity-25 mix-blend-overlay pointer-events-none">
+            <div className="absolute top-2 left-1 inset-x-0 h-[2px] bg-blue-300" />
+            <div className="absolute bottom-3 right-1 inset-x-0 h-[1.5px] bg-blue-900" />
+          </div>
+        )}
+      </div>
+      
+      {/* Dynamic planetary rings where appropriate */}
+      {borderRing && (
+        <div 
+          className="absolute w-14 h-4 rounded-full border-[3px] border-amber-200/40 pointer-events-none transform rotate-[15deg] z-10"
+          style={{ 
+            boxShadow: '0 0 6px rgba(251, 191, 36, 0.2)',
+          }}
+        />
+      )}
+      {p === 'uranus' && (
+        <div className="absolute w-12 h-2 rounded-full border-[1.2px] border-sky-300/20 pointer-events-none transform -rotate-[10deg] z-10" />
+      )}
+    </div>
+  );
+};
+
 const PreLoginExplorer = ({ onSelectGem, onSelectStrand }: {
   onSelectGem: (gem: any, requiresLogin: boolean) => void,
   onSelectStrand: (strand: Strand, requiresLogin: boolean) => void
@@ -540,16 +644,14 @@ const PreLoginExplorer = ({ onSelectGem, onSelectStrand }: {
   }, [searchQuery, allGemsList]);
 
   return (
-    <div id="star-chart-index" className="w-full max-w-7xl mx-auto mt-20 p-10 md:p-12 rounded-[2.5rem] bg-zinc-900/80 border-2 border-zinc-800/80 backdrop-blur-2xl shadow-2xl relative overflow-hidden text-neutral-200">
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-cyan-600/5 blur-[150px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-600/5 blur-[150px] rounded-full pointer-events-none" />
+    <div id="star-chart-index" className="w-full relative text-neutral-200">
       
-      <div className="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-8 mb-10 border-b-2 border-zinc-800/80 pb-8">
+      <div className="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-8 mb-10 border-b-2 border-amber-600/20 pb-8">
         <div>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-white flex items-center gap-3">
-            <span className="text-cyan-400 animate-pulse">✨</span> Star Chart Index / 星系內容索引
+          <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight text-amber-100 flex items-center gap-3">
+            <span className="text-amber-400 animate-pulse">✨</span> Star Chart Index / 星系內容索引
           </h2>
-          <p className="text-sm md:text-base text-neutral-300 font-medium mt-2">Explore all interactive planets and educational gems across Tr. Shirley's cosmic academy.</p>
+          <p className="text-xs md:text-sm text-neutral-300/80 font-medium mt-2">Explore all interactive planets and educational gems across Tr. Shirley's cosmic academy.</p>
         </div>
         
         {/* Search Box */}
@@ -625,42 +727,35 @@ const PreLoginExplorer = ({ onSelectGem, onSelectStrand }: {
       ) : (
         /* Regular Table of Contents Grid */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
-          {Object.entries(STRANDS).map(([strandKey, info]) => {
+          {(['vocabulary', 'tests', 'grammar', 'pronunciation', 'saturn', 'uranus', 'neptune'] as Strand[]).map((strandKey) => {
+            const info = STRANDS[strandKey];
+            if (!info) return null;
+            
             const requiresLogin = !(strandKey === 'uranus' || strandKey === 'neptune');
             const gemsArray = GEMS[strandKey as keyof typeof GEMS] || [];
-            const PlanetIcon = info.icon;
             
             return (
               <div 
                 key={strandKey} 
-                className="p-6 md:p-8 rounded-[2.5rem] bg-zinc-950/50 border-2 border-zinc-800/60 relative flex flex-col hover:border-zinc-700/85 hover:bg-zinc-950/80 transition-all duration-300 shadow-xl"
+                className="p-6 md:p-8 rounded-[2rem] bg-indigo-950/20 border-2 border-indigo-500/10 hover:border-cyan-500/30 hover:bg-[#110d29]/40 transition-all duration-350 shadow-2xl relative flex flex-col group backdrop-blur-[6px]"
               >
-                <div className="flex items-center justify-between mb-5 pb-5 border-b-2 border-zinc-900/90">
+                <div className="flex items-center justify-between mb-5 pb-5 border-b-2 border-indigo-505/10">
                   <div className="flex items-center gap-3.5 overflow-hidden">
-                    <div 
-                      className="w-12 h-12 rounded-2xl flex items-center justify-center border-2 flex-shrink-0 shadow-inner"
-                      style={{ 
-                        borderColor: `${info.color}40`,
-                        backgroundColor: `${info.color}15`,
-                        color: info.color
-                      }}
-                    >
-                      <PlanetIcon className="w-6 h-6" />
-                    </div>
+                    <RenderMiniPlanet planet={info.planet} className="w-12 h-12 flex-shrink-0 group-hover:scale-110 transition-transform duration-500 filter drop-shadow-[0_0_12px_rgba(255,255,255,0.15)]" />
                     <div className="overflow-hidden">
-                      <h3 className="text-base md:text-lg lg:text-xl font-bold text-white flex items-center gap-2 truncate cursor-pointer hover:text-cyan-400 transition-colors" onClick={() => onSelectStrand(strandKey as Strand, requiresLogin)}>
-                        {info.name} <span className="text-neutral-500 font-normal">({info.planet})</span>
+                      <h3 className="text-base md:text-lg lg:text-xl font-bold text-white flex items-center gap-2 truncate cursor-pointer hover:text-cyan-450 transition-colors" onClick={() => onSelectStrand(strandKey, requiresLogin)}>
+                        {info.name} <span className="text-zinc-400 font-semibold text-xs md:text-sm">({info.planet})</span>
                       </h3>
-                      <p className="text-xs md:text-sm text-neutral-300 font-sans tracking-wide truncate mt-0.5">{info.nameZh}</p>
+                      <p className="text-xs md:text-sm text-neutral-350 font-sans tracking-wide truncate mt-0.5">{info.nameZh}</p>
                     </div>
                   </div>
                   
                   {requiresLogin ? (
-                    <span className="text-[11px] font-bold bg-amber-950/30 border border-amber-900/40 text-amber-500 px-3 py-1 rounded-full font-mono flex items-center gap-0.5 flex-shrink-0" title="Login required to enter this planet">
+                    <span className="text-[10px] sm:text-[11px] font-bold bg-amber-950/40 border border-amber-900/50 text-amber-500 px-3 py-1 rounded-full font-mono flex items-center gap-0.5 flex-shrink-0" title="Login required to enter this planet">
                       🔒 Gated
                     </span>
                   ) : (
-                    <span className="text-[11px] font-bold bg-green-950/30 border border-green-900/40 text-emerald-400 px-3 py-1 rounded-full font-mono flex items-center gap-0.5 flex-shrink-0" title="Accessible directly without login">
+                    <span className="text-[10px] sm:text-[11px] font-bold bg-green-950/40 border border-green-900/50 text-emerald-400 px-3 py-1 rounded-full font-mono flex items-center gap-0.5 flex-shrink-0" title="Accessible directly without login">
                       🔓 Guest
                     </span>
                   )}
@@ -673,13 +768,13 @@ const PreLoginExplorer = ({ onSelectGem, onSelectStrand }: {
                         <div key={`${gem.name}-${gemIdx}`} className="flex flex-col">
                           <div
                             onClick={() => onSelectGem(gem, requiresLogin)}
-                            className="group flex items-center justify-between p-3 rounded-2xl hover:bg-zinc-900/90 transition-all duration-300 cursor-pointer text-sm font-semibold border-2 border-transparent hover:border-cyan-500/20"
+                            className="group flex items-center justify-between p-3 rounded-2xl hover:bg-slate-900/50 transition-all duration-300 cursor-pointer text-sm font-semibold border-2 border-transparent hover:border-cyan-500/20"
                           >
                             <div className="flex items-center gap-3 overflow-hidden mr-2">
                               <RenderMiniGem type={gem.type} />
                               <div className="truncate">
                                 <span className="text-sm md:text-base font-bold text-neutral-200 group-hover:text-cyan-300 transition-colors block truncate">{gem.name}</span>
-                                <span className="text-xs text-neutral-400 group-hover:text-neutral-200 transition-colors block truncate mt-0.5">{gem.nameZh}</span>
+                                <span className="text-xs text-neutral-450 group-hover:text-neutral-300 transition-colors block truncate mt-0.5">{gem.nameZh}</span>
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
@@ -691,12 +786,12 @@ const PreLoginExplorer = ({ onSelectGem, onSelectStrand }: {
                           </div>
                           
                           {subjectsExpanded && (
-                            <div className="mt-2 ml-4 pl-4 border-l-2 border-indigo-500/30 space-y-2">
+                            <div className="mt-2 ml-4 pl-4 border-l-2 border-[#ff4500]/20 space-y-2">
                               {SUBJECT_GEMS.map((sub, sIdx) => (
                                 <div
                                   key={`sub-${sub.name}-${sIdx}`}
                                   onClick={() => onSelectGem(sub, requiresLogin)}
-                                  className="group flex items-center justify-between p-2.5 rounded-2xl hover:bg-zinc-900/60 transition-all duration-300 cursor-pointer text-xs md:text-sm font-semibold"
+                                  className="group flex items-center justify-between p-2.5 rounded-2xl hover:bg-slate-900/40 transition-all duration-300 cursor-pointer text-xs md:text-sm font-semibold"
                                 >
                                   <div className="flex items-center gap-2.5 overflow-hidden mr-2">
                                     <RenderMiniGem type={sub.type} />
@@ -718,13 +813,13 @@ const PreLoginExplorer = ({ onSelectGem, onSelectStrand }: {
                       <div
                         key={`${gem.name}-${gemIdx}`}
                         onClick={() => onSelectGem(gem, requiresLogin)}
-                        className="group flex items-center justify-between p-3 rounded-2xl hover:bg-zinc-900/90 transition-all duration-300 cursor-pointer text-sm font-semibold"
+                        className="group flex items-center justify-between p-3 rounded-2xl hover:bg-slate-900/50 transition-all duration-300 cursor-pointer text-sm font-semibold"
                       >
                         <div className="flex items-center gap-3 overflow-hidden mr-2">
                           <RenderMiniGem type={gem.type} />
                           <div className="truncate">
                             <span className="text-sm md:text-base font-bold text-neutral-200 group-hover:text-cyan-300 transition-colors block truncate">{gem.name}</span>
-                            <span className="text-xs text-neutral-400 group-hover:text-neutral-200 transition-colors block truncate mt-0.5">{gem.nameZh}</span>
+                            <span className="text-xs text-neutral-450 group-hover:text-neutral-300 transition-colors block truncate mt-0.5">{gem.nameZh}</span>
                           </div>
                         </div>
                         <ChevronRight className="w-5 h-5 text-neutral-500 group-hover:text-cyan-300 group-hover:translate-x-1 transition-all flex-shrink-0" />
@@ -2299,6 +2394,7 @@ export default function App() {
   const [isFetchingVocab, setIsFetchingVocab] = useState(false);
   const [isAdopting, setIsAdopting] = useState(false);
   const [petError, setPetError] = useState<string | null>(null);
+  const [showScrollMap, setShowScrollMap] = useState(false);
   const [notes, setNotes] = useState<StudyNote[]>(() => {
     try {
       const saved = localStorage.getItem('space_notes_cache');
@@ -3283,7 +3379,7 @@ export default function App() {
 
                         <button 
                           onClick={() => setShowCheckIn(false)}
-                          className="mt-8 w-full py-4 bg-cyan-500 hover:bg-cyan-400 text-black font-bold rounded-2xl transition-all shadow-[0_0_20px_rgba(0,242,255,0.3)] uppercase tracking-widest"
+                          className="mt-8 w-full py-4 bg-cyan-500 hover:bg-cyan-400 text-black font-bold rounded-2xl transition-all shadow-[0_0_20px_rgba(0,242,255,0.3)] uppercase tracking-widest text-sm"
                         >
                           Engage Mission
                         </button>
@@ -3301,29 +3397,158 @@ export default function App() {
                 onSpaceshipClick={() => setActivePortalUrl("https://ducj-creator.github.io/etgame.html")}
               />
 
-              <PreLoginExplorer 
-                onSelectGem={(gem, requiresLogin) => {
-                  if (requiresLogin && !user) {
-                    setShowLoginModal(true);
-                  } else {
-                    if (gem.url === 'subjects') {
-                      setCurrentStrand('vocabulary');
-                      setVocabSearchTerm("");
-                      setShowSubjects(true);
-                      setActivePortalUrl(null);
-                    } else {
-                      setActivePortalUrl(gem.url);
-                    }
-                  }
-                }}
-                onSelectStrand={(strand, requiresLogin) => {
-                  if (requiresLogin && !user) {
-                    setShowLoginModal(true);
-                  } else {
-                    setCurrentStrand(strand);
-                  }
-                }}
-              />
+              {/* Centered clean parchment scroll button (keeps front page clean, concise, catchy) */}
+              <div className="w-full max-w-xl mx-auto flex flex-col items-center justify-center py-2 pb-16 px-4">
+                <motion.div
+                  animate={{ 
+                    y: [-4, 4, -4],
+                    rotate: [-0.3, 0.3, -0.3]
+                  }}
+                  transition={{ 
+                    duration: 6, 
+                    repeat: Infinity, 
+                    ease: "easeInOut" 
+                  }}
+                  whileHover={{ scale: 1.04, y: 0 }}
+                  whileTap={{ scale: 0.96 }}
+                  onClick={() => setShowScrollMap(true)}
+                  className="cursor-pointer group select-none relative p-8 md:p-10 rounded-2xl bg-gradient-to-b from-[#f2e2be] via-[#fbf1da] to-[#ebd9af] border-y-8 border-[#52331a] transition-all shadow-[0_25px_60px_rgba(0,0,0,0.8),inset_0_0_40px_rgba(139,94,60,0.45)] w-full text-center overflow-hidden flex flex-col items-center border-x-2 border-[#8c603a]/40"
+                >
+                  {/* Physical Wooden roller end cylinder caps at the top/bottom to look completely realistic */}
+                  <div className="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-[#2a1709] via-[#8c5a2c] to-[#2a1709] shadow-inner pointer-events-none" />
+                  <div className="absolute bottom-0 inset-x-0 h-2 bg-gradient-to-r from-[#2a1709] via-[#8c5a2c] to-[#2a1709] shadow-inner pointer-events-none" />
+                  
+                  {/* Antique scroll roller spindle nodes inside left & right margins */}
+                  <div className="absolute -left-2 top-6 bottom-6 w-2 rounded-l bg-gradient-to-b from-[#5c3a1e] to-[#2a1709] border-r border-[#150a04]/40" />
+                  <div className="absolute -right-2 top-6 bottom-6 w-2 rounded-r bg-gradient-to-b from-[#5c3a1e] to-[#2a1709] border-l border-[#150a04]/40" />
+                  
+                  {/* Deckled paper margin guides */}
+                  <div className="absolute top-4 left-4 w-5 h-5 border-t-2 border-l-2 border-[#8c603a]/60 rounded-tl-sm pointer-events-none" />
+                  <div className="absolute top-4 right-4 w-5 h-5 border-t-2 border-r-2 border-[#8c603a]/60 rounded-tr-sm pointer-events-none" />
+                  <div className="absolute bottom-4 left-4 w-5 h-5 border-b-2 border-l-2 border-[#8c603a]/60 rounded-bl-sm pointer-events-none" />
+                  <div className="absolute bottom-4 right-4 w-5 h-5 border-b-2 border-r-2 border-[#8c603a]/60 rounded-br-sm pointer-events-none" />
+                  
+                  {/* Antique ink sketched visual mapping lines */}
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[180px] h-[180px] border border-[#a8825c]/15 rounded-full pointer-events-none border-dashed animate-[spin_50s_linear_infinite]" />
+                  <div className="absolute inset-0 bg-[radial-gradient(#8c603a_1px,transparent_1px)] [background-size:24px_24px] opacity-[0.06] pointer-events-none" />
+
+                  {/* Classical Sketch Floating Scroll Emblem */}
+                  <div className="w-16 h-16 rounded-full bg-[#8c603a]/12 border-2 border-[#8c603a]/30 flex items-center justify-center mb-4 group-hover:bg-[#8c603a]/20 transition-all text-[#5c3a1e] group-hover:scale-105 duration-300 relative shadow-inner">
+                    <svg className="w-9 h-9 text-[#5c3a1e] filter drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M14 3v5a1 1 0 001 1h5" />
+                    </svg>
+                  </div>
+                  
+                  <h3 className="text-xl md:text-2xl font-serif font-black tracking-[0.12em] text-[#3d210a] group-hover:text-[#522907] transition-colors uppercase leading-none">
+                    📜 Star Chart Index
+                  </h3>
+                  <p className="text-xs font-zh font-bold text-[#6e4421] mt-1.5 leading-none">星系內容索引</p>
+                  
+                  <p className="text-xs md:text-sm text-[#4d321c]/90 mt-4 max-w-sm leading-relaxed font-sans font-medium px-2">
+                    Click to roll out the antique celestial parchment scroll; discover all educational gems, game quadrants, and curriculum tools.
+                  </p>
+                  
+                  <div className="flex items-center gap-2 mt-5 text-[10px] font-bold text-[#ebd9af] bg-[#5c3a1e] hover:bg-[#432912] border border-[#3d210a] px-5 py-2 rounded-full shadow transition-all uppercase tracking-[0.16em]">
+                    <span>✨ ROLL OUT MAP / 展開地圖</span>
+                  </div>
+                </motion.div>
+              </div>
+
+              {/* Infinite, real animated parchment rollout scroll map modal overlay */}
+              <AnimatePresence>
+                {showScrollMap && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-[1000] flex items-center justify-center p-3 sm:p-5 md:p-8 overflow-hidden bg-[radial-gradient(ellipse_at_center,rgba(15,7,38,0.96)_0%,rgba(4,2,11,0.99)_70%,rgba(0,0,0,1)_100%)] backdrop-blur-md"
+                  >
+                    {/* Event blocker backdrop */}
+                    <div className="absolute inset-0 cursor-default" onClick={() => setShowScrollMap(false)} />
+                    
+                    {/* Swirling Milky Way / Cosmic Nebula backing (galaxy color theme requested) */}
+                    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                      <div className="absolute top-[-25%] left-[-15%] w-[130%] h-[130%] bg-[radial-gradient(ellipse_at_center,rgba(99,102,241,0.22)_0%,rgba(219,39,119,0.15)_40%,rgba(6,3,27,0)_70%)] animate-[spin_160s_linear_infinite] filter blur-3xl opacity-90" />
+                      <div className="absolute top-[20%] right-[-10%] w-[80vw] h-[80vh] bg-[radial-gradient(ellipse_at_center,rgba(34,211,238,0.1)_0%,rgba(168,85,247,0.1)_50%,transparent_80%)] filter blur-3xl opacity-80" />
+                      {/* Magical high-density star dust fields */}
+                      <div className="absolute inset-0 opacity-[0.45] bg-[radial-gradient(#ffffff_1px,transparent_1.2px)] [background-size:20px_20px]" />
+                      <div className="absolute inset-0 opacity-[0.25] bg-[radial-gradient(#ffffff_1.8px,transparent_1.8px)] [background-size:40px_40px] animate-[pulse_6s_ease-in-out_infinite]" />
+                      <div className="absolute inset-0 opacity-[0.15] bg-[radial-gradient(#ffffff_2.5px,transparent_2.5px)] [background-size:80px_80px] animate-[pulse_10s_ease-in-out_infinite_reverse]" />
+                    </div>
+                    
+                    {/* Real Roll Out Parchment Scroll Frame */}
+                    <motion.div 
+                      initial={{ scaleX: 0.1, opacity: 0 }}
+                      animate={{ scaleX: 1, opacity: 1 }}
+                      exit={{ scaleX: 0.1, opacity: 0 }}
+                      transition={{ type: "spring", stiffness: 150, damping: 22 }}
+                      className="relative w-full max-w-5xl rounded-3xl bg-gradient-to-br from-[#120a1c] via-[#09050d] to-[#030105] border-2 border-indigo-500/20 shadow-[0_30px_90px_rgba(0,0,0,0.95),0_0_60px_rgba(99,102,241,0.2),inset_0_0_30px_rgba(99,102,241,0.1)] p-4 sm:p-6 md:p-8 text-neutral-200 h-[92vh] sm:h-[88vh] flex flex-col my-auto origin-center z-10"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {/* Subtle space-radar constellations guide */}
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] border border-cyan-500/5 rounded-full pointer-events-none border-dashed animate-[spin_100s_linear_infinite]" />
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] border border-fuchsia-500/5 rounded-full pointer-events-none border-dotted animate-[spin_50s_linear_infinite_reverse]" />
+
+                      {/* Header containing Title & close seal */}
+                      <div className="relative z-10 flex items-center justify-between mb-5 border-b border-indigo-500/20 pb-4 shrink-0">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-cyan-400">
+                            <Compass className="w-5.5 h-5.5 animate-[spin_45s_linear_infinite] filter drop-shadow-[0_0_6px_rgba(34,211,238,0.5)]" />
+                          </div>
+                          <div>
+                            <h2 className="text-xl md:text-2xl font-display font-black tracking-widest text-[#e0f2fe] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] leading-none uppercase flex items-center gap-2">
+                              🌌 Celestial Star Map • 星圖索引
+                            </h2>
+                            <p className="text-[10px] md:text-xs text-slate-300 font-medium tracking-wide mt-1.5 leading-none">
+                              A comprehensive, pristine galactic index of Tr. Shirley's educational planets.
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {/* Red Wax Seal Close Button */}
+                        <button 
+                          onClick={() => setShowScrollMap(false)}
+                          className="w-10 h-10 rounded-full bg-red-950/80 hover:bg-red-900 border border-red-500 flex items-center justify-center text-red-250 hover:text-white transition-all shadow-[0_0_15px_rgba(239,68,68,0.3)] hover:scale-105 active:scale-95 group relative overflow-hidden shrink-0"
+                          title="Roll map closed"
+                        >
+                          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-red-950/20" />
+                          <X className="w-4.5 h-4.5 group-hover:rotate-90 transition-transform" />
+                        </button>
+                      </div>
+
+                      {/* Scrollable Parchment Workspace containing PreLoginExplorer list */}
+                      <div className="relative z-10 flex-1 overflow-y-auto pr-1 md:pr-2 scrollbar-thin scrollbar-thumb-indigo-500/30 scrollbar-track-transparent">
+                        <PreLoginExplorer 
+                          onSelectGem={(gem, requiresLogin) => {
+                            setShowScrollMap(false);
+                            if (requiresLogin && !user) {
+                              setShowLoginModal(true);
+                            } else {
+                              if (gem.url === 'subjects') {
+                                setCurrentStrand('vocabulary');
+                                setVocabSearchTerm("");
+                                setShowSubjects(true);
+                                setActivePortalUrl(null);
+                              } else {
+                                setActivePortalUrl(gem.url);
+                              }
+                            }
+                          }}
+                          onSelectStrand={(strand, requiresLogin) => {
+                            setShowScrollMap(false);
+                            if (requiresLogin && !user) {
+                              setShowLoginModal(true);
+                            } else {
+                              setCurrentStrand(strand);
+                            }
+                          }}
+                        />
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
           ) : currentStrand === 'pet' ? (
             <motion.div
