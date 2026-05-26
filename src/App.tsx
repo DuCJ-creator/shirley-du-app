@@ -398,6 +398,7 @@ const GEMS = {
     { name: 'LOT', nameZh: '幸運上上簽', url: 'https://ducj-creator.github.io/bestlot.html', type: 'sapphire' },
     { name: 'EMO Shredder', nameZh: '負能量粉碎機', url: 'https://ducj-creator.github.io/emoshredder.html', type: 'amethyst' },
     { name: 'Gems', nameZh: '寶石連連看', url: 'https://ducj-creator.github.io/gem.html', type: 'topaz' },
+    { name: 'iVocab Champion', nameZh: '愛單字挑戰', url: 'https://ducj-creator.github.io/ivchampion.html', type: 'opal' },
   ],
 };
 
