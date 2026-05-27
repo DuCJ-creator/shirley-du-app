@@ -1,0 +1,437 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,300;1,300;1,600&family=Anton&family=Libre+Baskerville:wght@700&family=Abril+Fatface&family=Josefin+Sans:wght@100;300;700&family=Playfair+Display:ital,wght@1,700;1,900&family=Black+Han+Sans&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+.app{
+  background:#0a0a12;
+  border-radius:16px;
+  padding:28px 24px 32px;
+  position:relative;
+  overflow:hidden;
+}
+.app::before{
+  content:'';
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(120,60,220,0.18) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(0,200,180,0.12) 0%, transparent 45%),
+    radial-gradient(ellipse at 60% 80%, rgba(255,80,140,0.1) 0%, transparent 40%);
+  pointer-events:none;
+}
+.app-title{
+  font-family:'Cinzel',serif;
+  font-size:11px;
+  letter-spacing:0.4em;
+  color:rgba(255,255,255,0.3);
+  text-transform:uppercase;
+  text-align:center;
+  margin-bottom:24px;
+  position:relative;
+}
+
+.field-label{
+  font-family:'Josefin Sans',sans-serif;
+  font-size:10px;
+  letter-spacing:0.3em;
+  text-transform:uppercase;
+  color:rgba(255,255,255,0.35);
+  margin-bottom:7px;
+}
+
+.styled-input{
+  width:100%;
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:8px;
+  padding:11px 14px;
+  font-size:15px;
+  color:#fff;
+  font-family:'Josefin Sans',sans-serif;
+  letter-spacing:0.05em;
+  outline:none;
+  transition:border-color 0.2s, background 0.2s;
+  position:relative;
+}
+.styled-input:focus{
+  border-color:rgba(160,100,255,0.6);
+  background:rgba(255,255,255,0.08);
+}
+.styled-input::placeholder{color:rgba(255,255,255,0.2)}
+
+.inputs-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-bottom:20px;
+  position:relative;
+}
+.input-col{position:relative}
+
+.styles-label{
+  font-family:'Josefin Sans',sans-serif;
+  font-size:10px;
+  letter-spacing:0.3em;
+  text-transform:uppercase;
+  color:rgba(255,255,255,0.35);
+  margin-bottom:10px;
+  position:relative;
+}
+
+.style-grid{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:8px;
+  margin-bottom:20px;
+  position:relative;
+}
+
+.style-card{
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:10px;
+  padding:10px 6px 8px;
+  cursor:pointer;
+  text-align:center;
+  transition:all 0.18s;
+  position:relative;
+  overflow:hidden;
+}
+.style-card:hover{
+  background:rgba(255,255,255,0.09);
+  border-color:rgba(255,255,255,0.25);
+  transform:translateY(-1px);
+}
+.style-card.active{
+  border-color:rgba(160,100,255,0.7);
+  background:rgba(120,60,220,0.18);
+}
+.style-card.active::after{
+  content:'';
+  position:absolute;
+  inset:-1px;
+  border-radius:10px;
+  background:linear-gradient(135deg,rgba(160,100,255,0.3),rgba(0,200,180,0.15));
+  z-index:0;
+  pointer-events:none;
+}
+.sc-preview{
+  display:block;
+  font-size:18px;
+  font-weight:700;
+  margin-bottom:4px;
+  line-height:1;
+  height:22px;
+  position:relative;
+  z-index:1;
+}
+.sc-name{
+  display:block;
+  font-family:'Josefin Sans',sans-serif;
+  font-size:9px;
+  letter-spacing:0.18em;
+  text-transform:uppercase;
+  color:rgba(255,255,255,0.4);
+  position:relative;
+  z-index:1;
+}
+.style-card.active .sc-name{color:rgba(200,160,255,0.8)}
+
+.gen-btn{
+  width:100%;
+  padding:13px;
+  background:linear-gradient(135deg,#7c3aed,#5b21b6);
+  border:none;
+  border-radius:10px;
+  color:#fff;
+  font-family:'Josefin Sans',sans-serif;
+  font-size:12px;
+  letter-spacing:0.3em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:all 0.18s;
+  position:relative;
+  overflow:hidden;
+}
+.gen-btn::before{
+  content:'';
+  position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,0.15),transparent);
+  opacity:0;
+  transition:opacity 0.18s;
+}
+.gen-btn:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(124,58,237,0.5)}
+.gen-btn:hover::before{opacity:1}
+.gen-btn:active{transform:scale(0.98)}
+
+.stage{
+  margin-top:20px;
+  border-radius:12px;
+  overflow:hidden;
+  min-height:200px;
+  position:relative;
+  display:flex;align-items:center;justify-content:center;
+}
+
+.wa-canvas{
+  width:100%;min-height:200px;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:2.5rem 2rem;
+  position:relative;overflow:hidden;
+  text-align:center;
+}
+
+.placeholder-txt{
+  font-family:'Josefin Sans',sans-serif;
+  font-size:11px;
+  letter-spacing:0.25em;
+  color:rgba(255,255,255,0.2);
+  text-transform:uppercase;
+}
+
+/* ====== STYLE THEMES ====== */
+.s-gold{background:#080600}
+.s-gold .wt{
+  font-family:'Cinzel',serif;font-weight:900;
+  font-size:clamp(24px,5.5vw,58px);
+  letter-spacing:0.1em;text-transform:uppercase;
+  background:linear-gradient(135deg,#b8860b 0%,#ffd700 30%,#fffacd 50%,#daa520 70%,#b8860b 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 20px rgba(218,165,32,0.6)) drop-shadow(0 2px 4px rgba(0,0,0,0.8));
+  animation:goldShine 3s ease-in-out infinite;
+}
+.s-gold .ws{
+  font-family:'Cinzel',serif;font-size:11px;letter-spacing:0.4em;
+  color:#b8860b;text-transform:uppercase;margin-top:10px;opacity:0.75;
+}
+.s-gold::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 40%,rgba(218,165,32,0.12) 0%,transparent 60%);pointer-events:none}
+@keyframes goldShine{0%,100%{filter:drop-shadow(0 0 20px rgba(218,165,32,0.6)) drop-shadow(0 2px 4px rgba(0,0,0,0.8))} 50%{filter:drop-shadow(0 0 35px rgba(255,215,0,0.9)) drop-shadow(0 2px 8px rgba(0,0,0,0.8))}}
+
+.s-neon{background:#030108}
+.s-neon .wt{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(28px,6.5vw,70px);letter-spacing:0.08em;
+  color:#fff;
+  text-shadow:0 0 7px #fff,0 0 10px #fff,0 0 21px #fff,0 0 42px #f0f,0 0 82px #f0f,0 0 92px #f0f,0 0 102px #f0f;
+  animation:neonPulse 2.5s ease-in-out infinite alternate;
+}
+.s-neon .ws{font-family:'Josefin Sans',sans-serif;font-size:10px;letter-spacing:0.4em;color:#f0f;text-transform:uppercase;margin-top:8px;opacity:0.6;animation:neonPulse 2.5s ease-in-out infinite alternate}
+@keyframes neonPulse{from{text-shadow:0 0 7px #fff,0 0 10px #fff,0 0 21px #fff,0 0 42px #f0f,0 0 82px #f0f,0 0 92px #f0f}to{text-shadow:0 0 4px #fff,0 0 7px #fff,0 0 13px #fff,0 0 25px #f0f,0 0 55px #f0f,0 0 65px #f0f}}
+.s-neon::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(255,0,255,0.06) 0%,transparent 65%);pointer-events:none}
+
+.s-fire{background:#060200}
+.s-fire .wt{
+  font-family:'Anton',sans-serif;
+  font-size:clamp(26px,6vw,64px);letter-spacing:0.04em;text-transform:uppercase;
+  background:linear-gradient(180deg,#fff700 0%,#ff9500 25%,#ff4500 55%,#cc1100 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:fireDance 1.8s ease-in-out infinite alternate;
+  filter:drop-shadow(0 0 12px rgba(255,100,0,0.8)) drop-shadow(0 0 30px rgba(255,50,0,0.5));
+}
+.s-fire .ws{font-family:'Josefin Sans',sans-serif;font-size:10px;letter-spacing:0.4em;color:#ff6500;text-transform:uppercase;margin-top:8px;opacity:0.7}
+@keyframes fireDance{0%{filter:drop-shadow(0 0 12px rgba(255,100,0,0.8)) drop-shadow(0 0 30px rgba(255,50,0,0.5)) drop-shadow(-2px -4px 8px rgba(255,200,0,0.4))}100%{filter:drop-shadow(0 0 18px rgba(255,120,0,0.9)) drop-shadow(0 0 40px rgba(255,60,0,0.7)) drop-shadow(2px -6px 10px rgba(255,220,0,0.5))}}
+.s-fire::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 70%,rgba(200,60,0,0.2) 0%,transparent 60%);pointer-events:none}
+
+.s-bubble{background:#e8f8ff}
+.s-bubble .wt{
+  font-family:'Abril Fatface',serif;
+  font-size:clamp(24px,5.5vw,60px);letter-spacing:0.03em;
+  color:#1a5fa8;
+  text-shadow:
+    2px 2px 0 rgba(255,255,255,0.9),
+    -1px -1px 0 rgba(100,180,255,0.4),
+    4px 6px 8px rgba(0,80,180,0.25);
+  position:relative;z-index:1;
+}
+.s-bubble .ws{font-family:'Josefin Sans',sans-serif;font-size:10px;letter-spacing:0.4em;color:#5599cc;text-transform:uppercase;margin-top:8px;position:relative;z-index:1}
+.bubble-bg{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.bub{
+  position:absolute;border-radius:50%;
+  border:2px solid rgba(100,180,255,0.5);
+  background:radial-gradient(circle at 35% 35%,rgba(255,255,255,0.8),rgba(160,220,255,0.2));
+  animation:rise linear infinite;
+}
+@keyframes rise{0%{transform:translateY(120%) scale(0.6);opacity:0}10%{opacity:0.8}80%{opacity:0.5}100%{transform:translateY(-120%) scale(1.1);opacity:0}}
+
+.s-ice{background:#010d1a}
+.s-ice .wt{
+  font-family:'Cormorant Garamond',serif;font-weight:300;font-style:italic;
+  font-size:clamp(24px,5.5vw,60px);letter-spacing:0.12em;
+  background:linear-gradient(160deg,#e0f7ff 0%,#a8e6f0 30%,#ffffff 50%,#7dd8f0 70%,#b0eeff 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:iceGlitter 4s ease-in-out infinite;
+  filter:drop-shadow(0 0 15px rgba(120,220,255,0.5)) drop-shadow(0 0 30px rgba(80,180,230,0.3));
+}
+.s-ice .ws{font-family:'Josefin Sans',sans-serif;font-size:10px;letter-spacing:0.5em;color:#7dd8f0;text-transform:uppercase;margin-top:10px;opacity:0.65}
+@keyframes iceGlitter{0%,100%{filter:drop-shadow(0 0 15px rgba(120,220,255,0.5)) drop-shadow(0 0 30px rgba(80,180,230,0.3))}50%{filter:drop-shadow(0 0 25px rgba(180,240,255,0.8)) drop-shadow(0 0 50px rgba(100,200,240,0.5))}}
+.s-ice::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,rgba(80,200,255,0.1) 0%,transparent 60%);pointer-events:none}
+.sparkle{position:absolute;width:4px;height:4px;background:#fff;clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);animation:sparkleAnim linear infinite}
+@keyframes sparkleAnim{0%,100%{opacity:0;transform:scale(0.5)}50%{opacity:1;transform:scale(1.2)}}
+
+.s-chrome{background:#0e0e14}
+.s-chrome .wt{
+  font-family:'Black Han Sans',sans-serif;
+  font-size:clamp(24px,5.5vw,60px);letter-spacing:0.06em;text-transform:uppercase;
+  background:linear-gradient(180deg,#ffffff 0%,#b0b8d0 20%,#e8ecf8 40%,#7080a8 60%,#c8d0e8 80%,#e0e8ff 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:chromeShift 4s ease-in-out infinite;
+  filter:drop-shadow(0 4px 16px rgba(80,100,200,0.5));
+}
+.s-chrome .ws{font-family:'Josefin Sans',sans-serif;font-size:10px;letter-spacing:0.45em;color:#7080a8;text-transform:uppercase;margin-top:8px}
+@keyframes chromeShift{0%,100%{filter:drop-shadow(0 4px 16px rgba(80,100,200,0.5))}50%{filter:drop-shadow(0 4px 24px rgba(120,140,255,0.7))}}
+.s-chrome::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(80,100,200,0.07) 0%,transparent 50%,rgba(40,60,150,0.07) 100%);pointer-events:none}
+
+.s-holographic{background:#04030d}
+.s-holographic .wt{
+  font-family:'Playfair Display',serif;font-weight:900;font-style:italic;
+  font-size:clamp(24px,5.5vw,58px);letter-spacing:0.04em;
+  background:linear-gradient(90deg,#ff6ec7,#fffb7d,#6bffb8,#6bcfff,#c77dff,#ff6ec7);
+  background-size:300% 100%;
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:holoSlide 3s linear infinite;
+  filter:drop-shadow(0 0 20px rgba(200,100,255,0.5));
+}
+.s-holographic .ws{font-family:'Josefin Sans',sans-serif;font-size:10px;letter-spacing:0.4em;text-transform:uppercase;margin-top:10px;
+  background:linear-gradient(90deg,#ff6ec7,#fffb7d,#6bffb8,#6bcfff,#c77dff);
+  background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:holoSlide 3s linear infinite;opacity:0.7}
+@keyframes holoSlide{0%{background-position:0% 50%}100%{background-position:300% 50%}}
+.s-holographic::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(180,100,255,0.08) 0%,transparent 70%);pointer-events:none}
+
+.s-stamp{background:#f2edd8}
+.s-stamp .wa-canvas{padding:2rem 2.5rem}
+.s-stamp .stamp-frame{border:3.5px solid #2c1a0e;padding:18px 30px;position:relative;display:inline-block}
+.s-stamp .stamp-frame::before{content:'';position:absolute;inset:5px;border:1px solid rgba(44,26,14,0.3)}
+.s-stamp .wt{font-family:'Libre Baskerville',serif;font-weight:700;font-size:clamp(20px,4.5vw,50px);letter-spacing:0.2em;text-transform:uppercase;color:#2c1a0e}
+.s-stamp .ws{font-family:'Libre Baskerville',serif;font-size:10px;letter-spacing:0.5em;color:#7a5c3a;text-transform:uppercase;margin-top:6px;font-style:italic}
+
+.wt,.ws{display:block}
+</style>
+
+<div class="app">
+  <h2 class="sr-only">WordArt generator — type your text, pick a style, get a styled signpost display</h2>
+  <div class="app-title">WordArt Studio</div>
+
+  <div class="inputs-row">
+    <div class="input-col">
+      <div class="field-label">Slogan / words</div>
+      <input class="styled-input" id="wa-text" type="text" placeholder="Your bold words…" value="Dream Bold" maxlength="50"/>
+    </div>
+    <div class="input-col">
+      <div class="field-label">Tagline (subtitle)</div>
+      <input class="styled-input" id="wa-sub" type="text" placeholder="A line beneath…" maxlength="55"/>
+    </div>
+  </div>
+
+  <div class="styles-label">Choose your style</div>
+  <div class="style-grid" id="style-grid">
+    <div class="style-card active" data-s="gold">
+      <span class="sc-preview" style="background:linear-gradient(135deg,#b8860b,#ffd700,#fffacd,#daa520);-webkit-background-clip:text;background-clip:text;color:transparent;font-family:'Cinzel',serif">Aa</span>
+      <span class="sc-name">Gold</span>
+    </div>
+    <div class="style-card" data-s="neon">
+      <span class="sc-preview" style="color:#fff;text-shadow:0 0 8px #f0f,0 0 16px #f0f;font-family:'Bebas Neue',sans-serif;letter-spacing:0.05em">Aa</span>
+      <span class="sc-name">Neon</span>
+    </div>
+    <div class="style-card" data-s="fire">
+      <span class="sc-preview" style="background:linear-gradient(180deg,#fff700,#ff9500,#ff4500);-webkit-background-clip:text;background-clip:text;color:transparent;font-family:'Anton',sans-serif">Aa</span>
+      <span class="sc-name">Fire</span>
+    </div>
+    <div class="style-card" data-s="bubble">
+      <span class="sc-preview" style="color:#1a5fa8;text-shadow:1px 1px 0 rgba(255,255,255,0.9),3px 4px 5px rgba(0,80,180,0.2);font-family:'Abril Fatface',serif">Aa</span>
+      <span class="sc-name">Bubble</span>
+    </div>
+    <div class="style-card" data-s="ice">
+      <span class="sc-preview" style="background:linear-gradient(160deg,#e0f7ff,#7dd8f0,#fff);-webkit-background-clip:text;background-clip:text;color:transparent;font-family:'Cormorant Garamond',serif;font-style:italic">Aa</span>
+      <span class="sc-name">Ice</span>
+    </div>
+    <div class="style-card" data-s="chrome">
+      <span class="sc-preview" style="background:linear-gradient(180deg,#fff,#b0b8d0,#e8ecf8,#7080a8);-webkit-background-clip:text;background-clip:text;color:transparent;font-family:'Anton',sans-serif">Aa</span>
+      <span class="sc-name">Chrome</span>
+    </div>
+    <div class="style-card" data-s="holographic">
+      <span class="sc-preview" style="background:linear-gradient(90deg,#ff6ec7,#fffb7d,#6bffb8,#6bcfff,#c77dff);-webkit-background-clip:text;background-clip:text;color:transparent;font-family:'Playfair Display',serif;font-style:italic">Aa</span>
+      <span class="sc-name">Holo</span>
+    </div>
+    <div class="style-card" data-s="stamp">
+      <span class="sc-preview" style="color:#2c1a0e;font-family:'Libre Baskerville',serif;font-weight:700;letter-spacing:0.1em">Aa</span>
+      <span class="sc-name">Stamp</span>
+    </div>
+  </div>
+
+  <button class="gen-btn" id="gen-btn">Generate</button>
+
+  <div class="stage" id="stage">
+    <div class="placeholder-txt">Your word art appears here</div>
+  </div>
+</div>
+
+<script>
+const textEl=document.getElementById('wa-text');
+const subEl=document.getElementById('wa-sub');
+const stageEl=document.getElementById('stage');
+const grid=document.getElementById('style-grid');
+let style='gold';
+
+grid.querySelectorAll('.style-card').forEach(c=>{
+  c.addEventListener('click',()=>{
+    grid.querySelectorAll('.style-card').forEach(x=>x.classList.remove('active'));
+    c.classList.add('active');
+    style=c.dataset.s;
+    if(textEl.value.trim()) render();
+  });
+});
+document.getElementById('gen-btn').addEventListener('click',render);
+textEl.addEventListener('keydown',e=>{if(e.key==='Enter')render()});
+
+function makeBubbles(){
+  let h='<div class="bubble-bg">';
+  const sizes=[18,24,14,32,20,12,28,16,22,10,36,15];
+  const delays=[0,0.8,1.6,0.3,2.1,1.2,0.6,1.9,0.1,2.4,0.9,1.5];
+  const lefts=[5,15,25,35,45,55,65,75,85,10,50,70];
+  const durs=[6,8,5,9,7,6.5,8.5,5.5,7.5,9.5,6,7];
+  sizes.forEach((s,i)=>{
+    h+=`<div class="bub" style="width:${s}px;height:${s}px;left:${lefts[i]}%;bottom:-${s}px;animation-duration:${durs[i]}s;animation-delay:${delays[i]}s"></div>`;
+  });
+  return h+'</div>';
+}
+
+function makeSparkles(){
+  let h='';
+  const pos=[[10,20],[90,15],[15,75],[85,70],[50,10],[30,85],[70,30],[20,50],[80,50],[55,60]];
+  const dels=[0,0.7,1.4,2.1,0.35,1.05,1.75,0.5,1.2,1.9];
+  const durs=[2,2.4,1.8,2.2,2.6,1.6,2.8,2.1,1.9,2.5];
+  pos.forEach(([l,t],i)=>{
+    h+=`<div class="sparkle" style="left:${l}%;top:${t}%;animation-duration:${durs[i]}s;animation-delay:${dels[i]}s"></div>`;
+  });
+  return h;
+}
+
+function render(){
+  const txt=textEl.value.trim()||'Word Art';
+  const sub=subEl.value.trim();
+  const subHtml=sub?`<span class="ws">${txt?sub:''}</span>`:'';
+
+  let inner='';
+  if(style==='bubble'){
+    inner=makeBubbles()+`<span class="wt">${txt}</span>${subHtml}`;
+  } else if(style==='ice'){
+    inner=makeSparkles()+`<span class="wt">${txt}</span>${subHtml}`;
+  } else if(style==='stamp'){
+    inner=`<div class="stamp-frame"><span class="wt">${txt}</span>${subHtml}</div>`;
+  } else {
+    inner=`<span class="wt">${txt}</span>${subHtml}`;
+  }
+
+  stageEl.innerHTML='';
+  const canvas=document.createElement('div');
+  canvas.className=`wa-canvas s-${style}`;
+  canvas.innerHTML=inner;
+  stageEl.appendChild(canvas);
+}
+
+render();
+</script>
