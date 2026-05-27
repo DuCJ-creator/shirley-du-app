@@ -1650,10 +1650,6 @@ const EmbeddedPortal = ({ url, onClose }: { url: string, onClose: () => void }) 
                 <span className="text-[8px] opacity-60 text-zinc-400">關閉</span>
               </div>
             </button>
-            <div className="hidden sm:block h-6 w-px bg-white/10" />
-            <span className="hidden md:inline-block text-[10px] text-zinc-500 font-mono truncate max-w-xs" title={url}>
-              {url}
-            </span>
           </div>
 
           {/* Device Selection Presets */}
