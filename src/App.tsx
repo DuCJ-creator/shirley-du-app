@@ -397,11 +397,8 @@ const GEMS = {
     { name: 'Stopwatch', nameZh: '碼表⌚️', url: 'https://ducj-creator.github.io/Shirley%20Stop%20Watch.html', type: 'sapphire' },
     { name: 'Scoreboard', nameZh: '計分牌', url: 'https://ducj-creator.github.io/scoreboard.html', type: 'amethyst' },
     { name: 'Name/Group Picker', nameZh: '選名/分組🧑🎓', url: 'https://ducj-creator.github.io/namepicker.html', type: 'topaz' },
-    { name: 'Lucky Dice', nameZh: '幸運骰🎲', url: 'https://ducj-creator.github.io/Shirley%20Dice2.html', type: 'opal' },
     { name: 'Quiz Maker', nameZh: '測驗製作', url: 'https://ducj-creator.github.io/Shirley%20Pop%20Quiz%20Maker.html', type: 'diamond' },
     { name: 'Lucky Wheel', nameZh: '幸運輪', url: 'https://ducj-creator.github.io/Shirley%20Lucky%20Wheel.html', type: 'ruby' },
-    { name: 'Moonblock', nameZh: '擲筊', url: 'https://ducj-creator.github.io/moonblock.html', type: 'emerald' },
-    { name: 'Coinflip', nameZh: '扔硬幣', url: 'https://ducj-creator.github.io/coin.html', type: 'sapphire' },
     { name: 'Grade Analysis', nameZh: '成績分析📈', url: 'https://ducj-creator.github.io/grade%20analysis.html', type: 'amethyst' },
   ],
   neptune: [
@@ -412,6 +409,9 @@ const GEMS = {
     { name: 'EMO Shredder', nameZh: '負能量粉碎機', url: 'https://ducj-creator.github.io/emoshredder.html', type: 'amethyst' },
     { name: 'Gems', nameZh: '寶石連連看', url: 'https://ducj-creator.github.io/gem.html', type: 'topaz' },
     { name: 'iVocab Champion', nameZh: '愛單字挑戰', url: 'https://ducj-creator.github.io/ivchampion.html', type: 'opal' },
+    { name: 'Lucky Dice', nameZh: '幸運骰🎲', url: 'https://ducj-creator.github.io/Shirley%20Dice2.html', type: 'opal' },
+    { name: 'Moonblock', nameZh: '擲筊', url: 'https://ducj-creator.github.io/moonblock.html', type: 'emerald' },
+    { name: 'Coinflip', nameZh: '扔硬幣', url: 'https://ducj-creator.github.io/coin.html', type: 'sapphire' },
   ],
 };
 
