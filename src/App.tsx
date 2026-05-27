@@ -5,7 +5,7 @@ import {
   Home, User, Trophy, Heart, Coffee, ChevronLeft, ExternalLink,
   LogIn, LogOut, Clock, Zap, RefreshCw, Search, TrendingUp, ChevronRight,
   ClipboardX, FileText, Trash2, Download, Palette, Plus, Save, X, Edit, Pencil, Check,
-  Hammer, Gamepad2, Monitor, Tablet, Smartphone, ZoomIn, ZoomOut, RotateCcw, Compass
+  Hammer, Gamepad2, Monitor, Tablet, Smartphone, ZoomIn, ZoomOut, RotateCcw, Compass, Globe
 } from 'lucide-react';
 import { cn } from './lib/utils';
 import { 
@@ -18,7 +18,7 @@ import { GoogleGenAI } from "@google/genai";
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 
 // --- Types ---
-type Strand = 'grammar' | 'vocabulary' | 'pronunciation' | 'tests' | 'saturn' | 'uranus' | 'neptune' | 'home' | 'pet' | 'logs';
+type Strand = 'grammar' | 'vocabulary' | 'earth' | 'pronunciation' | 'tests' | 'saturn' | 'uranus' | 'neptune' | 'home' | 'pet' | 'logs';
 
 interface PointLog {
   id: string;
@@ -98,11 +98,12 @@ const PET_TYPES = [
 const STRANDS = {
   grammar: { name: 'E Grammar', nameZh: '核心文法', planet: 'Mercury', color: '#a9a9a9', icon: PenTool, class: 'planet-mercury', size: 0.45, orbit: 1 },
   vocabulary: { name: 'E Vocabulary', nameZh: '核心字彙', planet: 'Venus', color: '#ffd700', icon: BookOpen, class: 'planet-venus', size: 0.75, orbit: 2 },
-  pronunciation: { name: 'Pronunciation', nameZh: '發音練習', planet: 'Mars', color: '#ff4500', icon: Mic2, class: 'planet-mars', size: 0.6, orbit: 3 },
-  tests: { name: 'ST.Tests', nameZh: '標準測驗', planet: 'Jupiter', color: '#deb887', icon: GraduationCap, class: 'planet-jupiter', size: 1.25, orbit: 4 },
-  saturn: { name: 'T&L Tools', nameZh: '教/學工具', planet: 'Saturn', color: '#f4a460', icon: Zap, class: 'planet-saturn', size: 0.95, orbit: 5 },
-  uranus: { name: 'Handy Tools', nameZh: '實用工具', planet: 'Uranus', color: '#40e0d0', icon: Hammer, class: 'planet-uranus', size: 0.8, orbit: 6 },
-  neptune: { name: 'Fun Games', nameZh: '輕鬆遊戲', planet: 'Neptune', color: '#1e90ff', icon: Gamepad2, class: 'planet-neptune', size: 0.78, orbit: 7 },
+  earth: { name: 'School Courses', nameZh: '學校課程', planet: 'Earth', color: '#4ade80', icon: Globe, class: 'planet-earth', size: 0.7, orbit: 3 },
+  pronunciation: { name: 'Pronunciation', nameZh: '發音練習', planet: 'Mars', color: '#ff4500', icon: Mic2, class: 'planet-mars', size: 0.6, orbit: 4 },
+  tests: { name: 'ST.Tests', nameZh: '標準測驗', planet: 'Jupiter', color: '#deb887', icon: GraduationCap, class: 'planet-jupiter', size: 1.25, orbit: 5 },
+  saturn: { name: 'T&L Tools', nameZh: '教/學工具', planet: 'Saturn', color: '#f4a460', icon: Zap, class: 'planet-saturn', size: 0.95, orbit: 6 },
+  uranus: { name: 'Handy Tools', nameZh: '實用工具', planet: 'Uranus', color: '#40e0d0', icon: Hammer, class: 'planet-uranus', size: 0.8, orbit: 7 },
+  neptune: { name: 'Fun Games', nameZh: '輕鬆遊戲', planet: 'Neptune', color: '#1e90ff', icon: Gamepad2, class: 'planet-neptune', size: 0.78, orbit: 8 },
 };
 
 const UserAvatarCenter = ({ userData, onUpdate }: { userData: any, onUpdate: (data: any) => void }) => {
@@ -224,10 +225,10 @@ const UniverseDisplay = ({ user, userData, onStrandClick, onUpdateAvatar, onSpac
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const orbitDistances = isMobile ? [80, 130, 180, 230, 280, 330, 380] : [95, 135, 175, 215, 255, 295, 335];
+  const orbitDistances = isMobile ? [85, 130, 175, 220, 265, 310, 355, 400] : [95, 135, 175, 215, 255, 295, 335, 375];
   
-  // Adjusted angles for better visibility and avoiding overlap with side branding for 7 planets
-  const desktopAngles = [35, 85, 135, 185, 235, 285, 335];
+  // Adjusted angles for better visibility and avoiding overlap with side branding for 8 planets
+  const desktopAngles = [25, 70, 115, 160, 205, 250, 295, 340];
   
   if (isMobile) {
     // S-Curve logic for mobile
@@ -240,7 +241,7 @@ const UniverseDisplay = ({ user, userData, onStrandClick, onUpdateAvatar, onSpac
           <SpaceshipCenter onClick={onSpaceshipClick} />
         </div>
 
-        <div className="relative w-full h-[850px]">
+        <div className="relative w-full h-[960px]">
           {Object.entries(STRANDS).map(([key, info], index) => {
             const orbitIdx = info.orbit - 1;
             const dist = orbitDistances[orbitIdx] || 330;
@@ -375,6 +376,12 @@ const GEMS = {
     { name: 'GSAT Cloze', nameZh: '學測克漏字', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/GSAT%20cloze.html', type: 'topaz' },
     { name: 'GSAT Reading', nameZh: '學測閱讀', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/gsat%20reading.html', type: 'opal' },
   ],
+  earth: [
+    { name: 'iVocab Reading', nameZh: '愛單字閱讀理解', url: 'https://ducj-creator.github.io/iVocab-Readers/', type: 'topaz' },
+    { name: 'FRP ELA Vocab', nameZh: '人文專題單字王', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/FRP%20ELA.html', type: 'sapphire' },
+    { name: 'TOEFL J Vocab1', nameZh: '初級托福單字王1', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/TOEFL%20Junior%20Vocab.html', type: 'ruby' },
+    { name: 'TOEFL J Vocab 2', nameZh: '初級托福單字王2', url: 'https://ducj-creator.github.io/toefl-junior-vocab-master/', type: 'emerald' },
+  ],
   saturn: [
     { name: 'My Own Words', nameZh: '自主單字練習', url: 'https://ducj-creator.github.io/iVocab-Self-Practice/entry.html', type: 'diamond' },
     { name: 'Word Search Maker', nameZh: '尋字工坊', url: 'https://ducj-creator.github.io/Shirley%20Word%20Search%20Maker.html', type: 'ruby' },
@@ -384,13 +391,18 @@ const GEMS = {
     { name: 'Report Formatter', nameZh: '報告格式器', url: 'https://ducj-creator.github.io/report.html', type: 'emerald' },
   ],
   uranus: [
-    { name: 'Timer', nameZh: '計時器 ⏱️', url: 'https://ducj-creator.github.io/Shirley%20Timer.html', type: 'diamond' },
-    { name: 'Stopwatch', nameZh: '碼表⌚️', url: 'https://ducj-creator.github.io/Shirley%20Stop%20Watch.html', type: 'ruby' },
-    { name: 'Name/Group Picker', nameZh: '選名/分組🧑🎓', url: 'https://ducj-creator.github.io/namepicker.html', type: 'emerald' },
-    { name: 'Lucky Dice', nameZh: '幸運骰🎲', url: 'https://ducj-creator.github.io/Shirley%20Dice2.html', type: 'sapphire' },
+    { name: 'Clock', nameZh: '時鐘', url: 'https://ducj-creator.github.io/clock.html', type: 'diamond' },
+    { name: 'Timer', nameZh: '計時器 ⏱️', url: 'https://ducj-creator.github.io/Shirley%20Timer.html', type: 'ruby' },
+    { name: 'Countdown', nameZh: '倒計時', url: 'https://ducj-creator.github.io/countdown.html', type: 'emerald' },
+    { name: 'Stopwatch', nameZh: '碼表⌚️', url: 'https://ducj-creator.github.io/Shirley%20Stop%20Watch.html', type: 'sapphire' },
+    { name: 'Scoreboard', nameZh: '計分牌', url: 'https://ducj-creator.github.io/scoreboard.html', type: 'amethyst' },
+    { name: 'Name/Group Picker', nameZh: '選名/分組🧑🎓', url: 'https://ducj-creator.github.io/namepicker.html', type: 'topaz' },
+    { name: 'Lucky Dice', nameZh: '幸運骰🎲', url: 'https://ducj-creator.github.io/Shirley%20Dice2.html', type: 'opal' },
+    { name: 'Quiz Maker', nameZh: '測驗製作', url: 'https://ducj-creator.github.io/Shirley%20Pop%20Quiz%20Maker.html', type: 'diamond' },
+    { name: 'Lucky Wheel', nameZh: '幸運輪', url: 'https://ducj-creator.github.io/Shirley%20Lucky%20Wheel.html', type: 'ruby' },
+    { name: 'Moonblock', nameZh: '擲筊', url: 'https://ducj-creator.github.io/moonblock.html', type: 'emerald' },
+    { name: 'Coinflip', nameZh: '扔硬幣', url: 'https://ducj-creator.github.io/coin.html', type: 'sapphire' },
     { name: 'Grade Analysis', nameZh: '成績分析📈', url: 'https://ducj-creator.github.io/grade%20analysis.html', type: 'amethyst' },
-    { name: 'Quiz Maker', nameZh: '測驗製作', url: 'https://ducj-creator.github.io/Shirley%20Pop%20Quiz%20Maker.html', type: 'topaz' },
-    { name: 'Lucky Wheel', nameZh: '幸運輪', url: 'https://ducj-creator.github.io/Shirley%20Lucky%20Wheel.html', type: 'opal' },
   ],
   neptune: [
     { name: 'Sudoku', nameZh: '數獨', url: 'https://ducj-creator.github.io/shirley%20sudoku.html', type: 'diamond' },
@@ -511,6 +523,10 @@ const RenderMiniPlanet = ({ planet, className = '' }: { planet: string, classNam
     // Neptune: Dynamic deep royal blue storm giant
     backgroundStyle = 'radial-gradient(circle at 35% 35%, #eff6ff 0%, #3b82f6 30%, #1d4ed8 70%, #1e1b4b 100%)';
     shadowStyle = '0 0 24px rgba(37, 99, 235, 0.8), inset -2px -2px 6px rgba(0,0,0,0.6)';
+  } else if (p === 'earth') {
+    // Earth: Vivid blue, with green/emerald landmass textures and a soft blue atmospheric glow
+    backgroundStyle = 'radial-gradient(circle at 35% 35%, #93c5fd 0%, #3b82f6 30%, #2563eb 70%, #1e3a8a 100%)';
+    shadowStyle = '0 0 20px rgba(59, 130, 246, 0.7), inset -2px -2px 6px rgba(0,0,0,0.6)';
   } else {
     // Standard stellar nebula bubble
     backgroundStyle = 'radial-gradient(circle at 35% 35%, #ffffff 0%, #94a3b8 60%, #0f172a 100%)';
@@ -558,6 +574,14 @@ const RenderMiniPlanet = ({ planet, className = '' }: { planet: string, classNam
           <div className="absolute inset-0 opacity-25 mix-blend-overlay pointer-events-none">
             <div className="absolute top-2 left-1 inset-x-0 h-[2px] bg-blue-300" />
             <div className="absolute bottom-3 right-1 inset-x-0 h-[1.5px] bg-blue-900" />
+          </div>
+        )}
+        {p === 'earth' && (
+          <div className="absolute inset-0 opacity-40 mix-blend-overlay pointer-events-none">
+            <div className="absolute top-2 left-2 w-3.5 h-3 bg-emerald-500 rounded-full filter blur-[1px]" />
+            <div className="absolute top-4 left-5 w-4 h-2 bg-emerald-600 rounded-full filter blur-[1.5px]" />
+            <div className="absolute bottom-2 right-3 w-3.5 h-3 bg-emerald-500 rounded-full filter blur-[1px]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_12px_12px,rgba(255,255,255,0.2),transparent)]" />
           </div>
         )}
       </div>
@@ -727,7 +751,7 @@ const PreLoginExplorer = ({ onSelectGem, onSelectStrand }: {
       ) : (
         /* Regular Table of Contents Grid */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
-          {(['vocabulary', 'tests', 'grammar', 'pronunciation', 'saturn', 'uranus', 'neptune'] as Strand[]).map((strandKey) => {
+          {(['grammar', 'vocabulary', 'earth', 'pronunciation', 'tests', 'saturn', 'uranus', 'neptune'] as Strand[]).map((strandKey) => {
             const info = STRANDS[strandKey];
             if (!info) return null;
             
@@ -3799,38 +3823,72 @@ export default function App() {
                       let rx = 35; // horizontal radius in percent
                       let ry = 35; // vertical radius in percent
 
-                      if (totalGems === 3) {
-                        // Triangle
-                        const triangleAngles = [-90, 30, 150];
-                        angleInDegrees = triangleAngles[idx % 3];
-                      } else if (totalGems === 4) {
-                        // Diamond
-                        const diamondAngles = [-90, 0, 90, 180];
-                        angleInDegrees = diamondAngles[idx % 4];
-                      } else if (totalGems === 5) {
-                        // Five-pointed star
-                        angleInDegrees = -90 + (idx % 5) * 72;
-                      } else if (totalGems === 6) {
-                        // Hexagon
-                        angleInDegrees = -90 + (idx % 6) * 60;
-                      } else if (totalGems === 7) {
-                        // Heptagon
-                        angleInDegrees = -90 + (idx % 7) * (360 / 7);
-                        rx = 36;
-                        ry = 36;
-                      } else if (totalGems === 8) {
-                        // Octagon
-                        angleInDegrees = -90 + (idx % 8) * 45;
-                        rx = 36;
-                        ry = 36;
-                      } else if (totalGems === 10) {
-                        // Decagon
-                        angleInDegrees = -108 + (idx % 10) * 36; // slightly rotated for beautiful symmetry
-                        rx = 38;
-                        ry = 38;
+                      if (totalGems <= 6) {
+                        // Single ring layout
+                        rx = totalGems === 3 ? 31 : totalGems === 4 ? 32 : totalGems === 5 ? 33 : 34;
+                        ry = rx;
+                        if (totalGems === 3) {
+                          const triangleAngles = [-90, 30, 150];
+                          angleInDegrees = triangleAngles[idx];
+                        } else if (totalGems === 4) {
+                          const diamondAngles = [-90, 0, 90, 180];
+                          angleInDegrees = diamondAngles[idx];
+                        } else if (totalGems === 5) {
+                          angleInDegrees = -90 + idx * 72;
+                        } else if (totalGems === 6) {
+                          angleInDegrees = -90 + idx * 60;
+                        } else {
+                          angleInDegrees = -90 + idx * (360 / totalGems);
+                        }
                       } else {
-                        // General polygon distribution fallback
-                        angleInDegrees = -90 + idx * (360 / totalGems);
+                        // Concentric dual-ring layout for more than 6 gems
+                        let innerCount = 0;
+                        let outerCount = 0;
+
+                        if (totalGems === 7) { innerCount = 3; outerCount = 4; }
+                        else if (totalGems === 8) { innerCount = 4; outerCount = 4; }
+                        else if (totalGems === 9) { innerCount = 4; outerCount = 5; }
+                        else if (totalGems === 10) { innerCount = 5; outerCount = 5; }
+                        else if (totalGems === 11) { innerCount = 5; outerCount = 6; }
+                        else if (totalGems === 12) { innerCount = 6; outerCount = 6; }
+                        else {
+                          innerCount = Math.floor(totalGems / 2);
+                          outerCount = totalGems - innerCount;
+                        }
+
+                        const isInner = idx < innerCount;
+                        if (isInner) {
+                          rx = 18;
+                          ry = 18;
+                          const subIdx = idx;
+                          if (innerCount === 3) {
+                            const triangleAngles = [-90, 30, 150];
+                            angleInDegrees = triangleAngles[subIdx];
+                          } else if (innerCount === 4) {
+                            const diamondAngles = [-45, 45, 135, 225];
+                            angleInDegrees = diamondAngles[subIdx];
+                          } else if (innerCount === 5) {
+                            angleInDegrees = -90 + subIdx * 72;
+                          } else if (innerCount === 6) {
+                            angleInDegrees = -90 + subIdx * 60;
+                          } else {
+                            angleInDegrees = -90 + subIdx * (360 / innerCount);
+                          }
+                        } else {
+                          rx = 38;
+                          ry = 38;
+                          const subIdx = idx - innerCount;
+                          if (outerCount === 4) {
+                            const diamondAngles = [-90, 0, 90, 180];
+                            angleInDegrees = diamondAngles[subIdx];
+                          } else if (outerCount === 5) {
+                            angleInDegrees = -90 + subIdx * 72;
+                          } else if (outerCount === 6) {
+                            angleInDegrees = -90 + subIdx * 60;
+                          } else {
+                            angleInDegrees = -90 + subIdx * (360 / outerCount);
+                          }
+                        }
                       }
 
                       const angleRad = (angleInDegrees * Math.PI) / 180;
