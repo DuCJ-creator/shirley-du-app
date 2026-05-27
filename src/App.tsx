@@ -2396,6 +2396,14 @@ export default function App() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [petData, setPetData] = useState<PetData | null>(null);
   const [currentStrand, setCurrentStrand] = useState<Strand>('home');
+  const [isMobileScreen, setIsMobileScreen] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobileScreen(window.innerWidth < 640);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   const [activePortalUrl, setActivePortalUrl] = useState<string | null>(null);
   const [logTab, setLogTab] = useState<'points' | 'cards'>('points');
   const [isRolling, setIsRolling] = useState(false);
@@ -3812,88 +3820,146 @@ export default function App() {
                     />
                   </div>
                 ) : (
-                  <div className="relative w-full aspect-square max-w-[340px] md:max-w-[380px] min-h-[260px] sm:min-h-[300px] md:min-h-[340px] flex items-center justify-center overflow-visible">
+                  <div className={cn(
+                    "relative w-full transition-all duration-500 flex items-center justify-center overflow-visible",
+                    (GEMS[currentStrand as keyof typeof GEMS] || []).length > 6
+                      ? (isMobileScreen ? "aspect-[1/1.85] max-w-[280px]" : "aspect-[1.9/1] max-w-[620px] md:max-w-[680px]")
+                      : "aspect-square max-w-[340px] md:max-w-[380px] min-h-[260px] sm:min-h-[300px] md:min-h-[340px]"
+                  )}>
                     {/* Atmospheric backing orbits for geometric beauty */}
-                    <div className="absolute inset-0 border border-white/[0.03] rounded-full pointer-events-none scale-90" />
-                    <div className="absolute inset-0 border border-dashed border-white/[0.015] rounded-full pointer-events-none scale-75 animate-[spin_180s_linear_infinite]" />
+                    {(() => {
+                      const totalCount = (GEMS[currentStrand as keyof typeof GEMS] || []).length;
+                      if (totalCount <= 6) {
+                        return (
+                          <>
+                            <div className="absolute inset-0 border border-white/[0.03] rounded-full pointer-events-none scale-90" />
+                            <div className="absolute inset-0 border border-dashed border-white/[0.015] rounded-full pointer-events-none scale-75 animate-[spin_180s_linear_infinite]" />
+                          </>
+                        );
+                      } else {
+                        const cx1 = isMobileScreen ? 50 : 27;
+                        const cy1 = isMobileScreen ? 27 : 50;
+                        const cx2 = isMobileScreen ? 50 : 73;
+                        const cy2 = isMobileScreen ? 73 : 50;
+
+                        return (
+                          <>
+                            {/* Orbit A */}
+                            <div 
+                              className="absolute border border-white/[0.03] rounded-full pointer-events-none" 
+                              style={{
+                                left: `${cx1}%`,
+                                top: `${cy1}%`,
+                                transform: 'translate(-50%, -50%)',
+                                width: isMobileScreen ? '33vw' : '150px',
+                                height: isMobileScreen ? '33vw' : '150px',
+                                maxWidth: isMobileScreen ? '100px' : '170px',
+                                maxHeight: isMobileScreen ? '100px' : '170px',
+                              }}
+                            />
+                            <div 
+                              className="absolute border border-dashed border-white/[0.015] rounded-full pointer-events-none animate-[spin_120s_linear_infinite]"
+                              style={{
+                                left: `${cx1}%`,
+                                top: `${cy1}%`,
+                                transform: 'translate(-50%, -50%)',
+                                width: isMobileScreen ? '25vw' : '110px',
+                                height: isMobileScreen ? '25vw' : '110px',
+                                maxWidth: isMobileScreen ? '75px' : '125px',
+                                maxHeight: isMobileScreen ? '75px' : '125px',
+                              }}
+                            />
+
+                            {/* Orbit B */}
+                            <div 
+                              className="absolute border border-white/[0.03] rounded-full pointer-events-none" 
+                              style={{
+                                left: `${cx2}%`,
+                                top: `${cy2}%`,
+                                transform: 'translate(-50%, -50%)',
+                                width: isMobileScreen ? '33vw' : '150px',
+                                height: isMobileScreen ? '33vw' : '150px',
+                                maxWidth: isMobileScreen ? '100px' : '170px',
+                                maxHeight: isMobileScreen ? '100px' : '170px',
+                              }}
+                            />
+                            <div 
+                              className="absolute border border-dashed border-white/[0.015] rounded-full pointer-events-none animate-[spin_120s_linear_infinite]" 
+                              style={{
+                                left: `${cx2}%`,
+                                top: `${cy2}%`,
+                                transform: 'translate(-50%, -50%)',
+                                width: isMobileScreen ? '25vw' : '110px',
+                                height: isMobileScreen ? '25vw' : '110px',
+                                maxWidth: isMobileScreen ? '75px' : '125px',
+                                maxHeight: isMobileScreen ? '75px' : '125px',
+                              }}
+                            />
+                          </>
+                        );
+                      }
+                    })()}
                     
                     {GEMS[currentStrand as keyof typeof GEMS].map((gem, idx) => {
                       const totalGems = GEMS[currentStrand as keyof typeof GEMS].length;
                       let angleInDegrees = 0;
-                      let rx = 35; // horizontal radius in percent
-                      let ry = 35; // vertical radius in percent
+                      let x = 50;
+                      let y = 50;
+
+                      const getShapeAngles = (count: number) => {
+                        if (count === 3) return [-90, 30, 150];
+                        if (count === 4) return [-90, 0, 90, 180];
+                        if (count === 5) return [-90, -18, 54, 126, 198];
+                        if (count === 6) return [-90, -30, 30, 90, 150, 210];
+                        const angles = [];
+                        for (let i = 0; i < count; i++) {
+                          angles.push(-90 + i * (360 / count));
+                        }
+                        return angles;
+                      };
 
                       if (totalGems <= 6) {
                         // Single ring layout
-                        rx = totalGems === 3 ? 31 : totalGems === 4 ? 32 : totalGems === 5 ? 33 : 34;
-                        ry = rx;
-                        if (totalGems === 3) {
-                          const triangleAngles = [-90, 30, 150];
-                          angleInDegrees = triangleAngles[idx];
-                        } else if (totalGems === 4) {
-                          const diamondAngles = [-90, 0, 90, 180];
-                          angleInDegrees = diamondAngles[idx];
-                        } else if (totalGems === 5) {
-                          angleInDegrees = -90 + idx * 72;
-                        } else if (totalGems === 6) {
-                          angleInDegrees = -90 + idx * 60;
-                        } else {
-                          angleInDegrees = -90 + idx * (360 / totalGems);
-                        }
+                        const rx = totalGems === 3 ? 31 : totalGems === 4 ? 32 : totalGems === 5 ? 33 : 34;
+                        const ry = rx;
+                        const angles = getShapeAngles(totalGems);
+                        angleInDegrees = angles[idx % totalGems] || 0;
+                        const angleRad = (angleInDegrees * Math.PI) / 180;
+                        x = 50 + Math.cos(angleRad) * rx;
+                        y = 50 + Math.sin(angleRad) * ry;
                       } else {
-                        // Concentric dual-ring layout for more than 6 gems
-                        let innerCount = 0;
-                        let outerCount = 0;
+                        // Separately layered layouts of two regular polygons
+                        let groupASize = 0;
+                        let groupBSize = 0;
 
-                        if (totalGems === 7) { innerCount = 3; outerCount = 4; }
-                        else if (totalGems === 8) { innerCount = 4; outerCount = 4; }
-                        else if (totalGems === 9) { innerCount = 4; outerCount = 5; }
-                        else if (totalGems === 10) { innerCount = 5; outerCount = 5; }
-                        else if (totalGems === 11) { innerCount = 5; outerCount = 6; }
-                        else if (totalGems === 12) { innerCount = 6; outerCount = 6; }
+                        if (totalGems === 7) { groupASize = 3; groupBSize = 4; }
+                        else if (totalGems === 8) { groupASize = 4; groupBSize = 4; }
+                        else if (totalGems === 9) { groupASize = 4; groupBSize = 5; }
+                        else if (totalGems === 10) { groupASize = 5; groupBSize = 5; }
+                        else if (totalGems === 11) { groupASize = 5; groupBSize = 6; }
+                        else if (totalGems === 12) { groupASize = 6; groupBSize = 6; }
                         else {
-                          innerCount = Math.floor(totalGems / 2);
-                          outerCount = totalGems - innerCount;
+                          groupASize = Math.floor(totalGems / 2);
+                          groupBSize = totalGems - groupASize;
                         }
 
-                        const isInner = idx < innerCount;
-                        if (isInner) {
-                          rx = 18;
-                          ry = 18;
-                          const subIdx = idx;
-                          if (innerCount === 3) {
-                            const triangleAngles = [-90, 30, 150];
-                            angleInDegrees = triangleAngles[subIdx];
-                          } else if (innerCount === 4) {
-                            const diamondAngles = [-45, 45, 135, 225];
-                            angleInDegrees = diamondAngles[subIdx];
-                          } else if (innerCount === 5) {
-                            angleInDegrees = -90 + subIdx * 72;
-                          } else if (innerCount === 6) {
-                            angleInDegrees = -90 + subIdx * 60;
-                          } else {
-                            angleInDegrees = -90 + subIdx * (360 / innerCount);
-                          }
-                        } else {
-                          rx = 38;
-                          ry = 38;
-                          const subIdx = idx - innerCount;
-                          if (outerCount === 4) {
-                            const diamondAngles = [-90, 0, 90, 180];
-                            angleInDegrees = diamondAngles[subIdx];
-                          } else if (outerCount === 5) {
-                            angleInDegrees = -90 + subIdx * 72;
-                          } else if (outerCount === 6) {
-                            angleInDegrees = -90 + subIdx * 60;
-                          } else {
-                            angleInDegrees = -90 + subIdx * (360 / outerCount);
-                          }
-                        }
+                        const isGroupA = idx < groupASize;
+                        const cx = isMobileScreen ? 50 : (isGroupA ? 27 : 73);
+                        const cy = isMobileScreen ? (isGroupA ? 27 : 73) : 50;
+
+                        // To look perfectly round/symmetric on screen
+                        const radiusX = isMobileScreen ? 21 : 11;
+                        const radiusY = isMobileScreen ? 11.5 : 21;
+
+                        const localIdx = isGroupA ? idx : idx - groupASize;
+                        const activeGroupSize = isGroupA ? groupASize : groupBSize;
+                        const angles = getShapeAngles(activeGroupSize);
+                        angleInDegrees = angles[localIdx % activeGroupSize] || 0;
+
+                        const angleRad = (angleInDegrees * Math.PI) / 180;
+                        x = cx + Math.cos(angleRad) * radiusX;
+                        y = cy + Math.sin(angleRad) * radiusY;
                       }
-
-                      const angleRad = (angleInDegrees * Math.PI) / 180;
-                      const x = 50 + Math.cos(angleRad) * rx;
-                      const y = 50 + Math.sin(angleRad) * ry;
 
                       const customStyle = {
                         left: `${x}%`,
