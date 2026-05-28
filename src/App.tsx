@@ -381,6 +381,8 @@ const GEMS = {
     { name: 'FRP ELA Vocab', nameZh: '人文專題單字王', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/FRP%20ELA.html', type: 'sapphire' },
     { name: 'TOEFL J Vocab1', nameZh: '初級托福單字王1', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/TOEFL%20Junior%20Vocab.html', type: 'ruby' },
     { name: 'TOEFL J Vocab 2', nameZh: '初級托福單字王2', url: 'https://ducj-creator.github.io/toefl-junior-vocab-master/', type: 'emerald' },
+    { name: 'CHHS Monthly', nameZh: '忠信月刊', url: 'https://ducj-creator.github.io/events/chhsmonthly/', type: 'amethyst' },
+    { name: 'TOEFL J Mock', nameZh: '初級托福模擬', url: 'https://ducj-creator.github.io/TFJ-Mock/', type: 'opal' },
   ],
   saturn: [
     { name: 'My Own Words', nameZh: '自主單字練習', url: 'https://ducj-creator.github.io/iVocab-Self-Practice/entry.html', type: 'diamond' },
@@ -399,6 +401,7 @@ const GEMS = {
     { name: 'Name/Group Picker', nameZh: '選名/分組🧑🎓', url: 'https://ducj-creator.github.io/namepicker.html', type: 'topaz' },
     { name: 'Quiz Maker', nameZh: '測驗製作', url: 'https://ducj-creator.github.io/Shirley%20Pop%20Quiz%20Maker.html', type: 'diamond' },
     { name: 'Lucky Wheel', nameZh: '幸運輪', url: 'https://ducj-creator.github.io/Shirley%20Lucky%20Wheel.html', type: 'ruby' },
+    { name: 'Signpost', nameZh: '指示牌', url: 'https://ducj-creator.github.io/sign.html', type: 'emerald' },
     { name: 'Grade Analysis', nameZh: '成績分析📈', url: 'https://ducj-creator.github.io/grade%20analysis.html', type: 'amethyst' },
   ],
   neptune: [
@@ -3842,57 +3845,52 @@ export default function App() {
                         const cx2 = isMobileScreen ? 50 : 73;
                         const cy2 = isMobileScreen ? 73 : 50;
 
+                        const rxPerc = isMobileScreen ? 42 : 22;
+                        const ryPerc = isMobileScreen ? 23 : 42;
+
                         return (
                           <>
                             {/* Orbit A */}
                             <div 
-                              className="absolute border border-white/[0.03] rounded-full pointer-events-none" 
+                              className="absolute border border-white/[0.04] rounded-full pointer-events-none" 
                               style={{
                                 left: `${cx1}%`,
                                 top: `${cy1}%`,
                                 transform: 'translate(-50%, -50%)',
-                                width: isMobileScreen ? '33vw' : '150px',
-                                height: isMobileScreen ? '33vw' : '150px',
-                                maxWidth: isMobileScreen ? '100px' : '170px',
-                                maxHeight: isMobileScreen ? '100px' : '170px',
+                                width: `${rxPerc}%`,
+                                height: `${ryPerc}%`,
                               }}
                             />
                             <div 
-                              className="absolute border border-dashed border-white/[0.015] rounded-full pointer-events-none animate-[spin_120s_linear_infinite]"
+                              className="absolute border border-dashed border-white/[0.02] rounded-full pointer-events-none animate-[spin_120s_linear_infinite]"
                               style={{
                                 left: `${cx1}%`,
                                 top: `${cy1}%`,
                                 transform: 'translate(-50%, -50%)',
-                                width: isMobileScreen ? '25vw' : '110px',
-                                height: isMobileScreen ? '25vw' : '110px',
-                                maxWidth: isMobileScreen ? '75px' : '125px',
-                                maxHeight: isMobileScreen ? '75px' : '125px',
+                                width: `${rxPerc * 0.75}%`,
+                                height: `${ryPerc * 0.75}%`,
                               }}
                             />
 
                             {/* Orbit B */}
                             <div 
-                              className="absolute border border-white/[0.03] rounded-full pointer-events-none" 
+                              className="absolute border border-white/[0.04] rounded-full pointer-events-none" 
                               style={{
                                 left: `${cx2}%`,
                                 top: `${cy2}%`,
                                 transform: 'translate(-50%, -50%)',
-                                width: isMobileScreen ? '33vw' : '150px',
-                                height: isMobileScreen ? '33vw' : '150px',
-                                maxWidth: isMobileScreen ? '100px' : '170px',
-                                maxHeight: isMobileScreen ? '100px' : '170px',
+                                width: `${rxPerc}%`,
+                                height: `${ryPerc}%`,
                               }}
                             />
                             <div 
-                              className="absolute border border-dashed border-white/[0.015] rounded-full pointer-events-none animate-[spin_120s_linear_infinite]" 
+                              className="absolute border border-dashed border-white/[0.02] rounded-full pointer-events-none animate-[spin_120s_linear_infinite]" 
                               style={{
                                 left: `${cx2}%`,
                                 top: `${cy2}%`,
                                 transform: 'translate(-50%, -50%)',
-                                width: isMobileScreen ? '25vw' : '110px',
-                                height: isMobileScreen ? '25vw' : '110px',
-                                maxWidth: isMobileScreen ? '75px' : '125px',
-                                maxHeight: isMobileScreen ? '75px' : '125px',
+                                width: `${rxPerc * 0.75}%`,
+                                height: `${ryPerc * 0.75}%`,
                               }}
                             />
                           </>
@@ -3961,13 +3959,33 @@ export default function App() {
                         y = cy + Math.sin(angleRad) * radiusY;
                       }
 
+                      // Mathematically non-overlapping scale based on responsiveness and total count
+                      let itemScale = 0.88;
+                      if (isMobileScreen) {
+                        if (totalGems > 6) {
+                          itemScale = 0.44;
+                        } else if (totalGems >= 5) {
+                          itemScale = 0.53;
+                        } else {
+                          itemScale = 0.62;
+                        }
+                      } else {
+                        if (totalGems > 6) {
+                          itemScale = 0.58;
+                        } else if (totalGems >= 5) {
+                          itemScale = 0.72;
+                        } else {
+                          itemScale = 0.88;
+                        }
+                      }
+
                       const customStyle = {
                         left: `${x}%`,
                         top: `${y}%`,
-                        transform: 'translate(-50%, -50%)',
+                        transform: `translate(-50%, -50%) scale(${itemScale})`,
                       };
 
-                      const customWrapperClass = "absolute transition-all duration-300 scale-[0.68] sm:scale-80 md:scale-[0.88] hover:scale-[0.93] hover:z-20";
+                      const customWrapperClass = "absolute transition-all duration-300 hover:z-20";
                       const customClass = "gem-geometric backdrop-blur-2xl";
 
                       return (
