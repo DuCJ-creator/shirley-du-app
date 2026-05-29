@@ -2255,7 +2255,7 @@ const EmbeddedPortal = ({
                             )}
                           />
                           <p className="text-[9.5px] text-zinc-500 mt-1.5 leading-snug">
-                            Teacher Tr. Shirley can type her secret Cosmic Key (<strong>SHIRLEY55</strong>) to verify and claim directly with the student.
+                            Please request Tr. Shirley to input her secret authorization key. / 請讓 Tr. Shirley 老師輸入覆核授權碼。
                           </p>
                         </div>
                       )}
