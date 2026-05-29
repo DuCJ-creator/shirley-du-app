@@ -76,6 +76,8 @@ interface PetData {
   name: string;
   type: string;
   image: string;
+  emoji?: string;
+  tierId?: string;
   hunger: number;
   happiness: number;
   level: number;
@@ -85,15 +87,140 @@ interface PetData {
 }
 
 // --- Constants ---
-const PET_TYPES = [
-  { name: "Luna", type: "Cosmic Cat", image: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=400&h=400&q=80" },
-  { name: "Astro", type: "Space Dog", image: "https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?auto=format&fit=crop&w=400&h=400&q=80" },
-  { name: "Nebula", type: "Galaxy Fox", image: "https://images.unsplash.com/photo-1516934024742-b461fba47600?auto=format&fit=crop&w=400&h=400&q=80" },
-  { name: "Orion", type: "Star Bear", image: "https://images.unsplash.com/photo-1589656966895-2f33e7653819?auto=format&fit=crop&w=400&h=400&q=80" },
-  { name: "Nova", type: "Comet Bunny", image: "https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?auto=format&fit=crop&w=400&h=400&q=80" },
-  { name: "Cosmo", type: "Solar Owl", image: "https://images.unsplash.com/photo-1543549710-1f02f909d828?auto=format&fit=crop&w=400&h=400&q=80" },
-  { name: "Stellar", type: "Void Dragon", image: "https://images.unsplash.com/photo-1577493340887-b7bfff550145?auto=format&fit=crop&w=400&h=400&q=80" },
-  { name: "Pulsar", type: "Moon Hamster", image: "https://images.unsplash.com/photo-1425082661705-1834bfd09dca?auto=format&fit=crop&w=400&h=400&q=80" },
+// --- Constants ---
+const PET_TIERS = [
+  {
+    id: 'common', label: 'Common', cost: 100, color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20',
+    pets: [
+      { id: 'hamster', name: 'Hamster', emoji: '🐹' },
+      { id: 'rabbit', name: 'Rabbit', emoji: '🐰' },
+      { id: 'chick', name: 'Baby Chick', emoji: '🐥' },
+      { id: 'cat', name: 'Cat', emoji: '🐱' },
+      { id: 'dog', name: 'Dog', emoji: '🐶' },
+      { id: 'duck', name: 'Duck', emoji: '🦆' },
+      { id: 'frog', name: 'Frog', emoji: '🐸' },
+      { id: 'turtle', name: 'Turtle', emoji: '🐢' },
+      { id: 'mouse', name: 'Mouse', emoji: '🐭' },
+      { id: 'hedgehog', name: 'Hedgehog', emoji: '𦔔' },
+      { id: 'snail', name: 'Snail', emoji: '🐌' },
+      { id: 'butterfly', name: 'Butterfly', emoji: '🦋' },
+      { id: 'bee', name: 'Bee', emoji: '🐝' },
+      { id: 'ladybug', name: 'Ladybug', emoji: '🐞' },
+      { id: 'fish', name: 'Fish', emoji: '🐟' },
+      { id: 'goldfish', name: 'Goldfish', emoji: '🐠' },
+      { id: 'crab', name: 'Crab', emoji: '🦀' },
+      { id: 'parrot', name: 'Parrot', emoji: '🦜' },
+      { id: 'owl', name: 'Owl', emoji: '🦉' },
+      { id: 'penguin', name: 'Penguin', emoji: '🐧' }
+    ]
+  },
+  {
+    id: 'rare', label: 'Rare', cost: 300, color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/20',
+    pets: [
+      { id: 'fox', name: 'Fox', emoji: '🦊' },
+      { id: 'raccoon', name: 'Raccoon', emoji: '🦝' },
+      { id: 'koala', name: 'Koala', emoji: '🐨' },
+      { id: 'panda', name: 'Panda', emoji: '🐼' },
+      { id: 'deer', name: 'Deer', emoji: '🦌' },
+      { id: 'flamingo', name: 'Flamingo', emoji: '🦩' },
+      { id: 'axolotl', name: 'Axolotl', emoji: '🦎' },
+      { id: 'capybara', name: 'Capybara', emoji: '🦫' },
+      { id: 'sloth', name: 'Sloth', emoji: '🦥' },
+      { id: 'otter', name: 'Otter', emoji: '🦦' }
+    ]
+  },
+  {
+    id: 'precious', label: 'Precious', cost: 500, color: 'text-purple-400', bg: 'bg-purple-500/10 border-purple-500/20',
+    pets: [
+      { id: 'redpanda', name: 'Red Panda', emoji: '🦊' },
+      { id: 'tiger', name: 'Tiger Cub', emoji: '🐯' },
+      { id: 'lion', name: 'Lion Cub', emoji: '🦁' },
+      { id: 'elephant', name: 'Elephant', emoji: '🐘' },
+      { id: 'giraffe', name: 'Giraffe', emoji: '🦒' },
+      { id: 'zebra', name: 'Zebra', emoji: '🦓' },
+      { id: 'dolphin', name: 'Dolphin', emoji: '🐬' },
+      { id: 'whale', name: 'Whale', emoji: '🐳' },
+      { id: 'seal', name: 'Seal', emoji: '🦭' },
+      { id: 'octopus', name: 'Octopus', emoji: '🐙' }
+    ]
+  },
+  {
+    id: 'unique', label: 'Unique', cost: 800, color: 'text-pink-400', bg: 'bg-pink-500/10 border-pink-500/20',
+    pets: [
+      { id: 'polarbear', name: 'Polar Bear', emoji: '🐻‍❄️' },
+      { id: 'narwhal', name: 'Narwhal', emoji: '🦄' },
+      { id: 'eagle', name: 'Eagle', emoji: '🦅' },
+      { id: 'shark', name: 'Great Shark', emoji: '🦈' },
+      { id: 'phoenix', name: 'Phoenix', emoji: '🦚' }
+    ]
+  },
+  {
+    id: 'legendary', label: 'Legendary', cost: 1000, color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20',
+    pets: [
+      { id: 'dragon', name: 'Dragon', emoji: '🐉' }
+    ]
+  }
+];
+
+const PET_TYPES = PET_TIERS.flatMap(tier => 
+  tier.pets.map(p => ({
+    name: p.name,
+    type: `${tier.label} ${p.name}`,
+    image: "", // emoji-driven rendering
+    emoji: p.emoji,
+    tierId: tier.id,
+    cost: tier.cost
+  }))
+);
+
+const FOOD_TIERS = [
+  {
+    id: 'common', label: 'Common Food', cost: 20, growthPts: 5, color: 'text-emerald-400',
+    items: [
+      { name: 'Cabbage', emoji: '🥬' },
+      { name: 'Carrot', emoji: '🥕' },
+      { name: 'Leaves', emoji: '🍃' },
+      { name: 'Apple', emoji: '🍎' }
+    ]
+  },
+  {
+    id: 'rare', label: 'Rare Food', cost: 50, growthPts: 12, color: 'text-blue-400',
+    items: [
+      { name: 'Beans', emoji: '🫘' },
+      { name: 'Cucumber', emoji: '🥒' },
+      { name: 'Strawberry', emoji: '🍓' },
+      { name: 'Insects', emoji: '🐛' }
+    ]
+  },
+  {
+    id: 'precious', label: 'Precious Food', cost: 100, growthPts: 25, color: 'text-purple-400',
+    items: [
+      { name: 'Blueberries', emoji: '🫐' },
+      { name: 'Grapes', emoji: '🍇' },
+      { name: 'Tomato', emoji: '🍅' },
+      { name: 'Egg', emoji: '🥚' }
+    ]
+  },
+  {
+    id: 'hi-protein', label: 'Hi-Protein Food', cost: 200, growthPts: 45, color: 'text-pink-400',
+    items: [
+      { name: 'Fish', emoji: '🐟' },
+      { name: 'Shrimp', emoji: '🍤' },
+      { name: 'Chicken', emoji: '🍗' },
+      { name: 'Beef', emoji: '🥩' },
+      { name: 'Cranberry', emoji: '🍒' }
+    ]
+  },
+  {
+    id: 'superfood', label: 'Super Food', cost: 300, growthPts: 80, color: 'text-amber-400',
+    items: [
+      { name: 'Salmon', emoji: '🐠' },
+      { name: 'Lobster', emoji: '🦞' },
+      { name: 'Lamb', emoji: '🍖' },
+      { name: 'Turkey', emoji: '🦃' },
+      { name: 'Durian', emoji: '🍈' }
+    ]
+  }
 ];
 
 const STRANDS = {
@@ -2203,7 +2330,7 @@ const EmbeddedPortal = ({
   );
 };
 
-const PetAvatar = ({ type, isPlaying, isRolling }: { type: string, isPlaying?: boolean, isRolling?: boolean }) => {
+const PetAvatar = ({ type, emoji, isPlaying, isRolling }: { type: string, emoji?: string, isPlaying?: boolean, isRolling?: boolean }) => {
   const color = type.includes('Cat') ? '#ff9ff3' : 
                 type.includes('Dog') ? '#feca57' : 
                 type.includes('Fox') ? '#ff9f43' : 
@@ -2228,120 +2355,126 @@ const PetAvatar = ({ type, isPlaying, isRolling }: { type: string, isPlaying?: b
         repeat: Infinity,
         ease: "easeInOut"
       }}
-      className="relative w-full h-full flex items-center justify-center font-sans"
+      className="relative w-full h-full flex items-center justify-center font-sans select-none"
     >
-      {/* Cartoon Body */}
-      <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-lg transform-gpu">
-        <motion.circle 
-          cx="50" cy="50" r="40" 
-          fill={color} 
-          animate={isPlaying ? { r: [40, 41, 40] } : {}}
-          transition={{ duration: 2, repeat: Infinity }}
-        />
-        
-        {/* Eyes */}
-        <motion.g
-          animate={{ scaleY: [1, 1, 0.1, 1, 1] }}
-          transition={{ duration: 10, repeat: Infinity, times: [0, 0.8, 0.85, 0.9, 1] }}
-        >
-          <circle cx="35" cy="45" r="5" fill="white" />
-          <circle cx="65" cy="45" r="5" fill="white" />
-          <circle cx="35" cy="45" r="2" fill="black" />
-          <circle cx="65" cy="45" r="2" fill="black" />
-        </motion.g>
+      {emoji ? (
+        <div className="text-[3.2rem] flex items-center justify-center filter drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]">
+          {emoji}
+        </div>
+      ) : (
+        /* Cartoon Body fallback */
+        <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-lg transform-gpu">
+          <motion.circle 
+            cx="50" cy="50" r="40" 
+            fill={color} 
+            animate={isPlaying ? { r: [40, 41, 40] } : {}}
+            transition={{ duration: 2, repeat: Infinity }}
+          />
+          
+          {/* Eyes */}
+          <motion.g
+            animate={{ scaleY: [1, 1, 0.1, 1, 1] }}
+            transition={{ duration: 10, repeat: Infinity, times: [0, 0.8, 0.85, 0.9, 1] }}
+          >
+            <circle cx="35" cy="45" r="5" fill="white" />
+            <circle cx="65" cy="45" r="5" fill="white" />
+            <circle cx="35" cy="45" r="2" fill="black" />
+            <circle cx="65" cy="45" r="2" fill="black" />
+          </motion.g>
 
-        {/* Mouth */}
-        <motion.path
-          d={isPlaying ? "M 40 65 Q 50 75 60 65" : "M 40 65 Q 50 70 60 65"}
-          stroke="white"
-          strokeWidth="3"
-          fill="none"
-          strokeLinecap="round"
-          animate={isPlaying ? { d: ["M 40 65 Q 50 75 60 65", "M 40 62 Q 50 78 60 62", "M 40 65 Q 50 75 60 65"] } : {}}
-          transition={{ duration: 2, repeat: Infinity }}
-        />
+          {/* Mouth */}
+          <motion.path
+            d={isPlaying ? "M 40 65 Q 50 75 60 65" : "M 40 65 Q 50 70 60 65"}
+            stroke="white"
+            strokeWidth="3"
+            fill="none"
+            strokeLinecap="round"
+            animate={isPlaying ? { d: ["M 40 65 Q 50 75 60 65", "M 40 62 Q 50 78 60 62", "M 40 65 Q 50 75 60 65"] } : {}}
+            transition={{ duration: 2, repeat: Infinity }}
+          />
 
-        {/* Ears/Features based on type */}
-        {type.includes('Cat') && (
-          <g fill={color}>
-            <path d="M 20 25 L 40 20 L 25 5 Z" stroke={color} strokeWidth="2" strokeLinejoin="round" />
-            <path d="M 80 25 L 60 20 L 75 5 Z" stroke={color} strokeWidth="2" strokeLinejoin="round" />
-            <g stroke="white" strokeWidth="1.5" opacity="0.6">
-              <path d="M 30 55 L 10 50" />
-              <path d="M 30 60 L 10 60" />
-              <path d="M 70 55 L 90 50" />
-              <path d="M 70 60 L 90 60" />
+          {/* Ears/Features based on type */}
+          {type.includes('Cat') && (
+            <g fill={color}>
+              <path d="M 20 25 L 40 20 L 25 5 Z" stroke={color} strokeWidth="2" strokeLinejoin="round" />
+              <path d="M 80 25 L 60 20 L 75 5 Z" stroke={color} strokeWidth="2" strokeLinejoin="round" />
+              <g stroke="white" strokeWidth="1.5" opacity="0.6">
+                <path d="M 30 55 L 10 50" />
+                <path d="M 30 60 L 10 60" />
+                <path d="M 70 55 L 90 50" />
+                <path d="M 70 60 L 90 60" />
+              </g>
+              <path d="M 47 53 L 53 53 L 50 57 Z" fill="#ff4d4d" />
             </g>
-            <path d="M 47 53 L 53 53 L 50 57 Z" fill="#ff4d4d" />
-          </g>
-        )}
-        {type.includes('Dog') && (
-          <g fill={color}>
-            <path d="M 15 25 Q 10 10 25 20" stroke={color} fill="none" strokeWidth="8" strokeLinecap="round" />
-            <path d="M 85 25 Q 90 10 75 20" stroke={color} fill="none" strokeWidth="8" strokeLinecap="round" />
-            <circle cx="50" cy="55" r="5" fill="#1a1a1a" />
-            <path d="M 45 60 Q 50 65 55 60" stroke="#1a1a1a" fill="none" strokeWidth="2" strokeLinecap="round" />
-          </g>
-        )}
-        {type.includes('Fox') && (
-          <g fill={color}>
-            <path d="M 10 25 L 35 15 L 15 5 Z" stroke={color} strokeWidth="2" strokeLinejoin="round" />
-            <path d="M 90 25 L 65 15 L 85 5 Z" stroke={color} strokeWidth="2" strokeLinejoin="round" />
-            <path d="M 35 50 L 50 65 L 65 50 Z" fill="white" opacity="0.3" />
-            <circle cx="50" cy="55" r="4" fill="#3d3d3d" />
-          </g>
-        )}
-        {type.includes('Bear') && (
-          <g fill={color}>
-            <circle cx="20" cy="20" r="10" />
-            <circle cx="80" cy="20" r="10" />
-            <ellipse cx="50" cy="60" rx="15" ry="10" fill="white" opacity="0.2" />
-            <circle cx="50" cy="55" r="5" fill="#1a1a1a" />
-          </g>
-        )}
-        {type.includes('Bunny') && (
-          <g fill={color}>
-            <motion.ellipse 
-              cx="35" cy="15" rx="8" ry="25" 
-              animate={{ rotate: [-5, 5, -5] }} 
-              transition={{ duration: 2, repeat: Infinity }} 
-            />
-            <motion.ellipse 
-              cx="65" cy="15" rx="8" ry="25"
-              animate={{ rotate: [5, -5, 5] }} 
-              transition={{ duration: 2, repeat: Infinity }} 
-            />
-            <circle cx="50" cy="55" r="3" fill="#ff9ff3" />
-          </g>
-        )}
-        {type.includes('Owl') && (
-          <g fill={color}>
-            <path d="M 15 20 L 40 30 L 30 15 Z" />
-            <path d="M 85 20 L 60 30 L 70 15 Z" />
-            <circle cx="35" cy="45" r="8" fill="white" opacity="0.2" />
-            <circle cx="65" cy="45" r="8" fill="white" opacity="0.2" />
-            <path d="M 48 55 L 52 55 L 50 62 Z" fill="#f1c40f" />
-          </g>
-        )}
-        {type.includes('Dragon') && (
-          <g fill={color}>
-            <path d="M 20 15 L 45 35 L 30 5 Z" />
-            <path d="M 80 15 L 55 35 L 70 5 Z" />
-            <path d="M 50 10 L 45 0 L 55 0 Z" opacity="0.5" />
-            <path d="M 30 65 Q 50 85 70 65" stroke="white" strokeWidth="2" fill="none" />
-            <circle cx="45" cy="55" r="2" fill="#ff4d4d" />
-            <circle cx="55" cy="55" r="2" fill="#ff4d4d" />
-          </g>
-        )}
-        {type.includes('Hamster') && (
-          <g fill={color}>
-            <circle cx="25" cy="20" r="8" />
-            <circle cx="75" cy="20" r="8" />
-            <ellipse cx="50" cy="65" rx="12" ry="8" fill="#ffcccc" opacity="0.5" />
-            <circle cx="50" cy="58" r="3" fill="#3d3d3d" />
-          </g>
-        )}
-      </svg>
+          )}
+          {type.includes('Dog') && (
+            <g fill={color}>
+              <path d="M 15 25 Q 10 10 25 20" stroke={color} fill="none" strokeWidth="8" strokeLinecap="round" />
+              <path d="M 85 25 Q 90 10 75 20" stroke={color} fill="none" strokeWidth="8" strokeLinecap="round" />
+              <circle cx="50" cy="55" r="5" fill="#1a1a1a" />
+              <path d="M 45 60 Q 50 65 55 60" stroke="#1a1a1a" fill="none" strokeWidth="2" strokeLinecap="round" />
+            </g>
+          )}
+          {type.includes('Fox') && (
+            <g fill={color}>
+              <path d="M 10 25 L 35 15 L 15 5 Z" stroke={color} strokeWidth="2" strokeLinejoin="round" />
+              <path d="M 90 25 L 65 15 L 85 5 Z" stroke={color} strokeWidth="2" strokeLinejoin="round" />
+              <path d="M 35 50 L 50 65 L 65 50 Z" fill="white" opacity="0.3" />
+              <circle cx="50" cy="55" r="4" fill="#3d3d3d" />
+            </g>
+          )}
+          {type.includes('Bear') && (
+            <g fill={color}>
+              <circle cx="20" cy="20" r="10" />
+              <circle cx="80" cy="20" r="10" />
+              <ellipse cx="50" cy="60" rx="15" ry="10" fill="white" opacity="0.2" />
+              <circle cx="50" cy="55" r="5" fill="#1a1a1a" />
+            </g>
+          )}
+          {type.includes('Bunny') && (
+            <g fill={color}>
+              <motion.ellipse 
+                cx="35" cy="15" rx="8" ry="25" 
+                animate={{ rotate: [-5, 5, -5] }} 
+                transition={{ duration: 2, repeat: Infinity }} 
+              />
+              <motion.ellipse 
+                cx="65" cy="15" rx="8" ry="25"
+                animate={{ rotate: [5, -5, 5] }} 
+                transition={{ duration: 2, repeat: Infinity }} 
+              />
+              <circle cx="50" cy="55" r="3" fill="#ff9ff3" />
+            </g>
+          )}
+          {type.includes('Owl') && (
+            <g fill={color}>
+              <path d="M 15 20 L 40 30 L 30 15 Z" />
+              <path d="M 85 20 L 60 30 L 70 15 Z" />
+              <circle cx="35" cy="45" r="8" fill="white" opacity="0.2" />
+              <circle cx="65" cy="45" r="8" fill="white" opacity="0.2" />
+              <path d="M 48 55 L 52 55 L 50 62 Z" fill="#f1c40f" />
+            </g>
+          )}
+          {type.includes('Dragon') && (
+            <g fill={color}>
+              <path d="M 20 15 L 45 35 L 30 5 Z" />
+              <path d="M 80 15 L 55 35 L 70 5 Z" />
+              <path d="M 50 10 L 45 0 L 55 0 Z" opacity="0.5" />
+              <path d="M 30 65 Q 50 85 70 65" stroke="white" strokeWidth="2" fill="none" />
+              <circle cx="45" cy="55" r="2" fill="#ff4d4d" />
+              <circle cx="55" cy="55" r="2" fill="#ff4d4d" />
+            </g>
+          )}
+          {type.includes('Hamster') && (
+            <g fill={color}>
+              <circle cx="25" cy="20" r="8" />
+              <circle cx="75" cy="20" r="8" />
+              <ellipse cx="50" cy="65" rx="12" ry="8" fill="#ffcccc" opacity="0.5" />
+              <circle cx="50" cy="58" r="3" fill="#3d3d3d" />
+            </g>
+          )}
+        </svg>
+      )}
       
       {/* Sparkles when playing */}
       {isPlaying && (
@@ -2463,7 +2596,7 @@ const PetSection = ({
 }: { 
   points: number, 
   pet: PetData | null, 
-  onFeed: () => void, 
+  onFeed: (foodName: string, foodEmoji: string, cost: number, growthPts: number) => void, 
   onPlay: () => void, 
   onAdopt: (selectedPet: typeof PET_TYPES[0]) => void, 
   onRelease: () => void, 
@@ -2473,6 +2606,17 @@ const PetSection = ({
 }) => {
   const [showShelter, setShowShelter] = useState(false);
   const [selectedShelterPet, setSelectedShelterPet] = useState<typeof PET_TYPES[0] | null>(null);
+  const [selectedTier, setSelectedTier] = useState<string>('common');
+  const [showFoodShop, setShowFoodShop] = useState(false);
+  const [selectedFoodCategory, setSelectedFoodCategory] = useState<string>('common');
+
+  // Set default shelter pet when tier changes
+  useEffect(() => {
+    const firstOfTier = PET_TYPES.find(p => p.tierId === selectedTier);
+    if (firstOfTier) {
+      setSelectedShelterPet(firstOfTier);
+    }
+  }, [selectedTier]);
 
   if (!pet) return (
     <div className="p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md">
@@ -2496,9 +2640,27 @@ const PetSection = ({
             </button>
             <h3 className="text-xl font-display">Select Companion</h3>
           </div>
+
+          {/* Tier Tabs */}
+          <div className="flex flex-wrap gap-1 p-1 bg-white/5 rounded-xl border border-white/5">
+            {PET_TIERS.map(tier => (
+              <button
+                key={tier.id}
+                onClick={() => setSelectedTier(tier.id)}
+                className={cn(
+                  "flex-1 min-w-[70px] px-2 py-1.5 text-[10px] font-bold rounded-lg transition-all capitalize",
+                  selectedTier === tier.id 
+                    ? "bg-white text-black shadow-sm" 
+                    : "text-white/60 hover:text-white hover:bg-white/5"
+                )}
+              >
+                {tier.label}
+              </button>
+            ))}
+          </div>
           
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-            {PET_TYPES.map((p, idx) => (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-h-[220px] overflow-y-auto pr-2 custom-scrollbar">
+            {PET_TYPES.filter(p => p.tierId === selectedTier).map((p, idx) => (
               <motion.button
                 key={idx}
                 whileHover={{ scale: 1.05 }}
@@ -2511,8 +2673,8 @@ const PetSection = ({
                     : "bg-white/5 border-white/10 hover:border-white/20"
                 )}
               >
-                <div className="w-12 h-12 rounded-full overflow-hidden border border-white/10">
-                  <PetAvatar type={p.type} />
+                <div className="w-12 h-12 rounded-full overflow-hidden border border-white/10 flex items-center justify-center bg-white/5">
+                  <PetAvatar type={p.type} emoji={p.emoji} />
                 </div>
                 <div className="text-center">
                   <p className="text-[10px] font-bold text-white leading-tight">{p.name}</p>
@@ -2521,16 +2683,16 @@ const PetSection = ({
               </motion.button>
             ))}
           </div>
-
+ 
           <div className="pt-4 border-t border-white/5">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2 text-blue-400 font-bold text-sm">
-                <Zap className="w-4 h-4" /> 100 Points Required
+                <Zap className="w-4 h-4" /> {selectedShelterPet ? `${selectedShelterPet.cost} Points Required` : "100 Points Required"}
               </div>
               <div className="text-white/40 text-xs">Available: {points} pts</div>
             </div>
             <button 
-              disabled={!selectedShelterPet || points < 100 || isAdopting}
+              disabled={!selectedShelterPet || points < (selectedShelterPet.cost || 100) || isAdopting}
               onClick={() => selectedShelterPet && onAdopt(selectedShelterPet)}
               className="w-full py-4 bg-white text-black rounded-2xl font-bold disabled:opacity-30 disabled:grayscale transition-all hover:bg-blue-50 flex items-center justify-center gap-2"
             >
@@ -2540,7 +2702,7 @@ const PetSection = ({
                   Adopting...
                 </>
               ) : (
-                selectedShelterPet ? `Adopt ${selectedShelterPet.name}` : "Confirm Selection"
+                selectedShelterPet ? `Adopt ${selectedShelterPet.name} (${selectedShelterPet.cost} pts)` : "Confirm Selection"
               )}
             </button>
             {petError && (
@@ -2551,6 +2713,9 @@ const PetSection = ({
       )}
     </div>
   );
+ 
+  const currentLevelPetTypes = PET_TYPES.find(p => p.type === pet.type);
+  const resolvedEmoji = pet.emoji || currentLevelPetTypes?.emoji;
 
   return (
     <div className="relative p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md group/shelter">
@@ -2563,7 +2728,7 @@ const PetSection = ({
       </button>
       <div className="flex items-center gap-6">
         <div className="w-24 h-24 rounded-full border-2 border-white/20 moon-glow relative shrink-0">
-          <PetAvatar type={pet.type} isRolling={isRolling} />
+          <PetAvatar type={pet.type} emoji={resolvedEmoji} isRolling={isRolling} />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-4">
@@ -2595,7 +2760,7 @@ const PetSection = ({
                 />
               </div>
             </div>
-
+ 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
                 <div className="flex justify-between text-[8px] uppercase tracking-widest text-white/30 font-bold">
@@ -2610,7 +2775,7 @@ const PetSection = ({
                   />
                 </div>
               </div>
-
+ 
               <div className="space-y-1">
                 <div className="flex justify-between text-[8px] uppercase tracking-widest text-white/30 font-bold">
                   <span>Happiness</span>
@@ -2631,14 +2796,16 @@ const PetSection = ({
       <div className="mt-8 flex flex-col gap-4">
         <div className="flex gap-4">
           <button 
-            onClick={onFeed}
-            disabled={points < 10}
-            className="flex-1 py-3 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-50 group border border-white/5"
+            onClick={() => setShowFoodShop(!showFoodShop)}
+            className={cn(
+              "flex-1 py-3 rounded-xl flex items-center justify-center gap-2 transition-all group border border-white/5",
+              showFoodShop ? "bg-amber-500/20 text-white border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)]" : "bg-white/10 hover:bg-white/20"
+            )}
           >
             <Coffee className="w-4 h-4 group-hover:scale-110 transition-transform text-orange-400" /> 
             <div className="flex flex-col items-start leading-none">
-              <span className="text-xs font-bold uppercase tracking-wider">Feed</span>
-              <span className="text-[7px] text-white/40">+20 XP • 10 pts</span>
+              <span className="text-xs font-bold uppercase tracking-wider">Feed Menu</span>
+              <span className="text-[7px] text-white/40">Select food items</span>
             </div>
           </button>
           <button 
@@ -2655,6 +2822,79 @@ const PetSection = ({
             </div>
           </button>
         </div>
+
+        {/* Expandable Food Shop */}
+        <AnimatePresence>
+          {showFoodShop && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="overflow-hidden border border-white/10 rounded-2xl bg-black/40 backdrop-blur-md p-4 space-y-4"
+            >
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-display tracking-wide text-amber-300 flex items-center gap-1.5">
+                  🍲 Celestial Food Pantry
+                </h4>
+                <div className="text-[10px] text-white/40">Available: {points} pts</div>
+              </div>
+
+              {/* Food Category Selection Tabs */}
+              <div className="flex flex-wrap gap-1 p-0.5 bg-white/5 rounded-lg border border-white/5">
+                {FOOD_TIERS.map(tier => (
+                  <button
+                    key={tier.id}
+                    onClick={() => setSelectedFoodCategory(tier.id)}
+                    className={cn(
+                      "flex-1 min-w-[60px] py-1 text-[9px] font-bold rounded-md transition-all text-center",
+                      selectedFoodCategory === tier.id
+                        ? "bg-amber-500 text-black shadow-sm"
+                        : "text-white/55 hover:text-white"
+                    )}
+                  >
+                    {tier.label.split(' ')[0]} {/* Renders "Common", "Rare", "Precious", "Hi-Protein", "Super" */}
+                  </button>
+                ))}
+              </div>
+
+              {/* Items display for the chosen category */}
+              <div className="grid grid-cols-2 gap-2 max-h-[160px] overflow-y-auto pr-1 scrollbar-thin">
+                {FOOD_TIERS.find(t => t.id === selectedFoodCategory)?.items.map((item, idx) => {
+                  const tier = FOOD_TIERS.find(t => t.id === selectedFoodCategory)!;
+                  const itemCost = tier.cost;
+                  const itemGrowth = tier.growthPts;
+                  const isAffordable = points >= itemCost;
+
+                  return (
+                    <button
+                      key={idx}
+                      disabled={!isAffordable}
+                      onClick={() => onFeed(item.name, item.emoji, itemCost, itemGrowth)}
+                      className={cn(
+                        "p-2.5 rounded-xl border flex items-center justify-between gap-2.5 transition-all outline-none",
+                        isAffordable 
+                          ? "bg-white/5 border-white/10 hover:border-amber-500/30 hover:bg-amber-500/5 active:scale-[0.98]" 
+                          : "bg-white/[0.02] border-white/5 opacity-40 cursor-not-allowed"
+                      )}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl select-none filter drop-shadow-md">{item.emoji}</span>
+                        <div className="text-left leading-tight">
+                          <p className="text-[10px] font-bold text-white">{item.name}</p>
+                          <p className="text-[8px] text-green-400">+{itemGrowth} XP</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[10px] font-bold text-amber-400 font-mono">{itemCost}p</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        
         <p className="text-[8px] text-white/20 text-center uppercase tracking-[0.3em] font-bold">
           Level up requires {pet.maxXp} XP • Visit the 
           <button onClick={onRelease} className="mx-1 text-blue-400/50 hover:text-blue-400 transition-colors">Shelter</button> 
@@ -3368,8 +3608,9 @@ export default function App() {
   };
 
   const handleAdoptPet = async (selectedPet: typeof PET_TYPES[0]) => {
-    if (!user || !userData || userData.points < 100) {
-      setPetError("Insufficient points or not logged in.");
+    const adoptionCost = selectedPet.cost || 100;
+    if (!user || !userData || userData.points < adoptionCost) {
+      setPetError(`Insufficient points or not logged in. Adoption requires ${adoptionCost} points.`);
       return;
     }
     setIsAdopting(true);
@@ -3382,10 +3623,10 @@ export default function App() {
       const petRef = doc(db, 'users', user.uid, 'pets', 'main_pet');
       const logRef = doc(collection(db, 'users', user.uid, 'logs'));
       
-      batch.set(userRef, { points: increment(-100) }, { merge: true });
+      batch.set(userRef, { points: increment(-adoptionCost) }, { merge: true });
       batch.set(logRef, {
         type: 'pet',
-        points: -100,
+        points: -adoptionCost,
         description: `Adopted ${selectedPet.name} the ${selectedPet.type}`,
         timestamp: serverTimestamp()
       });
@@ -3394,6 +3635,8 @@ export default function App() {
         name: selectedPet.name,
         type: selectedPet.type,
         image: selectedPet.image,
+        emoji: selectedPet.emoji || "",
+        tierId: selectedPet.tierId || "",
         hunger: 100,
         happiness: 100,
         level: 1,
@@ -3427,32 +3670,33 @@ export default function App() {
     setPetData(null);
   };
 
-  const handleFeedPet = async () => {
-    if (!user || !userData || userData.points < 10) return;
+  const handleFeedPet = async (foodName: string = 'Pet Food', foodEmoji: string = '😋', cost: number = 20, growthPts: number = 20) => {
+    if (!user || !userData || userData.points < cost) return;
     const userRef = doc(db, 'users', user.uid);
-    await updateDoc(userRef, { points: increment(-10) });
-    await addPointLog(user.uid, 'pet', -10, `Fed ${petData?.name || 'Pet'}`);
+    await updateDoc(userRef, { points: increment(-cost) });
+    await addPointLog(user.uid, 'pet', -cost, `Fed ${petData?.name || 'Pet'} ${foodEmoji} ${foodName}`);
     
     const petRef = doc(db, 'users', user.uid, 'pets', 'main_pet');
     const petSnap = await getDoc(petRef);
     if (petSnap.exists()) {
       const data = petSnap.data();
       let newLevel = data.level || 1;
-      let newXp = (data.xp || 0) + 20;
+      let newXp = (data.xp || 0) + growthPts;
       let newMaxXp = data.maxXp || 100;
 
-      if (newXp >= newMaxXp) {
+      while (newXp >= newMaxXp) {
         newXp -= newMaxXp;
         newLevel += 1;
         newMaxXp = newLevel * 100;
       }
 
       await updateDoc(petRef, {
-        hunger: Math.min(100, (data.hunger || 0) + 15),
-        happiness: Math.min(100, (data.happiness || 0) + 5),
+        hunger: Math.min(100, (data.hunger || 0) + 20),
+        happiness: Math.min(100, (data.happiness || 0) + 10),
         xp: newXp,
         level: newLevel,
-        maxXp: newMaxXp
+        maxXp: newMaxXp,
+        lastFed: serverTimestamp()
       });
     }
   };
