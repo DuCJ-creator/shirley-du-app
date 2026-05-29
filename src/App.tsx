@@ -5,7 +5,8 @@ import {
   Home, User, Trophy, Heart, Coffee, ChevronLeft, ExternalLink,
   LogIn, LogOut, Clock, Zap, RefreshCw, Search, TrendingUp, ChevronRight,
   ClipboardX, FileText, Trash2, Download, Palette, Plus, Save, X, Edit, Pencil, Check,
-  Hammer, Gamepad2, Monitor, Tablet, Smartphone, ZoomIn, ZoomOut, RotateCcw, Compass, Globe
+  Hammer, Gamepad2, Monitor, Tablet, Smartphone, ZoomIn, ZoomOut, RotateCcw, Compass, Globe,
+  Camera, FileImage, UploadCloud
 } from 'lucide-react';
 import { cn } from './lib/utils';
 import { 
@@ -1592,14 +1593,194 @@ const SpaceshipCenter = ({ onClick }: { onClick: () => void }) => {
   );
 };
 
-const EmbeddedPortal = ({ url, onClose }: { url: string, onClose: () => void }) => {
+const EmbeddedPortal = ({ 
+  url, 
+  onClose, 
+  user, 
+  onLogPoints 
+}: { 
+  url: string; 
+  onClose: () => void; 
+  user: any; 
+  onLogPoints: (category: string, rawVal: number, points: number, description: string, proofImg?: string) => Promise<void>; 
+}) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [containerWidth, setContainerWidth] = useState(1024);
   const [containerHeight, setContainerHeight] = useState(600);
   
   // 'responsive' | 'desktop' | 'tablet' | 'mobile'
   const [deviceMode, setDeviceMode] = useState<'responsive' | 'desktop' | 'tablet' | 'mobile'>('responsive');
   const [manualScale, setManualScale] = useState<number>(1.0);
+
+  const [inputValue, setInputValue] = useState<string>('');
+  const [isClaiming, setIsClaiming] = useState(false);
+  const [claimedRecords, setClaimedRecords] = useState<Array<{ id: number, raw: number, points: number, timestamp: string }>>([]);
+  const [claimSuccessMsg, setClaimSuccessMsg] = useState<string | null>(null);
+
+  // Anti-cheat verification states
+  const [proofImg, setProofImg] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [bypassCode, setBypassCode] = useState<string>('');
+  const [useBypass, setUseBypass] = useState<boolean>(false);
+
+  // Image processing & canvas-based compression (keeps Firestore memory <25KB per log)
+  const processImageFile = (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      alert("Please upload an image file (PNG/JPG) as proof / 請上傳圖片檔案(PNG/JPG)作為證明");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxDim = 400; // Optimal thumbnail for verification and low footprint
+        let width = img.width;
+        let height = img.height;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const base64 = canvas.toDataURL('image/jpeg', 0.7);
+          setProofImg(base64);
+        }
+      };
+      img.src = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const isBypassValid = useMemo(() => {
+    return bypassCode.trim().toUpperCase() === 'SHIRLEY55';
+  }, [bypassCode]);
+
+  // Parse custom point calculation rules based on URL and categories in GEMS
+  const gemRule = useMemo(() => {
+    if (url === 'https://ducj-creator.github.io/etgame.html') {
+      return {
+        name: 'Universe Challenge',
+        nameZh: '星際愛單字(中)',
+        type: 'ivocab_challenge',
+        ruleText: 'Every 100 score = 10 Points • 每 100 分 = 10 積分',
+        label: 'Score / 挑戰得分',
+        placeholder: 'e.g., 500',
+        calculatePoints: (val: number) => Math.floor(val / 100) * 10
+      };
+    }
+
+    // Search under GEMS constant
+    for (const [strandKey, strandGems] of Object.entries(GEMS)) {
+      const found = strandGems.find(g => g.url === url);
+      if (found) {
+        if (strandKey === 'tests' || found.name === 'TOEFL J Mock') {
+          return {
+            name: found.name,
+            nameZh: found.nameZh,
+            type: 'st_tests',
+            ruleText: 'Each 1 correct answer = 5 Points • 每答對 1 題 = 5 積分',
+            label: 'Correct Answers / 答對題數',
+            placeholder: 'e.g., 12',
+            calculatePoints: (val: number) => val * 5
+          };
+        }
+        if (found.name === 'iVocab Champion') {
+          return {
+            name: found.name,
+            nameZh: found.nameZh,
+            type: 'ivocab_challenge',
+            ruleText: 'Every 100 score = 10 Points • 每 100 分 = 10 積分',
+            label: 'Score / 挑戰得分',
+            placeholder: 'e.g., 1200',
+            calculatePoints: (val: number) => Math.floor(val / 100) * 10
+          };
+        }
+        // Under school courses (earth strand) has "單字王"
+        if (strandKey === 'earth' && (found.name.includes('單字王') || found.nameZh.includes('單字王') || found.name.includes('Vocab'))) {
+          return {
+            name: found.name,
+            nameZh: found.nameZh,
+            type: 'word_king',
+            ruleText: 'Every 100 score = 10 Points • 每 100 分 = 10 積分',
+            label: 'Score / 挑戰得分',
+            placeholder: 'e.g., 800',
+            calculatePoints: (val: number) => Math.floor(val / 100) * 10
+          };
+        }
+      }
+    }
+    return null;
+  }, [url]);
+
+  const handleClaimPoints = async () => {
+    if (!user) {
+      alert("Please login first to submit and claim points! / 請先登入帳號以進行分數登入！");
+      return;
+    }
+    if (!gemRule) return;
+
+    const numericValue = parseInt(inputValue, 10);
+    if (isNaN(numericValue) || numericValue <= 0) {
+      alert("Please enter a valid positive number. / 請輸入有效的正整數。");
+      return;
+    }
+
+    const calculatedPoints = gemRule.calculatePoints(numericValue);
+    if (calculatedPoints <= 0) {
+      alert("The entered score does not meet the minimum requirements for reward points. / 輸入的數值未達換算積分之最低起點門檻。");
+      return;
+    }
+
+    if (!useBypass && !proofImg) {
+      alert("Please upload screenshot proof of your score! / 請先拖入或選擇分數截圖作為證明！");
+      return;
+    }
+
+    if (useBypass && !isBypassValid) {
+      alert("Invalid Teacher Bypass Code! / 教師授權碼錯誤，請重新輸入！");
+      return;
+    }
+
+    setIsClaiming(true);
+    setClaimSuccessMsg(null);
+    try {
+      const description = gemRule.type === 'st_tests' 
+        ? `Logged ${numericValue} correct answers on ${gemRule.nameZh || gemRule.name}`
+        : `Logged score of ${numericValue} on ${gemRule.nameZh || gemRule.name}`;
+
+      const imgToSave = useBypass ? `Bypass Verified ✓ (Code: ${bypassCode.trim().toUpperCase()})` : proofImg;
+
+      await onLogPoints('quiz', numericValue, calculatedPoints, description, imgToSave || undefined);
+      
+      const newRecord = {
+        id: Date.now(),
+        raw: numericValue,
+        points: calculatedPoints,
+        timestamp: new Date().toLocaleTimeString()
+      };
+      setClaimedRecords(prev => [newRecord, ...prev]);
+      setInputValue('');
+      setProofImg(null); // Clear proof after successful submittal
+      setBypassCode('');
+      setClaimSuccessMsg(`Claimed +${calculatedPoints} pts! ✨`);
+      setTimeout(() => setClaimSuccessMsg(null), 4000);
+    } catch (e) {
+      console.error("Failed to claim points", e);
+      alert("Failed to submit points. Please try again.");
+    } finally {
+      setIsClaiming(false);
+    }
+  };
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -1763,11 +1944,11 @@ const EmbeddedPortal = ({ url, onClose }: { url: string, onClose: () => void }) 
           </div>
         </div>
 
-        {/* Scalable Sandbox Workspace Viewport Container */}
-        <div className="flex-1 relative rounded-3xl overflow-hidden border border-white/10 bg-zinc-950/45 shadow-[inset_0_0_80px_rgba(0,0,0,0.6)] flex items-center justify-center">
+        {/* Scalable Sandbox Workspace Viewport Container with Scoring panel side-by-side */}
+        <div className="flex-1 relative rounded-3xl overflow-hidden border border-white/10 bg-zinc-950/45 shadow-[inset_0_0_80px_rgba(0,0,0,0.6)] flex flex-col md:flex-row min-h-0">
           <div 
             ref={containerRef} 
-            className="absolute inset-0 w-full h-full flex items-center justify-center p-3 sm:p-4 overflow-auto scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent"
+            className="flex-1 relative flex items-center justify-center p-3 sm:p-4 overflow-auto scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent min-h-0"
           >
             {/* The adjustable Simulated Device Chassis */}
             <motion.div 
@@ -1806,6 +1987,205 @@ const EmbeddedPortal = ({ url, onClose }: { url: string, onClose: () => void }) 
               </div>
             </motion.div>
           </div>
+
+          {/* Score claim sidebar */}
+          {gemRule && (
+            <div className="w-full md:w-80 shrink-0 border-t md:border-t-0 md:border-l border-white/10 bg-zinc-950/60 backdrop-blur-xl p-5 flex flex-col justify-between overflow-y-auto max-h-[300px] md:max-h-none scrollbar-thin">
+              <div className="space-y-4">
+                <div className="flex items-center gap-1.5 text-cyan-400 font-bold text-xs uppercase tracking-wider">
+                  <Trophy className="w-4 h-4 text-cyan-400" />
+                  <span>Reward Claim • 成果登入</span>
+                </div>
+
+                <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl">
+                  <h4 className="text-sm font-bold text-white mb-0.5">{gemRule.nameZh}</h4>
+                  <p className="text-[10px] text-zinc-500 font-mono mb-2">{gemRule.name}</p>
+                  <div className="text-xs text-amber-300 bg-amber-950/20 border border-amber-900/30 px-2.5 py-1.5 rounded-xl flex items-center gap-1.5">
+                    <Zap className="w-3.5 h-3.5 text-amber-400 shrink-0 fill-amber-400" />
+                    <span>{gemRule.ruleText}</span>
+                  </div>
+                </div>
+
+                {!user ? (
+                  <div className="p-4 bg-amber-950/25 border border-amber-900/40 rounded-2xl text-center">
+                    <p className="text-xs text-amber-200">
+                      You are in guest mode. Please sign in via Google from the Moon Base to log scores and claim points permanently to your space account!
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
+                        {gemRule.label}
+                      </label>
+                      <div className="flex gap-2">
+                        <input 
+                          type="number"
+                          min="1"
+                          value={inputValue}
+                          onChange={(e) => setInputValue(e.target.value)}
+                          placeholder={gemRule.placeholder}
+                          disabled={isClaiming}
+                          className="flex-1 bg-black/50 border border-white/10 rounded-xl px-3 py-2.5 text-sm font-mono text-white placeholder-zinc-600 focus:outline-none focus:border-cyan-500/50"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Anti-Cheat Score Verification panel */}
+                    <div className="border-t border-white/5 pt-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Verification • 分數認證</span>
+                        <button
+                          onClick={() => {
+                            setUseBypass(!useBypass);
+                            setProofImg(null);
+                            setBypassCode('');
+                          }}
+                          className="text-[9px] text-cyan-400 hover:underline transition-all flex items-center gap-1 font-semibold"
+                        >
+                          {useBypass ? "📷 Upload Screenshot" : "🔑 Teacher Override"}
+                        </button>
+                      </div>
+
+                      {!useBypass ? (
+                        /* Drag and Drop Screenshot proof upload zone */
+                        <div 
+                          onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                          onDragLeave={() => setIsDragging(false)}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            setIsDragging(false);
+                            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                              processImageFile(e.dataTransfer.files[0]);
+                            }
+                          }}
+                          onClick={() => fileInputRef.current?.click()}
+                          className={cn(
+                            "group cursor-pointer min-h-[90px] border border-dashed rounded-xl p-3 flex flex-col items-center justify-center transition-all bg-black/40 text-center relative",
+                            isDragging ? "border-cyan-400 bg-cyan-950/20" : "border-white/15 hover:border-white/30 hover:bg-black/60",
+                            proofImg ? "border-emerald-500/40 bg-emerald-950/10" : ""
+                          )}
+                        >
+                          <input 
+                            type="file"
+                            ref={fileInputRef}
+                            className="hidden"
+                            accept="image/*"
+                            onChange={(e) => {
+                              if (e.target.files && e.target.files[0]) {
+                                processImageFile(e.target.files[0]);
+                              }
+                            }}
+                          />
+                          {!proofImg ? (
+                            <>
+                              <UploadCloud className="w-5 h-5 text-zinc-500 group-hover:text-zinc-300 transition-colors mb-1.5" />
+                              <p className="text-[10.5px] font-semibold text-zinc-300">
+                                Drag or Click to upload Screenshot Proof
+                              </p>
+                              <p className="text-[9px] text-zinc-500 mt-1">
+                                拖曳或點選以傳送最終成績畫面截圖
+                              </p>
+                            </>
+                          ) : (
+                            <div className="w-full flex items-center justify-between gap-2.5">
+                              <div className="flex items-center gap-2">
+                                <img src={proofImg} alt="Proof preview" className="w-12 h-12 rounded object-cover border border-emerald-500/30" />
+                                <div className="text-left leading-none">
+                                  <p className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
+                                    <Check className="w-3.5 h-3.5" /> Screenshot Loaded
+                                  </p>
+                                  <p className="text-[8.5px] text-zinc-400 mt-1 font-mono">Proof OK (Canvas compressed)</p>
+                                </div>
+                              </div>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setProofImg(null);
+                                }}
+                                className="p-1.5 hover:bg-red-500/10 text-zinc-500 hover:text-red-400 rounded transition-colors self-center border border-white/5"
+                                title="Remove Image"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        /* Teacher bypass code mode */
+                        <div className="p-3 border border-white/10 rounded-xl bg-black/40">
+                          <label className="block text-[9px] font-bold text-zinc-400 uppercase mb-1 leading-none">
+                            Teacher Bypass Signature / 教師覆核授權碼
+                          </label>
+                          <input 
+                            type="text"
+                            value={bypassCode}
+                            onChange={(e) => setBypassCode(e.target.value)}
+                            placeholder="Teacher bypass signature code"
+                            className={cn(
+                              "w-full bg-black/60 border rounded-xl px-2.5 py-2 text-xs font-mono text-center placeholder-zinc-700 uppercase focus:outline-none mt-1",
+                              bypassCode ? (isBypassValid ? "border-emerald-500 text-emerald-300 bg-emerald-950/10" : "border-red-500/70 text-red-300 bg-red-950/10") : "border-white/10"
+                            )}
+                          />
+                          <p className="text-[9.5px] text-zinc-500 mt-1.5 leading-snug">
+                            Teacher Tr. Shirley can type her secret Cosmic Key (<strong>SHIRLEY55</strong>) to verify and claim directly with the student.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {inputValue && !isNaN(parseInt(inputValue, 10)) && parseInt(inputValue, 10) > 0 && (
+                      <div className="text-xs text-zinc-400 font-mono flex justify-between bg-black/25 p-2.5 rounded-xl border border-white/5">
+                        <span>Calculated Reward:</span>
+                        <span className="text-emerald-400 font-bold">+{gemRule.calculatePoints(parseInt(inputValue, 10)) || 0} pts</span>
+                      </div>
+                    )}
+
+                    <button
+                      onClick={handleClaimPoints}
+                      disabled={isClaiming || !inputValue || (!useBypass && !proofImg) || (useBypass && !isBypassValid)}
+                      className={cn(
+                        "w-full py-3 rounded-xl text-xs font-bold transition-all font-sans uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-[0_0_20px_rgba(255,255,255,0.02)] border",
+                        (inputValue && (proofImg || isBypassValid))
+                          ? "bg-white text-black border-white hover:bg-zinc-200 hover:shadow-[0_0_15px_rgba(255,255,255,0.15)] active:scale-[0.98]" 
+                          : "bg-white/5 border-white/5 text-zinc-500 cursor-not-allowed"
+                      )}
+                    >
+                      {isClaiming ? "Saving..." : "Submit and Log Points"}
+                    </button>
+
+                    {claimSuccessMsg && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-xs text-center font-bold text-emerald-400 bg-emerald-950/30 border border-emerald-950/40 p-2.5 rounded-xl"
+                      >
+                        {claimSuccessMsg}
+                      </motion.div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Claims History in this session */}
+              {claimedRecords.length > 0 && (
+                <div className="mt-6 border-t border-white/5 pt-4">
+                  <div className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider mb-2 flex justify-between items-center">
+                    <span>Session Logs / 本次紀錄</span>
+                    <span className="text-zinc-600 font-mono">{claimedRecords.length} times</span>
+                  </div>
+                  <div className="space-y-1.5 max-h-32 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-800 pr-1">
+                    {claimedRecords.map((rec) => (
+                      <div key={rec.id} className="flex justify-between items-center text-[10px] font-mono bg-white/[0.01] border border-white/5 px-2.5 py-1.5 rounded-lg">
+                        <span className="text-zinc-400">Score/Ans: {rec.raw}</span>
+                        <span className="text-emerald-400 font-bold">+{rec.points} pts</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
           
           {/* Subtle glowing decorations under constraints */}
           <div className="hidden sm:block absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-cyan-500/10 rounded-tl-[2.5rem] pointer-events-none" />
@@ -2418,6 +2798,7 @@ export default function App() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [logs, setLogs] = useState<PointLog[]>([]);
+  const [selectedProofImg, setSelectedProofImg] = useState<string | null>(null);
   const [sessionStudyTime, setSessionStudyTime] = useState(0);
   const [isActive, setIsActive] = useState(true);
   const [allWordData, setAllWordData] = useState<any[]>([]);
@@ -2587,14 +2968,15 @@ export default function App() {
     fetchVocab();
   }, []);
 
-  const addPointLog = async (uid: string, type: string, points: number, description: string) => {
+  const addPointLog = async (uid: string, type: string, points: number, description: string, proofImg?: string) => {
     try {
       const logRef = collection(db, 'users', uid, 'logs');
       await setDoc(doc(logRef), {
         type,
         points,
         description,
-        timestamp: serverTimestamp()
+        timestamp: serverTimestamp(),
+        ...(proofImg ? { proofImg } : {})
       });
     } catch (e) {
       console.error("Failed to add point log. This usually means Firestore Security Rules need to be updated to allow access to the 'logs' subcollection.", e);
@@ -3141,6 +3523,15 @@ export default function App() {
     await addPointLog(user.uid, 'quiz', 5, `Completed Activity: ${gemName}`);
   };
 
+  const handleLogPointsFromPortal = async (category: string, rawVal: number, points: number, description: string, proofImg?: string) => {
+    if (!user) return;
+    const userRef = doc(db, 'users', user.uid);
+    await updateDoc(userRef, {
+      points: increment(points)
+    });
+    await addPointLog(user.uid, category, points, description, proofImg);
+  };
+
   const handleCollectCard = async () => {
     if (!user || !userData) return;
     const userRef = doc(db, 'users', user.uid);
@@ -3684,12 +4075,31 @@ export default function App() {
                                 key={log.id} 
                                 className="py-5 border-b border-indigo-100/40 flex justify-between items-center hover:bg-neutral-100/50 transition-colors pl-2 pr-4 relative min-h-[5rem]"
                               >
-                                <div>
-                                  <p className="font-semibold text-zinc-900 text-sm font-sans flex items-center gap-1.5">
+                                <div className="flex-1 pr-4">
+                                  <p className="font-semibold text-zinc-900 text-sm font-sans flex items-center gap-1.5 flex-wrap">
                                     <span className="text-neutral-400 text-xs" title="Record point">📌</span>
                                     {log.description}
                                   </p>
-                                  <p className="text-[10px] text-zinc-400 font-mono tracking-wider mt-1 font-bold">
+
+                                  {log.proofImg && (
+                                    <div className="mt-2 flex items-center gap-2">
+                                      {log.proofImg.includes('data:image/') ? (
+                                        <button 
+                                          onClick={() => setSelectedProofImg(log.proofImg)}
+                                          className="flex items-center gap-1.5 text-[10px] font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-2.5 py-1 rounded-xl transition-colors active:scale-95"
+                                        >
+                                          <Camera className="w-3.5 h-3.5 text-indigo-500" />
+                                          <span>View Screenshot Proof • 檢視截圖</span>
+                                        </button>
+                                      ) : (
+                                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-xl">
+                                          {log.proofImg}
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
+
+                                  <p className="text-[10px] text-zinc-400 font-mono tracking-wider mt-1.5 font-bold">
                                     🕒 {log.timestamp?.toDate?.()?.toLocaleString() || 'Record Registered'}
                                   </p>
                                 </div>
@@ -4253,7 +4663,53 @@ export default function App() {
           <EmbeddedPortal 
             url={activePortalUrl} 
             onClose={() => setActivePortalUrl(null)} 
+            user={user}
+            onLogPoints={handleLogPointsFromPortal}
           />
+        )}
+      </AnimatePresence>
+
+      {/* Lightbox Modal for Score Screenshot Proof */}
+      <AnimatePresence>
+        {selectedProofImg && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[3000] flex items-center justify-center bg-black/90 backdrop-blur-md p-4"
+            onClick={() => setSelectedProofImg(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 15 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 15 }}
+              className="relative max-w-lg w-full bg-zinc-900 border border-white/10 rounded-2xl p-4 overflow-hidden shadow-2xl flex flex-col gap-3"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                <span className="text-xs font-bold text-zinc-300 uppercase tracking-widest flex items-center gap-1.5">
+                  <Camera className="w-4 h-4 text-cyan-400" />
+                  Screenshot Proof • 截圖審查
+                </span>
+                <button
+                  onClick={() => setSelectedProofImg(null)}
+                  className="p-1 hover:bg-white/10 text-zinc-400 hover:text-white rounded transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="rounded-xl overflow-hidden border border-white/5 bg-black flex items-center justify-center max-h-[70vh]">
+                <img 
+                  src={selectedProofImg} 
+                  alt="Verified score proof" 
+                  className="max-w-full max-h-[60vh] object-contain"
+                />
+              </div>
+              <div className="text-center text-[10px] text-zinc-500 font-mono">
+                Click background or close button to exit review
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
