@@ -2508,8 +2508,11 @@ const PetAvatar = ({ type, emoji, isPlaying, isRolling }: { type: string, emoji?
   );
 };
 
-const FloatingPet = ({ pet, onReturn }: { pet: PetData, onReturn: () => void }) => {
-  const [pos, setPos] = useState({ x: window.innerWidth - 120, y: window.innerHeight - 120 });
+const FloatingPet = ({ pet, onReturn, index = 0 }: { key?: string | number, pet: PetData, onReturn: () => void | Promise<void>, index?: number }) => {
+  const [pos, setPos] = useState({ 
+    x: Math.max(50, window.innerWidth - 120 - (index * 90)), 
+    y: Math.max(50, window.innerHeight - 120 - (index * 50)) 
+  });
   const [thought, setThought] = useState<string | null>(null);
   const isDragging = useRef(false);
 
@@ -3855,6 +3858,12 @@ export default function App() {
     await updateDoc(petRef, { isPlaying: false });
   };
 
+  const handleReturnTargetPet = async (targetPet: PetData) => {
+    if (!user || !targetPet || !targetPet.id) return;
+    const petRef = doc(db, 'users', user.uid, 'pets', targetPet.id);
+    await updateDoc(petRef, { isPlaying: false });
+  };
+
   // Sync selected petData when petsList or activePetId changes
   useEffect(() => {
     if (petsList.length === 0) {
@@ -4820,9 +4829,14 @@ export default function App() {
 
       {/* Floating Pet when playing */}
       <AnimatePresence>
-        {petData?.isPlaying && (
-          <FloatingPet pet={petData} onReturn={handleReturnPet} />
-        )}
+        {petsList.filter(p => p.isPlaying).map((p, idx) => (
+          <FloatingPet 
+            key={p.id || `pet-${idx}`} 
+            pet={p} 
+            onReturn={() => { handleReturnTargetPet(p); }} 
+            index={idx}
+          />
+        ))}
       </AnimatePresence>
 
       {/* Moon Base Card Modal */}
