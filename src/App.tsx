@@ -93,6 +93,14 @@ const PET_TIERS = [
   {
     id: 'common', label: 'Common', cost: 100, color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20',
     pets: [
+      { id: 'luna', name: 'Luna', emoji: '🌙' },
+      { id: 'astro', name: 'Astro', emoji: '🚀' },
+      { id: 'cosmo', name: 'Cosmo', emoji: '🪐' },
+      { id: 'nova', name: 'Nova', emoji: '🌟' },
+      { id: 'nebula', name: 'Nebula', emoji: '🌌' },
+      { id: 'stella', name: 'Stella', emoji: '⭐' },
+      { id: 'orion', name: 'Orion', emoji: '☄️' },
+      { id: 'solar', name: 'Solar', emoji: '☀️' },
       { id: 'hamster', name: 'Hamster', emoji: '🐹' },
       { id: 'rabbit', name: 'Rabbit', emoji: '🐰' },
       { id: 'chick', name: 'Baby Chick', emoji: '🐥' },
@@ -2505,6 +2513,13 @@ const FloatingPet = ({ pet, onReturn }: { pet: PetData, onReturn: () => void }) 
   const [thought, setThought] = useState<string | null>(null);
   const isDragging = useRef(false);
 
+  const currentLevelPetTypes = PET_TYPES.find(p => 
+    p.type === pet.type || 
+    p.name === pet.type || 
+    (pet.type && p.name && pet.type.toLowerCase().includes(p.name.toLowerCase()))
+  );
+  const resolvedEmoji = pet.emoji || currentLevelPetTypes?.emoji;
+
   useEffect(() => {
     const interval = setInterval(() => {
       if (isDragging.current) return;
@@ -2579,7 +2594,7 @@ const FloatingPet = ({ pet, onReturn }: { pet: PetData, onReturn: () => void }) 
         <p className="text-[9px] text-white font-bold uppercase tracking-widest">{pet.name} is wandering...</p>
         <p className="text-[7px] text-white/60 text-center">Double-tap to dock</p>
       </div>
-      <PetAvatar type={pet.type} isPlaying={true} />
+      <PetAvatar type={pet.type} emoji={resolvedEmoji} isPlaying={true} />
     </motion.div>
   );
 };
@@ -2750,7 +2765,11 @@ const PetSection = ({
   }
 
   // Under hub layout (petsList.length > 0 and not in shelter active view)
-  const currentLevelPetTypes = pet ? PET_TYPES.find(p => p.type === pet.type) : null;
+  const currentLevelPetTypes = pet ? PET_TYPES.find(p => 
+    p.type === pet.type || 
+    p.name === pet.type || 
+    (pet.type && p.name && pet.type.toLowerCase().includes(p.name.toLowerCase()))
+  ) : null;
   const resolvedEmoji = pet ? (pet.emoji || currentLevelPetTypes?.emoji) : "";
 
   if (!pet) return null;
