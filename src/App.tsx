@@ -73,6 +73,7 @@ interface StudyNote {
 }
 
 interface PetData {
+  id?: string;
   name: string;
   type: string;
   image: string;
@@ -2586,6 +2587,9 @@ const FloatingPet = ({ pet, onReturn }: { pet: PetData, onReturn: () => void }) 
 const PetSection = ({ 
   points, 
   pet, 
+  petsList = [], 
+  activePetId, 
+  setActivePetId, 
   onFeed, 
   onPlay, 
   onAdopt, 
@@ -2596,15 +2600,18 @@ const PetSection = ({
 }: { 
   points: number, 
   pet: PetData | null, 
+  petsList?: PetData[], 
+  activePetId?: string | null, 
+  setActivePetId?: (id: string | null) => void, 
   onFeed: (foodName: string, foodEmoji: string, cost: number, growthPts: number) => void, 
   onPlay: () => void, 
   onAdopt: (selectedPet: typeof PET_TYPES[0]) => void, 
-  onRelease: () => void, 
+  onRelease: (targetPet?: PetData) => void, 
   isRolling: boolean,
   isAdopting?: boolean,
   petError?: string | null
 }) => {
-  const [showShelter, setShowShelter] = useState(false);
+  const [isShelterActive, setIsShelterActive] = useState(false);
   const [selectedShelterPet, setSelectedShelterPet] = useState<typeof PET_TYPES[0] | null>(null);
   const [selectedTier, setSelectedTier] = useState<string>('common');
   const [showFoodShop, setShowFoodShop] = useState(false);
@@ -2618,26 +2625,26 @@ const PetSection = ({
     }
   }, [selectedTier]);
 
-  if (!pet) return (
-    <div className="p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md">
-      {!showShelter ? (
-        <div className="text-center">
-          <Sparkles className="w-12 h-12 text-blue-400 mx-auto mb-4 opacity-50" />
-          <h3 className="text-2xl font-display mb-2">The Celestial Shelter</h3>
-          <p className="text-white/60 mb-6 text-sm">Choose your destiny among the stars. Every companion brings their own spark to your journey.</p>
-          <button 
-            onClick={() => setShowShelter(true)}
-            className="px-8 py-3 bg-white text-black rounded-full font-bold hover:bg-blue-50 transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,255,255,0.2)]"
-          >
-            Enter Shelter
-          </button>
-        </div>
-      ) : (
+  // If there are no pets, we force the shelter active view
+  const showShelterLayout = petsList.length === 0 || isShelterActive;
+
+  if (showShelterLayout) {
+    return (
+      <div className="p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md">
         <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <button onClick={() => setShowShelter(false)} className="text-white/40 hover:text-white flex items-center gap-1 transition-colors">
-              <ChevronLeft className="w-4 h-4" /> Back
-            </button>
+            {petsList.length > 0 ? (
+              <button 
+                onClick={() => setIsShelterActive(false)} 
+                className="text-white/40 hover:text-white flex items-center gap-1 transition-colors text-xs font-bold uppercase tracking-wider"
+              >
+                <ChevronLeft className="w-4 h-4" /> Back to Squad ({petsList.length}/3)
+              </button>
+            ) : (
+              <div className="text-white/40 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                🛸 No Companions Yet
+              </div>
+            )}
             <h3 className="text-xl font-display">Select Companion</h3>
           </div>
 
@@ -2689,221 +2696,290 @@ const PetSection = ({
               <div className="flex items-center gap-2 text-blue-400 font-bold text-sm">
                 <Zap className="w-4 h-4" /> {selectedShelterPet ? `${selectedShelterPet.cost} Points Required` : "100 Points Required"}
               </div>
-              <div className="text-white/40 text-xs">Available: {points} pts</div>
+              <div className="text-white/40 text-xs">Available: {points} pts • Squad: {petsList.length}/3</div>
             </div>
-            <button 
-              disabled={!selectedShelterPet || points < (selectedShelterPet.cost || 100) || isAdopting}
-              onClick={() => selectedShelterPet && onAdopt(selectedShelterPet)}
-              className="w-full py-4 bg-white text-black rounded-2xl font-bold disabled:opacity-30 disabled:grayscale transition-all hover:bg-blue-50 flex items-center justify-center gap-2"
-            >
-              {isAdopting ? (
-                <>
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                  Adopting...
-                </>
-              ) : (
-                selectedShelterPet ? `Adopt ${selectedShelterPet.name} (${selectedShelterPet.cost} pts)` : "Confirm Selection"
-              )}
-            </button>
+
+            {petsList.length >= 3 ? (
+              <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-2xl text-center space-y-3">
+                <p className="text-red-400 font-bold text-xs uppercase tracking-wider">🚫 Maximum 3 Companions Kept</p>
+                <p className="text-white/60 text-xs">You already keep 3 space companions. To adopt this new one, select which companion to release below:</p>
+                <div className="flex flex-col gap-2">
+                  {petsList.map((p, idx) => (
+                    <button
+                      key={idx}
+                      onClick={async () => {
+                        await onRelease(p);
+                      }}
+                      className="w-full py-2 px-4 bg-white/5 border border-white/10 hover:border-red-500/35 hover:bg-red-500/5 transition-all text-xs font-bold rounded-xl flex items-center justify-between group"
+                    >
+                      <span>{p.emoji} {p.name} (Lvl {p.level})</span>
+                      <span className="text-red-400 uppercase text-[9px] tracking-widest font-black">Release & Free Space</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <button 
+                disabled={!selectedShelterPet || points < (selectedShelterPet.cost || 100) || isAdopting}
+                onClick={async () => {
+                  if (selectedShelterPet) {
+                    await onAdopt(selectedShelterPet);
+                    setIsShelterActive(false);
+                  }
+                }}
+                className="w-full py-4 bg-white text-black rounded-2xl font-bold disabled:opacity-30 disabled:grayscale transition-all hover:bg-blue-50 flex items-center justify-center gap-2"
+              >
+                {isAdopting ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    Adopting...
+                  </>
+                ) : (
+                  selectedShelterPet ? `Adopt ${selectedShelterPet.name} (${selectedShelterPet.cost} pts)` : "Confirm Selection"
+                )}
+              </button>
+            )}
+            
             {petError && (
               <p className="mt-2 text-center text-[10px] text-red-400 font-bold uppercase tracking-wider">{petError}</p>
             )}
           </div>
         </div>
-      )}
-    </div>
-  );
- 
-  const currentLevelPetTypes = PET_TYPES.find(p => p.type === pet.type);
-  const resolvedEmoji = pet.emoji || currentLevelPetTypes?.emoji;
+      </div>
+    );
+  }
+
+  // Under hub layout (petsList.length > 0 and not in shelter active view)
+  const currentLevelPetTypes = pet ? PET_TYPES.find(p => p.type === pet.type) : null;
+  const resolvedEmoji = pet ? (pet.emoji || currentLevelPetTypes?.emoji) : "";
+
+  if (!pet) return null;
 
   return (
-    <div className="relative p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md group/shelter">
-      <button 
-        onClick={onRelease}
-        className="absolute top-4 right-4 text-[10px] uppercase font-black tracking-[0.2em] text-white/40 hover:text-red-400 transition-all flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full border border-white/5 hover:border-red-400/30 group/release"
-      >
-        <TrendingUp className="w-3 h-3 rotate-45 group-hover/release:rotate-0 transition-transform" /> 
-        Release to Wild
-      </button>
-      <div className="flex items-center gap-6">
-        <div className="w-24 h-24 rounded-full border-2 border-white/20 moon-glow relative shrink-0">
-          <PetAvatar type={pet.type} emoji={resolvedEmoji} isRolling={isRolling} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h3 className="text-2xl font-display truncate">{pet.name}</h3>
-              <p className="text-white/40 text-[10px] uppercase tracking-[0.2em] font-bold">Lvl {pet.level} {pet.type}</p>
-            </div>
-            <div className="text-right hidden sm:block">
-              <p className="text-[8px] text-white/20 uppercase tracking-widest font-bold">Standard</p>
-              <p className="text-[10px] text-blue-400 font-bold">Goal: {pet.maxXp} XP</p>
-            </div>
-          </div>
-          
-          <div className="mt-4 space-y-3">
-            {/* XP Bar */}
-            <div className="space-y-1">
-              <div className="flex justify-between text-[10px] uppercase tracking-widest font-bold text-blue-400">
-                <span>XP Progress</span>
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-2 h-2" />
-                  <span>{pet.xp} / {pet.maxXp}</span>
-                </div>
-              </div>
-              <div className="h-2 bg-white/5 rounded-full overflow-hidden border border-white/5">
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: `${(pet.xp / pet.maxXp) * 100}%` }}
-                  className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 shadow-[0_0_10px_rgba(59,130,246,0.5)]"
-                />
-              </div>
-            </div>
- 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <div className="flex justify-between text-[8px] uppercase tracking-widest text-white/30 font-bold">
-                  <span>Hunger</span>
-                  <span>{Math.round(pet.hunger)}%</span>
-                </div>
-                <div className="h-1 bg-white/10 rounded-full overflow-hidden">
-                  <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: `${pet.hunger}%` }}
-                    className={cn("h-full transition-colors", pet.hunger < 20 ? "bg-red-500" : "bg-orange-500")}
-                  />
-                </div>
-              </div>
- 
-              <div className="space-y-1">
-                <div className="flex justify-between text-[8px] uppercase tracking-widest text-white/30 font-bold">
-                  <span>Happiness</span>
-                  <span>{Math.round(pet.happiness)}%</span>
-                </div>
-                <div className="h-1 bg-white/10 rounded-full overflow-hidden">
-                  <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: `${pet.happiness}%` }}
-                    className="h-full bg-pink-500"
-                  />
-                </div>
-              </div>
-            </div>
+    <div className="space-y-6">
+      {/* Squad Bar */}
+      <div className="p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <span className="text-xs uppercase tracking-wider font-extrabold text-blue-400">Companions:</span>
+          <div className="flex gap-2.5">
+            {petsList.map(p => {
+              const isActive = p.id === activePetId;
+              return (
+                <button
+                  key={p.id}
+                  onClick={() => p.id && setActivePetId && setActivePetId(p.id)}
+                  className={cn(
+                    "relative py-1.5 px-3 rounded-full flex items-center gap-2 transition-all border",
+                    isActive 
+                      ? "bg-white text-black border-white font-bold scale-105 shadow-[0_0_15px_rgba(255,255,255,0.25)]" 
+                      : "bg-white/5 hover:bg-white/10 border-white/10 text-white/70"
+                  )}
+                >
+                  <span className="text-sm">{p.emoji}</span>
+                  <span className="text-[10px]">{p.name} <span className="opacity-60">Lvl {p.level}</span></span>
+                  {isActive && (
+                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-400 rounded-full animate-ping" />
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
+        <button
+          onClick={() => setIsShelterActive(true)}
+          className="py-1.5 px-4 bg-blue-500/15 hover:bg-blue-500/25 border border-blue-500/30 hover:border-blue-500 text-blue-400 font-bold rounded-lg text-[10px] uppercase tracking-wider transition-all flex items-center gap-1"
+        >
+          ➕ Visit Shelter
+        </button>
       </div>
-      <div className="mt-8 flex flex-col gap-4">
-        <div className="flex gap-4">
-          <button 
-            onClick={() => setShowFoodShop(!showFoodShop)}
-            className={cn(
-              "flex-1 py-3 rounded-xl flex items-center justify-center gap-2 transition-all group border border-white/5",
-              showFoodShop ? "bg-amber-500/20 text-white border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)]" : "bg-white/10 hover:bg-white/20"
-            )}
-          >
-            <Coffee className="w-4 h-4 group-hover:scale-110 transition-transform text-orange-400" /> 
-            <div className="flex flex-col items-start leading-none">
-              <span className="text-xs font-bold uppercase tracking-wider">Feed Menu</span>
-              <span className="text-[7px] text-white/40">Select food items</span>
+
+      <div className="relative p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md group/shelter">
+        <button 
+          onClick={() => onRelease(pet)}
+          className="absolute top-4 right-4 text-[10px] uppercase font-black tracking-[0.2em] text-white/40 hover:text-red-400 transition-all flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full border border-white/5 hover:border-red-400/30 group/release"
+        >
+          <TrendingUp className="w-3 h-3 rotate-45 group-hover/release:rotate-0 transition-transform" /> 
+          Release to Wild
+        </button>
+        <div className="flex items-center gap-6">
+          <div className="w-24 h-24 rounded-full border-2 border-white/20 moon-glow relative shrink-0">
+            <PetAvatar type={pet.type} emoji={resolvedEmoji} isRolling={isRolling} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-2xl font-display truncate">{pet.name}</h3>
+                <p className="text-white/40 text-[10px] uppercase tracking-[0.2em] font-bold">Lvl {pet.level} {pet.type}</p>
+              </div>
+              <div className="text-right hidden sm:block">
+                <p className="text-[8px] text-white/20 uppercase tracking-widest font-bold">Standard</p>
+                <p className="text-[10px] text-blue-400 font-bold">Goal: {pet.maxXp} XP</p>
+              </div>
             </div>
-          </button>
-          <button 
-            onClick={onPlay}
-            className={cn(
-              "flex-1 py-3 rounded-xl flex items-center justify-center gap-2 transition-all group border border-white/5",
-              pet.isPlaying ? "bg-pink-500 text-white shadow-[0_0_20px_rgba(236,72,153,0.3)]" : "bg-white/10 hover:bg-white/20"
-            )}
-          >
-            <Heart className={cn("w-4 h-4 group-hover:scale-110 transition-transform", pet.isPlaying ? "text-white" : "text-pink-500")} /> 
-            <div className="flex flex-col items-start leading-none">
-              <span className="text-xs font-bold uppercase tracking-wider">{pet.isPlaying ? "Playing..." : "Play"}</span>
-              <span className={cn("text-[7px]", pet.isPlaying ? "text-white/70" : "text-white/40")}>+10 XP</span>
+            
+            <div className="mt-4 space-y-3">
+              {/* XP Bar */}
+              <div className="space-y-1">
+                <div className="flex justify-between text-[10px] uppercase tracking-widest font-bold text-blue-400">
+                  <span>XP Progress</span>
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-2 h-2" />
+                    <span>{pet.xp} / {pet.maxXp}</span>
+                  </div>
+                </div>
+                <div className="h-2 bg-white/5 rounded-full overflow-hidden border border-white/5">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${(pet.xp / pet.maxXp) * 100}%` }}
+                    className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 shadow-[0_0_10px_rgba(59,130,246,0.5)]"
+                  />
+                </div>
+              </div>
+   
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <div className="flex justify-between text-[8px] uppercase tracking-widest text-white/30 font-bold">
+                    <span>Hunger</span>
+                    <span>{Math.round(pet.hunger)}%</span>
+                  </div>
+                  <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: `${pet.hunger}%` }}
+                      className={cn("h-full transition-colors", pet.hunger < 20 ? "bg-red-500" : "bg-orange-500")}
+                    />
+                  </div>
+                </div>
+   
+                <div className="space-y-1">
+                  <div className="flex justify-between text-[8px] uppercase tracking-widest text-white/30 font-bold">
+                    <span>Happiness</span>
+                    <span>{Math.round(pet.happiness)}%</span>
+                  </div>
+                  <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: `${pet.happiness}%` }}
+                      className="h-full bg-pink-500"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
-          </button>
+          </div>
         </div>
-
-        {/* Expandable Food Shop */}
-        <AnimatePresence>
-          {showFoodShop && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="overflow-hidden border border-white/10 rounded-2xl bg-black/40 backdrop-blur-md p-4 space-y-4"
+        <div className="mt-8 flex flex-col gap-4">
+          <div className="flex gap-4">
+            <button 
+              onClick={() => setShowFoodShop(!showFoodShop)}
+              className={cn(
+                "flex-1 py-3 rounded-xl flex items-center justify-center gap-2 transition-all group border border-white/5",
+                showFoodShop ? "bg-amber-500/20 text-white border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)]" : "bg-white/10 hover:bg-white/20"
+              )}
             >
-              <div className="flex items-center justify-between">
-                <h4 className="text-sm font-display tracking-wide text-amber-300 flex items-center gap-1.5">
-                  🍲 Celestial Food Pantry
-                </h4>
-                <div className="text-[10px] text-white/40">Available: {points} pts</div>
+              <Coffee className="w-4 h-4 group-hover:scale-110 transition-transform text-orange-400" /> 
+              <div className="flex flex-col items-start leading-none">
+                <span className="text-xs font-bold uppercase tracking-wider">Feed Menu</span>
+                <span className="text-[7px] text-white/40">Select food items</span>
               </div>
-
-              {/* Food Category Selection Tabs */}
-              <div className="flex flex-wrap gap-1 p-0.5 bg-white/5 rounded-lg border border-white/5">
-                {FOOD_TIERS.map(tier => (
-                  <button
-                    key={tier.id}
-                    onClick={() => setSelectedFoodCategory(tier.id)}
-                    className={cn(
-                      "flex-1 min-w-[60px] py-1 text-[9px] font-bold rounded-md transition-all text-center",
-                      selectedFoodCategory === tier.id
-                        ? "bg-amber-500 text-black shadow-sm"
-                        : "text-white/55 hover:text-white"
-                    )}
-                  >
-                    {tier.label.split(' ')[0]} {/* Renders "Common", "Rare", "Precious", "Hi-Protein", "Super" */}
-                  </button>
-                ))}
+            </button>
+            <button 
+              onClick={onPlay}
+              className={cn(
+                "flex-1 py-3 rounded-xl flex items-center justify-center gap-2 transition-all group border border-white/5",
+                pet.isPlaying ? "bg-pink-500 text-white shadow-[0_0_20px_rgba(236,72,153,0.3)]" : "bg-white/10 hover:bg-white/20"
+              )}
+            >
+              <Heart className={cn("w-4 h-4 group-hover:scale-110 transition-transform", pet.isPlaying ? "text-white" : "text-pink-500")} /> 
+              <div className="flex flex-col items-start leading-none">
+                <span className="text-xs font-bold uppercase tracking-wider">{pet.isPlaying ? "Playing..." : "Play"}</span>
+                <span className={cn("text-[7px]", pet.isPlaying ? "text-white/70" : "text-white/40")}>+10 XP</span>
               </div>
+            </button>
+          </div>
 
-              {/* Items display for the chosen category */}
-              <div className="grid grid-cols-2 gap-2 max-h-[160px] overflow-y-auto pr-1 scrollbar-thin">
-                {FOOD_TIERS.find(t => t.id === selectedFoodCategory)?.items.map((item, idx) => {
-                  const tier = FOOD_TIERS.find(t => t.id === selectedFoodCategory)!;
-                  const itemCost = tier.cost;
-                  const itemGrowth = tier.growthPts;
-                  const isAffordable = points >= itemCost;
+          {/* Expandable Food Shop */}
+          <AnimatePresence>
+            {showFoodShop && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="overflow-hidden border border-white/10 rounded-2xl bg-black/40 backdrop-blur-md p-4 space-y-4"
+              >
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-display tracking-wide text-amber-300 flex items-center gap-1.5">
+                    🍲 Celestial Food Pantry
+                  </h4>
+                  <div className="text-[10px] text-white/40">Available: {points} pts</div>
+                </div>
 
-                  return (
+                {/* Food Category Selection Tabs */}
+                <div className="flex flex-wrap gap-1 p-0.5 bg-white/5 rounded-lg border border-white/5">
+                  {FOOD_TIERS.map(tier => (
                     <button
-                      key={idx}
-                      disabled={!isAffordable}
-                      onClick={() => onFeed(item.name, item.emoji, itemCost, itemGrowth)}
+                      key={tier.id}
+                      onClick={() => setSelectedFoodCategory(tier.id)}
                       className={cn(
-                        "p-2.5 rounded-xl border flex items-center justify-between gap-2.5 transition-all outline-none",
-                        isAffordable 
-                          ? "bg-white/5 border-white/10 hover:border-amber-500/30 hover:bg-amber-500/5 active:scale-[0.98]" 
-                          : "bg-white/[0.02] border-white/5 opacity-40 cursor-not-allowed"
+                        "flex-1 min-w-[60px] py-1 text-[9px] font-bold rounded-md transition-all text-center",
+                        selectedFoodCategory === tier.id
+                          ? "bg-amber-500 text-black shadow-sm"
+                          : "text-white/55 hover:text-white"
                       )}
                     >
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl select-none filter drop-shadow-md">{item.emoji}</span>
-                        <div className="text-left leading-tight">
-                          <p className="text-[10px] font-bold text-white">{item.name}</p>
-                          <p className="text-[8px] text-green-400">+{itemGrowth} XP</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-[10px] font-bold text-amber-400 font-mono">{itemCost}p</span>
-                      </div>
+                      {tier.label.split(' ')[0]}
                     </button>
-                  );
-                })}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-        
-        <p className="text-[8px] text-white/20 text-center uppercase tracking-[0.3em] font-bold">
-          Level up requires {pet.maxXp} XP • Visit the 
-          <button onClick={onRelease} className="mx-1 text-blue-400/50 hover:text-blue-400 transition-colors">Shelter</button> 
-          to hand-pick a new companion
+                  ))}
+                </div>
+
+                {/* Items display for the chosen category */}
+                <div className="grid grid-cols-2 gap-2 max-h-[160px] overflow-y-auto pr-1 scrollbar-thin">
+                  {FOOD_TIERS.find(t => t.id === selectedFoodCategory)?.items.map((item, idx) => {
+                    const tier = FOOD_TIERS.find(t => t.id === selectedFoodCategory)!;
+                    const itemCost = tier.cost;
+                    const itemGrowth = tier.growthPts;
+                    const isAffordable = points >= itemCost;
+
+                    return (
+                      <button
+                        key={idx}
+                        disabled={!isAffordable}
+                        onClick={() => onFeed(item.name, item.emoji, itemCost, itemGrowth)}
+                        className={cn(
+                          "p-2.5 rounded-xl border flex items-center justify-between gap-2.5 transition-all outline-none",
+                          isAffordable 
+                            ? "bg-white/5 border-white/10 hover:border-amber-500/30 hover:bg-amber-500/5 active:scale-[0.98]" 
+                            : "bg-white/[0.02] border-white/5 opacity-40 cursor-not-allowed"
+                        )}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-xl select-none filter drop-shadow-md">{item.emoji}</span>
+                          <div className="text-left leading-tight">
+                            <p className="text-[10px] font-bold text-white">{item.name}</p>
+                            <p className="text-[8px] text-green-400">+{itemGrowth} XP</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[10px] font-bold text-amber-400 font-mono">{itemCost}p</span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          
+          <p className="text-[8px] text-white/20 text-center uppercase tracking-[0.3em] font-bold">
+            Level up requires {pet.maxXp} XP • Visit the 
+            <button onClick={() => setIsShelterActive(true)} className="mx-1 text-blue-400/50 hover:text-blue-400 transition-colors">Shelter</button> 
+            to hand-pick a new companion
+          </p>
+        </div>
+        <p className="text-[10px] text-white/20 text-center mt-4 font-mono">
+          {pet.isPlaying ? "Your pet is accompanying you! Double-tap it to return." : "Tip: Click Play to have your pet accompany you!"}
         </p>
       </div>
-      <p className="text-[10px] text-white/20 text-center mt-4">
-        {pet.isPlaying ? "Your pet is accompanying you! Double-tap it to return." : "Tip: Click Play to have your pet accompany you!"}
-      </p>
     </div>
   );
 };
@@ -3018,6 +3094,8 @@ export default function App() {
   const [user, setUser] = useState<any>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [petData, setPetData] = useState<PetData | null>(null);
+  const [petsList, setPetsList] = useState<PetData[]>([]);
+  const [activePetId, setActivePetId] = useState<string | null>(null);
   const [currentStrand, setCurrentStrand] = useState<Strand>('home');
   const [isMobileScreen, setIsMobileScreen] = useState(false);
 
@@ -3086,7 +3164,10 @@ export default function App() {
         unsubs.push(u1);
 
         const u2 = onSnapshot(collection(db, 'users', u.uid, 'pets'), {
-          next: (snapshot) => !snapshot.empty && setPetData(snapshot.docs[0].data() as PetData),
+          next: (snapshot) => {
+            const list = snapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as any) } as PetData));
+            setPetsList(list);
+          },
           error: (err) => console.error(`Firestore [users/${u.uid}/pets] listener error:`, err)
         });
         unsubs.push(u2);
@@ -3257,13 +3338,14 @@ export default function App() {
           newStreak = 1;
         }
 
-        // Daily Pet Drain (5 points)
-        const petRef = doc(db, 'users', u.uid, 'pets', 'main_pet');
-        const petSnap = await getDoc(petRef);
+        // Daily Pet Drain (5 points per pet)
+        const petsCol = collection(db, 'users', u.uid, 'pets');
+        const { getDocs } = await import('firebase/firestore');
+        const petsSnap = await getDocs(petsCol);
         let petDrain = 0;
-        if (petSnap.exists()) {
-          petDrain = 5;
-          await addPointLog(u.uid, 'pet-drain', -5, 'Daily Pet Care Cost');
+        if (!petsSnap.empty) {
+          petDrain = 5 * petsSnap.size;
+          await addPointLog(u.uid, 'pet-drain', -petDrain, `Daily Pet Care Cost (${petsSnap.size} companions)`);
         }
 
         const updateData: any = {
@@ -3613,6 +3695,10 @@ export default function App() {
       setPetError(`Insufficient points or not logged in. Adoption requires ${adoptionCost} points.`);
       return;
     }
+    if (petsList.length >= 3) {
+      setPetError("Maximum 3 companions already kept. Release one to make space!");
+      return;
+    }
     setIsAdopting(true);
     setPetError(null);
     try {
@@ -3620,7 +3706,8 @@ export default function App() {
       const batch = writeBatch(db);
       
       const userRef = doc(db, 'users', user.uid);
-      const petRef = doc(db, 'users', user.uid, 'pets', 'main_pet');
+      const petCollection = collection(db, 'users', user.uid, 'pets');
+      const petRef = doc(petCollection);
       const logRef = doc(collection(db, 'users', user.uid, 'logs'));
       
       batch.set(userRef, { points: increment(-adoptionCost) }, { merge: true });
@@ -3631,6 +3718,7 @@ export default function App() {
         timestamp: serverTimestamp()
       });
       batch.set(petRef, {
+        id: petRef.id,
         ownerId: user.uid,
         name: selectedPet.name,
         type: selectedPet.type,
@@ -3647,9 +3735,9 @@ export default function App() {
       });
       
       await batch.commit();
+      setActivePetId(petRef.id);
     } catch (e: any) {
       console.error("Adoption failed", e);
-      // More detailed error reporting
       let errorMsg = e.message || "Adoption failed.";
       if (e.code) errorMsg = `[${e.code}] ${errorMsg}`;
       if (e.stack && e.stack.includes('permission-denied')) errorMsg = "[permission-denied] Check Firestore rules or database ID.";
@@ -3660,23 +3748,33 @@ export default function App() {
     }
   };
 
-  const handleReleasePet = async () => {
-    if (!user || !petData) return;
-    const confirm = window.confirm(`Are you sure you want to release ${petData.name} back into the wild universe? This will reset all pet progress.`);
+  const handleReleasePet = async (targetPet?: PetData) => {
+    const activePetToRelease = targetPet || petData;
+    if (!user || !activePetToRelease || !activePetToRelease.id) return;
+    const confirm = window.confirm(`Are you sure you want to release ${activePetToRelease.name} back into the wild universe? This will reset all progress for this companion.`);
     if (!confirm) return;
 
-    const petRef = doc(db, 'users', user.uid, 'pets', 'main_pet');
+    const petRef = doc(db, 'users', user.uid, 'pets', activePetToRelease.id);
     await deleteDoc(petRef);
-    setPetData(null);
+    
+    const nextPet = petsList.find(p => p.id !== activePetToRelease.id);
+    if (nextPet) {
+      setActivePetId(nextPet.id || null);
+      setPetData(nextPet);
+    } else {
+      setActivePetId(null);
+      setPetData(null);
+    }
   };
 
   const handleFeedPet = async (foodName: string = 'Pet Food', foodEmoji: string = '😋', cost: number = 20, growthPts: number = 20) => {
-    if (!user || !userData || userData.points < cost) return;
+    if (!user || !userData || userData.points < cost || !petData) return;
+    const petId = petData.id || 'main_pet';
     const userRef = doc(db, 'users', user.uid);
     await updateDoc(userRef, { points: increment(-cost) });
-    await addPointLog(user.uid, 'pet', -cost, `Fed ${petData?.name || 'Pet'} ${foodEmoji} ${foodName}`);
+    await addPointLog(user.uid, 'pet', -cost, `Fed ${petData.name} ${foodEmoji} ${foodName}`);
     
-    const petRef = doc(db, 'users', user.uid, 'pets', 'main_pet');
+    const petRef = doc(db, 'users', user.uid, 'pets', petId);
     const petSnap = await getDoc(petRef);
     if (petSnap.exists()) {
       const data = petSnap.data();
@@ -3703,8 +3801,9 @@ export default function App() {
 
   const handlePlayWithPet = async () => {
     if (!user || !petData) return;
+    const petId = petData.id || 'main_pet';
     
-    const petRef = doc(db, 'users', user.uid, 'pets', 'main_pet');
+    const petRef = doc(db, 'users', user.uid, 'pets', petId);
     const newIsPlaying = !petData.isPlaying;
 
     if (newIsPlaying) {
@@ -3733,28 +3832,52 @@ export default function App() {
 
   const handleReturnPet = async () => {
     if (!user || !petData) return;
-    const petRef = doc(db, 'users', user.uid, 'pets', 'main_pet');
+    const petRef = doc(db, 'users', user.uid, 'pets', petData.id || 'main_pet');
     await updateDoc(petRef, { isPlaying: false });
   };
 
-  // Hunger drain effect
+  // Sync selected petData when petsList or activePetId changes
   useEffect(() => {
-    if (!user || !petData) return;
+    if (petsList.length === 0) {
+      setPetData(null);
+      setActivePetId(null);
+    } else {
+      const found = petsList.find(p => p.id === activePetId);
+      if (found) {
+        setPetData(found);
+      } else {
+        setPetData(petsList[0]);
+        setActivePetId(petsList[0].id || null);
+      }
+    }
+  }, [petsList, activePetId]);
+
+  // Hunger drain effect for all kept companions
+  const latestPetsListRef = useRef(petsList);
+  useEffect(() => {
+    latestPetsListRef.current = petsList;
+  }, [petsList]);
+
+  useEffect(() => {
+    if (!user) return;
     
     const interval = setInterval(async () => {
-      const petRef = doc(db, 'users', user.uid, 'pets', 'main_pet');
-      // Drain faster if playing (2% vs 0.5% per 5 mins)
-      const drainAmount = petData.isPlaying ? 2 : 0.5;
-      const happinessDrain = petData.isPlaying ? 0 : 0.2; // Playing keeps them happy
+      const currentList = latestPetsListRef.current;
+      for (const p of currentList) {
+        if (!p.id) continue;
+        const petRef = doc(db, 'users', user.uid, 'pets', p.id);
+        const drainAmount = p.isPlaying ? 2 : 0.5;
+        const happinessDrain = p.isPlaying ? 0 : 0.2; // Playing keeps them happy
 
-      await updateDoc(petRef, {
-        hunger: Math.max(0, (petData.hunger || 0) - drainAmount),
-        happiness: Math.max(0, (petData.happiness || 0) - happinessDrain)
-      });
+        await updateDoc(petRef, {
+          hunger: Math.max(0, (p.hunger || 0) - drainAmount),
+          happiness: Math.max(0, (p.happiness || 0) - happinessDrain)
+        });
+      }
     }, 300000); // Every 5 minutes
 
     return () => clearInterval(interval);
-  }, [user?.uid, petData?.hunger, petData?.isPlaying]);
+  }, [user?.uid]);
 
   if (!isAuthReady) return <div className="h-screen flex items-center justify-center"><Star className="animate-spin" /></div>;
 
@@ -4228,6 +4351,9 @@ export default function App() {
               <PetSection 
                 points={userData?.points || 0} 
                 pet={petData} 
+                petsList={petsList}
+                activePetId={activePetId}
+                setActivePetId={setActivePetId}
                 onFeed={handleFeedPet} 
                 onPlay={handlePlayWithPet}
                 onAdopt={handleAdoptPet} 
