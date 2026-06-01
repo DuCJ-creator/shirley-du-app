@@ -6,7 +6,7 @@ import {
   LogIn, LogOut, Clock, Zap, RefreshCw, Search, TrendingUp, ChevronRight,
   ClipboardX, FileText, Trash2, Download, Palette, Plus, Save, X, Edit, Pencil, Check,
   Hammer, Gamepad2, Monitor, Tablet, Smartphone, ZoomIn, ZoomOut, RotateCcw, Compass, Globe,
-  Camera, FileImage, UploadCloud
+  Camera, FileImage, UploadCloud, Settings, ShieldAlert
 } from 'lucide-react';
 import { cn } from './lib/utils';
 import { 
@@ -1741,188 +1741,122 @@ const EmbeddedPortal = ({
   onLogPoints: (category: string, rawVal: number, points: number, description: string, proofImg?: string) => Promise<void>; 
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [containerWidth, setContainerWidth] = useState(1024);
-  const [containerHeight, setContainerHeight] = useState(600);
-  
-  // 'responsive' | 'desktop' | 'tablet' | 'mobile'
-  const [deviceMode, setDeviceMode] = useState<'responsive' | 'desktop' | 'tablet' | 'mobile'>('responsive');
-  const [manualScale, setManualScale] = useState<number>(1.0);
-
-  const [inputValue, setInputValue] = useState<string>('');
-  const [isClaiming, setIsClaiming] = useState(false);
-  const [claimedRecords, setClaimedRecords] = useState<Array<{ id: number, raw: number, points: number, timestamp: string }>>([]);
+  // Active study state tracking
+  const [activeSeconds, setActiveSeconds] = useState(0);
+  const [isWindowFocused, setIsWindowFocused] = useState(true);
   const [claimSuccessMsg, setClaimSuccessMsg] = useState<string | null>(null);
 
-  // Anti-cheat verification states
-  const [proofImg, setProofImg] = useState<string | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [bypassCode, setBypassCode] = useState<string>('');
-  const [useBypass, setUseBypass] = useState<boolean>(false);
+  // Viewport Responsive Device Simulation States
+  const [deviceMode, setDeviceMode] = useState<'responsive' | 'desktop' | 'tablet' | 'mobile'>('responsive');
+  const [manualScale, setManualScale] = useState<number>(1.0);
+  const [containerWidth, setContainerWidth] = useState<number>(1024);
+  const [containerHeight, setContainerHeight] = useState<number>(600);
 
-  // Image processing & canvas-based compression (keeps Firestore memory <25KB per log)
-  const processImageFile = (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      alert("Please upload an image file (PNG/JPG) as proof / 請上傳圖片檔案(PNG/JPG)作為證明");
-      return;
+  const currentGemMetadata = useMemo(() => {
+    // Check in GEMS
+    for (const [strandKey, strandGems] of Object.entries(GEMS)) {
+      const found = strandGems.find(g => g.url === url);
+      if (found) {
+        let displayCategory = strandKey.toUpperCase();
+        if (strandKey === 'vocabulary') displayCategory = 'Vocabulary • 核心單字';
+        if (strandKey === 'pronunciation') displayCategory = 'Pronunciation • 語音發音';
+        if (strandKey === 'grammar') displayCategory = 'Grammar • 文句與文法';
+        if (strandKey === 'tests') displayCategory = 'Tests • 隨堂測驗';
+        if (strandKey === 'earth') displayCategory = 'Vocab Competency • 單字王';
+        if (strandKey === 'saturn') displayCategory = 'Saturn Drills • 衛星自練';
+        if (strandKey === 'uranus') displayCategory = 'Uranus Tools • 天王星工具';
+        if (strandKey === 'neptune') displayCategory = 'Neptune Training • 海王星培訓';
+        return {
+          name: found.name,
+          nameZh: found.nameZh,
+          category: displayCategory,
+          type: found.type
+        };
+      }
     }
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const maxDim = 400; // Optimal thumbnail for verification and low footprint
-        let width = img.width;
-        let height = img.height;
-        if (width > maxDim || height > maxDim) {
-          if (width > height) {
-            height = Math.round((height * maxDim) / width);
-            width = maxDim;
-          } else {
-            width = Math.round((width * maxDim) / height);
-            height = maxDim;
-          }
-        }
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, width, height);
-          const base64 = canvas.toDataURL('image/jpeg', 0.7);
-          setProofImg(base64);
-        }
+    // Check in SUBJECT_GEMS
+    const foundSubject = SUBJECT_GEMS.find(g => g.url === url);
+    if (foundSubject) {
+      return {
+        name: foundSubject.name,
+        nameZh: foundSubject.nameZh,
+        category: 'Subject Courses • 雙語學科',
+        type: foundSubject.type
       };
-      img.src = e.target?.result as string;
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const isBypassValid = useMemo(() => {
-    return bypassCode.trim().toUpperCase() === 'SHIRLEY55';
-  }, [bypassCode]);
-
-  // Parse custom point calculation rules based on URL and categories in GEMS
-  const gemRule = useMemo(() => {
+    }
+    // Universal Challenge
     if (url === 'https://ducj-creator.github.io/etgame.html') {
       return {
         name: 'Universe Challenge',
         nameZh: '星際愛單字(中)',
-        type: 'ivocab_challenge',
-        ruleText: 'Every 100 score = 10 Points • 每 100 分 = 10 積分',
-        label: 'Score / 挑戰得分',
-        placeholder: 'e.g., 500',
-        calculatePoints: (val: number) => Math.floor(val / 100) * 10
+        category: 'Vocabulary Game • 星際單字競賽',
+        type: 'opal'
       };
     }
-
-    // Search under GEMS constant
-    for (const [strandKey, strandGems] of Object.entries(GEMS)) {
-      const found = strandGems.find(g => g.url === url);
-      if (found) {
-        if (strandKey === 'tests' || found.name === 'TOEFL J Mock') {
-          return {
-            name: found.name,
-            nameZh: found.nameZh,
-            type: 'st_tests',
-            ruleText: 'Each 1 correct answer = 5 Points • 每答對 1 題 = 5 積分',
-            label: 'Correct Answers / 答對題數',
-            placeholder: 'e.g., 12',
-            calculatePoints: (val: number) => val * 5
-          };
-        }
-        if (found.name === 'iVocab Champion') {
-          return {
-            name: found.name,
-            nameZh: found.nameZh,
-            type: 'ivocab_challenge',
-            ruleText: 'Every 100 score = 10 Points • 每 100 分 = 10 積分',
-            label: 'Score / 挑戰得分',
-            placeholder: 'e.g., 1200',
-            calculatePoints: (val: number) => Math.floor(val / 100) * 10
-          };
-        }
-        // Under school courses (earth strand) has "單字王"
-        if (strandKey === 'earth' && (found.name.includes('單字王') || found.nameZh.includes('單字王') || found.name.includes('Vocab'))) {
-          return {
-            name: found.name,
-            nameZh: found.nameZh,
-            type: 'word_king',
-            ruleText: 'Every 100 score = 10 Points • 每 100 分 = 10 積分',
-            label: 'Score / 挑戰得分',
-            placeholder: 'e.g., 800',
-            calculatePoints: (val: number) => Math.floor(val / 100) * 10
-          };
-        }
-      }
-    }
-    return null;
+    return {
+      name: 'Interactive Cosmic Gem',
+      nameZh: '星際學習寶石',
+      category: 'Cosmic Study • 星際學習',
+      type: 'diamond'
+    };
   }, [url]);
 
-  const handleClaimPoints = async () => {
-    if (!user) {
-      alert("Please login first to submit and claim points! / 請先登入帳號以進行分數登入！");
-      return;
+  // Window visibility & focus checking to prevent idle/background tab cheating
+  useEffect(() => {
+    const handleFocus = () => setIsWindowFocused(true);
+    const handleBlur = () => setIsWindowFocused(false);
+
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('blur', handleBlur);
+    
+    // Check document visibility api to trigger pause when user minimizes the browser
+    const handleVisibility = () => {
+      setIsWindowFocused(document.visibilityState === 'visible' && document.hasFocus());
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('blur', handleBlur);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, []);
+
+  // Timer run loop
+  useEffect(() => {
+    const timer = setInterval(() => {
+      // Direct focus check adds an extra layer of visibility insurance
+      if (document.hasFocus() && document.visibilityState === 'visible') {
+        setIsWindowFocused(true);
+        setActiveSeconds(prev => prev + 1);
+      } else {
+        setIsWindowFocused(false);
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const currentMinute = Math.floor(activeSeconds / 60);
+  const lastLoggedMinuteRef = useRef(0);
+
+  // Automatically award +10 points for every 1 minute of active play and study
+  useEffect(() => {
+    if (user && currentMinute > lastLoggedMinuteRef.current) {
+      lastLoggedMinuteRef.current = currentMinute;
+      onLogPoints(
+        'quiz', 
+        1, 
+        10, 
+        `Completed 1 Minute of Active study on ${currentGemMetadata.nameZh || currentGemMetadata.name}`
+      ).then(() => {
+        setClaimSuccessMsg(`Earned +10 pts! Keep studying! ☄️`);
+        setTimeout(() => setClaimSuccessMsg(null), 3500);
+      }).catch(err => {
+        console.error("Failed to automatically reward study points:", err);
+      });
     }
-    if (!gemRule) return;
-
-    const numericValue = parseInt(inputValue, 10);
-    if (isNaN(numericValue) || numericValue <= 0) {
-      alert("Please enter a valid positive number. / 請輸入有效的正整數。");
-      return;
-    }
-
-    const limit = gemRule.type === 'st_tests' ? 50 : 15000;
-    if (numericValue > limit && (!useBypass || !isBypassValid)) {
-      alert("possible cheating detected; go to Tr. Shirley for authorization");
-      return;
-    }
-
-    const calculatedPoints = gemRule.calculatePoints(numericValue);
-    if (calculatedPoints <= 0) {
-      alert("The entered score does not meet the minimum requirements for reward points. / 輸入的數值未達換算積分之最低起點門檻。");
-      return;
-    }
-
-    if (!useBypass && !proofImg) {
-      alert("Please upload screenshot proof of your score! / 請先拖入或選擇分數截圖作為證明！");
-      return;
-    }
-
-    if (useBypass && !isBypassValid) {
-      alert("Invalid Teacher Bypass Code! / 教師授權碼錯誤，請重新輸入！");
-      return;
-    }
-
-    setIsClaiming(true);
-    setClaimSuccessMsg(null);
-    try {
-      const description = gemRule.type === 'st_tests' 
-        ? `Logged ${numericValue} correct answers on ${gemRule.nameZh || gemRule.name}`
-        : `Logged score of ${numericValue} on ${gemRule.nameZh || gemRule.name}`;
-
-      const imgToSave = useBypass ? `Bypass Verified ✓ (Code: ${bypassCode.trim().toUpperCase()})` : proofImg;
-
-      await onLogPoints('quiz', numericValue, calculatedPoints, description, imgToSave || undefined);
-      
-      const newRecord = {
-        id: Date.now(),
-        raw: numericValue,
-        points: calculatedPoints,
-        timestamp: new Date().toLocaleTimeString()
-      };
-      setClaimedRecords(prev => [newRecord, ...prev]);
-      setInputValue('');
-      setProofImg(null); // Clear proof after successful submittal
-      setBypassCode('');
-      setClaimSuccessMsg(`Claimed +${calculatedPoints} pts! ✨`);
-      setTimeout(() => setClaimSuccessMsg(null), 4000);
-    } catch (e) {
-      console.error("Failed to claim points", e);
-      alert("Failed to submit points. Please try again.");
-    } finally {
-      setIsClaiming(false);
-    }
-  };
+  }, [currentMinute, currentGemMetadata, user, onLogPoints]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -2130,216 +2064,107 @@ const EmbeddedPortal = ({
             </motion.div>
           </div>
 
-          {/* Score claim sidebar */}
-          {gemRule && (
-            <div className="w-full md:w-80 shrink-0 border-t md:border-t-0 md:border-l border-white/10 bg-zinc-950/60 backdrop-blur-xl p-5 flex flex-col justify-between overflow-y-auto max-h-[300px] md:max-h-none scrollbar-thin">
-              <div className="space-y-4">
-                <div className="flex items-center gap-1.5 text-cyan-400 font-bold text-xs uppercase tracking-wider">
-                  <Trophy className="w-4 h-4 text-cyan-400" />
-                  <span>Reward Claim • 成果登入</span>
-                </div>
-
-                <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl">
-                  <h4 className="text-sm font-bold text-white mb-0.5">{gemRule.nameZh}</h4>
-                  <p className="text-[10px] text-zinc-500 font-mono mb-2">{gemRule.name}</p>
-                  <div className="text-xs text-amber-300 bg-amber-950/20 border border-amber-900/30 px-2.5 py-1.5 rounded-xl flex items-center gap-1.5">
-                    <Zap className="w-3.5 h-3.5 text-amber-400 shrink-0 fill-amber-400" />
-                    <span>{gemRule.ruleText}</span>
-                  </div>
-                </div>
-
-                {!user ? (
-                  <div className="p-4 bg-amber-950/25 border border-amber-900/40 rounded-2xl text-center">
-                    <p className="text-xs text-amber-200">
-                      You are in guest mode. Please sign in via Google from the Moon Base to log scores and claim points permanently to your space account!
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
-                        {gemRule.label}
-                      </label>
-                      <div className="flex gap-2">
-                        <input 
-                          type="number"
-                          min="1"
-                          value={inputValue}
-                          onChange={(e) => setInputValue(e.target.value)}
-                          placeholder={gemRule.placeholder}
-                          disabled={isClaiming}
-                          className="flex-1 bg-black/50 border border-white/10 rounded-xl px-3 py-2.5 text-sm font-mono text-white placeholder-zinc-600 focus:outline-none focus:border-cyan-500/50"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Anti-Cheat Score Verification panel */}
-                    <div className="border-t border-white/5 pt-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Verification • 分數認證</span>
-                        <button
-                          onClick={() => {
-                            setUseBypass(!useBypass);
-                            setProofImg(null);
-                            setBypassCode('');
-                          }}
-                          className="text-[9px] text-cyan-400 hover:underline transition-all flex items-center gap-1 font-semibold"
-                        >
-                          {useBypass ? "📷 Upload Screenshot" : "🔑 Teacher Override"}
-                        </button>
-                      </div>
-
-                      {!useBypass ? (
-                        /* Drag and Drop Screenshot proof upload zone */
-                        <div 
-                          onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                          onDragLeave={() => setIsDragging(false)}
-                          onDrop={(e) => {
-                            e.preventDefault();
-                            setIsDragging(false);
-                            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-                              processImageFile(e.dataTransfer.files[0]);
-                            }
-                          }}
-                          onClick={() => fileInputRef.current?.click()}
-                          className={cn(
-                            "group cursor-pointer min-h-[90px] border border-dashed rounded-xl p-3 flex flex-col items-center justify-center transition-all bg-black/40 text-center relative",
-                            isDragging ? "border-cyan-400 bg-cyan-950/20" : "border-white/15 hover:border-white/30 hover:bg-black/60",
-                            proofImg ? "border-emerald-500/40 bg-emerald-950/10" : ""
-                          )}
-                        >
-                          <input 
-                            type="file"
-                            ref={fileInputRef}
-                            className="hidden"
-                            accept="image/*"
-                            onChange={(e) => {
-                              if (e.target.files && e.target.files[0]) {
-                                processImageFile(e.target.files[0]);
-                              }
-                            }}
-                          />
-                          {!proofImg ? (
-                            <>
-                              <UploadCloud className="w-5 h-5 text-zinc-500 group-hover:text-zinc-300 transition-colors mb-1.5" />
-                              <p className="text-[10.5px] font-semibold text-zinc-300">
-                                Drag or Click to upload Screenshot Proof
-                              </p>
-                              <p className="text-[9px] text-zinc-500 mt-1">
-                                拖曳或點選以傳送最終成績畫面截圖
-                              </p>
-                            </>
-                          ) : (
-                            <div className="w-full flex items-center justify-between gap-2.5">
-                              <div className="flex items-center gap-2">
-                                <img src={proofImg} alt="Proof preview" className="w-12 h-12 rounded object-cover border border-emerald-500/30" />
-                                <div className="text-left leading-none">
-                                  <p className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
-                                    <Check className="w-3.5 h-3.5" /> Screenshot Loaded
-                                  </p>
-                                  <p className="text-[8.5px] text-zinc-400 mt-1 font-mono">Proof OK (Canvas compressed)</p>
-                                </div>
-                              </div>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setProofImg(null);
-                                }}
-                                className="p-1.5 hover:bg-red-500/10 text-zinc-500 hover:text-red-400 rounded transition-colors self-center border border-white/5"
-                                title="Remove Image"
-                              >
-                                <X className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        /* Teacher bypass code mode */
-                        <div className="p-3 border border-white/10 rounded-xl bg-black/40">
-                          <label className="block text-[9px] font-bold text-zinc-400 uppercase mb-1 leading-none">
-                            Teacher Bypass Signature / 教師覆核授權碼
-                          </label>
-                          <input 
-                            type="text"
-                            value={bypassCode}
-                            onChange={(e) => setBypassCode(e.target.value)}
-                            placeholder="Teacher bypass signature code"
-                            className={cn(
-                              "w-full bg-black/60 border rounded-xl px-2.5 py-2 text-xs font-mono text-center placeholder-zinc-700 uppercase focus:outline-none mt-1",
-                              bypassCode ? (isBypassValid ? "border-emerald-500 text-emerald-300 bg-emerald-950/10" : "border-red-500/70 text-red-300 bg-red-950/10") : "border-white/10"
-                            )}
-                          />
-                          <p className="text-[9.5px] text-zinc-500 mt-1.5 leading-snug">
-                            Please request Tr. Shirley to input her secret authorization key. / 請讓 Tr. Shirley 老師輸入覆核授權碼。
-                          </p>
-                        </div>
-                      )}
-                    </div>
-
-                    {inputValue && !isNaN(parseInt(inputValue, 10)) && parseInt(inputValue, 10) > 0 && (
-                      <div className="text-xs text-zinc-400 font-mono flex justify-between bg-black/25 p-2.5 rounded-xl border border-white/5">
-                        <span>Calculated Reward:</span>
-                        <span className="text-emerald-400 font-bold">+{gemRule.calculatePoints(parseInt(inputValue, 10)) || 0} pts</span>
-                      </div>
-                    )}
-
-                    {inputValue && !isNaN(parseInt(inputValue, 10)) && parseInt(inputValue, 10) > (gemRule.type === 'st_tests' ? 50 : 15000) && (
-                      <div className="text-xs text-center font-bold text-red-400 bg-red-950/30 border border-red-900/40 p-2.5 rounded-xl font-mono leading-relaxed">
-                        possible cheating detected; go to Tr. Shirley for authorization
-                      </div>
-                    )}
-
-                    <button
-                      onClick={handleClaimPoints}
-                      disabled={
-                        isClaiming || 
-                        !inputValue || 
-                        (!useBypass && !proofImg) || 
-                        (useBypass && !isBypassValid) || 
-                        (parseInt(inputValue, 10) > (gemRule.type === 'st_tests' ? 50 : 15000) && (!useBypass || !isBypassValid))
-                      }
-                      className={cn(
-                        "w-full py-3 rounded-xl text-xs font-bold transition-all font-sans uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-[0_0_20px_rgba(255,255,255,0.02)] border",
-                        (inputValue && (proofImg || isBypassValid) && !(parseInt(inputValue, 10) > (gemRule.type === 'st_tests' ? 50 : 15000) && (!useBypass || !isBypassValid)))
-                          ? "bg-white text-black border-white hover:bg-zinc-200 hover:shadow-[0_0_15px_rgba(255,255,255,0.15)] active:scale-[0.98]" 
-                          : "bg-white/5 border-white/5 text-zinc-500 cursor-not-allowed"
-                      )}
-                    >
-                      {isClaiming ? "Saving..." : "Submit and Log Points"}
-                    </button>
-
-                    {claimSuccessMsg && (
-                      <motion.div 
-                        initial={{ opacity: 0, y: 5 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="text-xs text-center font-bold text-emerald-400 bg-emerald-950/30 border border-emerald-950/40 p-2.5 rounded-xl"
-                      >
-                        {claimSuccessMsg}
-                      </motion.div>
-                    )}
-                  </div>
-                )}
+          {/* Active Study Timer Sidebar */}
+          <div className="w-full md:w-80 shrink-0 border-t md:border-t-0 md:border-l border-white/10 bg-zinc-950/60 backdrop-blur-xl p-5 flex flex-col justify-between overflow-y-auto max-h-[350px] md:max-h-none scrollbar-thin">
+            <div className="space-y-4">
+              <div className="flex items-center gap-1.5 text-cyan-400 font-bold text-xs uppercase tracking-wider">
+                <Clock className="w-4 h-4 text-cyan-400 animate-pulse" />
+                <span>Active Study Tracker • 學習監測計</span>
               </div>
 
-              {/* Claims History in this session */}
-              {claimedRecords.length > 0 && (
-                <div className="mt-6 border-t border-white/5 pt-4">
-                  <div className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider mb-2 flex justify-between items-center">
-                    <span>Session Logs / 本次紀錄</span>
-                    <span className="text-zinc-600 font-mono">{claimedRecords.length} times</span>
+              <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-2.5 h-2.5 rounded-full bg-cyan-400/80 animate-ping shrink-0" />
+                  <span className="text-[9px] text-cyan-400 uppercase tracking-widest font-bold font-mono">
+                    {currentGemMetadata.category}
+                  </span>
+                </div>
+                <h4 className="text-sm font-bold text-white mb-0.5">{currentGemMetadata.nameZh}</h4>
+                <p className="text-[10px] text-zinc-500 font-mono mb-2">{currentGemMetadata.name}</p>
+                
+                <div className="text-[11px] text-amber-300 bg-amber-950/25 border border-amber-900/30 px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 mt-2 leading-relaxed">
+                  <Zap className="w-3.5 h-3.5 text-amber-400 shrink-0 fill-amber-400 animate-bounce" />
+                  <span>Earn +10 pts for every 1 minute of active play & study! • 每學習與操作滿 1 分鐘，自動獲得 10 積分。</span>
+                </div>
+              </div>
+
+              {!user ? (
+                <div className="p-4 bg-amber-950/25 border border-amber-900/40 rounded-2xl text-center">
+                  <p className="text-xs text-amber-200">
+                    You are in guest mode. Please sign in via Google from the Moon Base to track study time and claim cosmic points permanently to your space account!
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* Timer Display */}
+                  <div className="p-4 bg-black/40 border border-white/5 rounded-2xl flex flex-col items-center justify-center text-center">
+                    <span className="text-[10px] text-zinc-400 font-semibold tracking-widest uppercase mb-1.5 font-sans">Accumulated Session Time</span>
+                    <p className="text-3xl font-mono font-bold text-white tracking-widest">
+                      {String(Math.floor(activeSeconds / 60)).padStart(2, '0')}
+                      <span className="text-cyan-500 animate-pulse">:</span>
+                      {String(activeSeconds % 60).padStart(2, '0')}
+                    </p>
+                    <div className="flex items-center gap-2 mt-3.5 px-3 py-1 bg-white/5 border border-white/10 rounded-full">
+                      {isWindowFocused ? (
+                        <>
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                          <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-wider font-sans">Active Practice</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="w-2 h-2 rounded-full bg-orange-500" />
+                          <span className="text-[9px] text-orange-400 font-bold uppercase tracking-wider font-sans">Time Paused</span>
+                        </>
+                      )}
+                    </div>
+                    {!isWindowFocused && (
+                      <p className="text-[9.5px] text-orange-300 bg-orange-950/15 border border-orange-900/10 px-2 py-1.5 rounded-lg mt-2.5 text-center leading-relaxed font-sans">
+                        ⚠️ Keep this tab/window focused & active to resume!
+                        <br />請點擊本網頁並保持觀看，即可繼續累積積分。
+                      </p>
+                    )}
                   </div>
-                  <div className="space-y-1.5 max-h-32 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-800 pr-1">
-                    {claimedRecords.map((rec) => (
-                      <div key={rec.id} className="flex justify-between items-center text-[10px] font-mono bg-white/[0.01] border border-white/5 px-2.5 py-1.5 rounded-lg">
-                        <span className="text-zinc-400">Score/Ans: {rec.raw}</span>
-                        <span className="text-emerald-400 font-bold">+{rec.points} pts</span>
-                      </div>
-                    ))}
+
+                  {/* Accrued Points visual */}
+                  <div className="p-3 bg-zinc-900/30 border border-white/5 rounded-2xl flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Trophy className="w-4 h-4 text-amber-400" />
+                      <span className="text-xs text-zinc-300">Session Earnings:</span>
+                    </div>
+                    <span className="text-sm font-bold text-emerald-400 font-mono">+{currentMinute * 10} pts</span>
+                  </div>
+
+                  {/* Anti cheat message indicator */}
+                  <div className="p-3 bg-emerald-950/10 border border-emerald-900/20 rounded-xl text-center flex items-center gap-2 justify-center">
+                    <ShieldAlert className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                    <p className="text-[9.5px] text-emerald-400 font-medium leading-tight">
+                      Manual logging has been disabled. Only active study generates points!
+                    </p>
                   </div>
                 </div>
               )}
             </div>
-          )}
+
+            <div className="mt-4 pt-4 border-t border-white/5 flex flex-col gap-2 shrink-0">
+              {claimSuccessMsg && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-xs text-center font-bold text-emerald-400 bg-emerald-950/30 border border-emerald-950/40 p-2 py-2.5 rounded-xl flex items-center justify-center gap-1.5"
+                >
+                  <Sparkles className="w-4 h-4 text-emerald-400 animate-spin-slow" />
+                  <span>{claimSuccessMsg}</span>
+                </motion.div>
+              )}
+              
+              <button 
+                onClick={onClose}
+                className="w-full py-2.5 bg-white/5 hover:bg-white/10 active:scale-[0.98] rounded-xl text-[10px] font-bold uppercase tracking-widest text-zinc-300 hover:text-white border border-white/10 transition-all cursor-pointer text-center"
+              >
+                Save & Return to Base
+              </button>
+            </div>
+          </div>
           
           {/* Subtle glowing decorations under constraints */}
           <div className="hidden sm:block absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-cyan-500/10 rounded-tl-[2.5rem] pointer-events-none" />
@@ -3155,6 +2980,11 @@ export default function App() {
   const [selectedCard, setSelectedCard] = useState<any>(null);
   const [authError, setAuthError] = useState<string | null>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showTeacherOverride, setShowTeacherOverride] = useState(false);
+  const [overrideAction, setOverrideAction] = useState<'add' | 'subtract' | 'set'>('add');
+  const [overrideBypassCode, setOverrideBypassCode] = useState("");
+  const [overridePointsDelta, setOverridePointsDelta] = useState<number>(100);
+  const [overrideReason, setOverrideReason] = useState("");
   const [logs, setLogs] = useState<PointLog[]>([]);
   const [selectedProofImg, setSelectedProofImg] = useState<string | null>(null);
   const [sessionStudyTime, setSessionStudyTime] = useState(0);
@@ -3929,11 +3759,8 @@ export default function App() {
 
   const handleVisitGem = async (gemName: string) => {
     if (!user) return;
-    const userRef = doc(db, 'users', user.uid);
-    await updateDoc(userRef, {
-      points: increment(5) // Correct answer / Activity reward
-    });
-    await addPointLog(user.uid, 'quiz', 5, `Completed Activity: ${gemName}`);
+    // Just document the opening log without adding standard 5 points directly to deter quick click cheat patterns
+    await addPointLog(user.uid, 'quiz', 0, `Opened portal: ${gemName}`);
   };
 
   const handleLogPointsFromPortal = async (category: string, rawVal: number, points: number, description: string, proofImg?: string) => {
@@ -4079,14 +3906,25 @@ export default function App() {
             <motion.div 
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              className="flex items-center gap-4 bg-white/5 backdrop-blur-md border border-white/10 p-2 pr-6 rounded-full"
+              whileHover={{ scale: 1.05 }}
+              onClick={() => {
+                setOverrideBypassCode("");
+                setOverrideReason("");
+                setOverridePointsDelta(100);
+                setShowTeacherOverride(true);
+              }}
+              className="flex items-center gap-4 bg-white/5 hover:bg-white/10 border border-white/10 p-2 pr-6 rounded-full cursor-pointer select-none transition-colors duration-200"
+              title="Teacher Override Area / 導師授權覆核調分區"
             >
               <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
-                <Trophy className="w-5 h-5 text-yellow-500" />
+                <Trophy className="w-5 h-5 text-yellow-500 animate-pulse" />
               </div>
               <div>
-                <p className="text-[10px] uppercase tracking-widest text-white/40 leading-none">Your Points</p>
-                <p className="text-lg font-display font-bold">{userData.points}</p>
+                <p className="text-[10px] uppercase tracking-widest text-white/40 leading-none flex items-center gap-1">
+                  <span>Your Points</span>
+                  <Settings className="w-2.5 h-2.5 text-white/20 animate-spin-slow" />
+                </p>
+                <p className="text-lg font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-amber-300 to-yellow-100">{userData.points}</p>
               </div>
             </motion.div>
           )}
@@ -5128,6 +4966,205 @@ export default function App() {
               </div>
               <div className="text-center text-[10px] text-zinc-500 font-mono">
                 Click background or close button to exit review
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Teacher Override Modal */}
+      <AnimatePresence>
+        {showTeacherOverride && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[4000] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+          >
+            <div className="absolute inset-0 bg-black/85 backdrop-blur-md" onClick={() => setShowTeacherOverride(false)} />
+            <motion.div
+              initial={{ scale: 0.95, y: 15 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 15 }}
+              className="relative w-full max-w-md bg-zinc-900 border border-zinc-800 p-6 rounded-[2rem] shadow-[0_0_50px_rgba(234,179,8,0.15)] text-white"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button 
+                onClick={() => setShowTeacherOverride(false)}
+                className="absolute top-5 right-5 text-neutral-500 hover:text-white transition-colors"
+                title="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="flex items-center gap-2.5 mb-5 border-b border-white/5 pb-4">
+                <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
+                  <Settings className="w-5 h-5 text-amber-400 animate-spin-slow" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Teacher Direct Override</h3>
+                  <p className="text-[10px] text-zinc-400">專屬導師覆核調分授權專區</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {/* Authorization Bypass code input */}
+                <div>
+                  <label className="block text-[10px] uppercase tracking-widest text-zinc-400 font-bold mb-1.5">
+                    1. Input Teacher Bypass Key / 導師驗證密鑰
+                  </label>
+                  <input
+                    type="password"
+                    value={overrideBypassCode}
+                    onChange={(e) => setOverrideBypassCode(e.target.value)}
+                    placeholder="Enter bypass key"
+                    className={`w-full bg-black/60 border rounded-xl px-3 py-2.5 text-xs font-mono tracking-widest uppercase focus:outline-none transition-all ${
+                      overrideBypassCode.trim().toUpperCase() === 'SHIRLEY55' 
+                        ? 'border-emerald-500 text-emerald-300 bg-emerald-950/10' 
+                        : overrideBypassCode ? 'border-red-500/50 text-red-300 bg-red-950/10' : 'border-white/10'
+                    }`}
+                  />
+                </div>
+
+                {overrideBypassCode.trim().toUpperCase() === 'SHIRLEY55' ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="space-y-4 border-t border-white/5 pt-4"
+                  >
+                    <div className="p-3 bg-emerald-950/20 border border-emerald-900/25 rounded-2xl flex items-center gap-3">
+                      <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                      <div className="leading-none text-left">
+                        <p className="text-xs text-emerald-400 font-bold">Tr. Shirley Authorized ✓</p>
+                        <p className="text-[9.5px] text-zinc-400 mt-1">Adjusting points for: {userData?.name || user?.displayName || 'Space Student'}</p>
+                      </div>
+                    </div>
+
+                    {/* Mode selection block */}
+                    <div>
+                      <label className="block text-[10px] uppercase tracking-widest text-zinc-400 font-bold mb-1.5">
+                        2. Select Operation / 運算模式
+                      </label>
+                      <div className="grid grid-cols-3 gap-1.5 p-1 bg-black/40 border border-white/5 rounded-xl">
+                        <button
+                          type="button"
+                          onClick={() => setOverrideAction('add')}
+                          className={`py-1.5 text-[10px] font-bold uppercase rounded-lg transition-all ${
+                            overrideAction === 'add' ? 'bg-amber-500 text-black' : 'text-zinc-400 hover:text-white'
+                          }`}
+                        >
+                          Add (+)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setOverrideAction('subtract')}
+                          className={`py-1.5 text-[10px] font-bold uppercase rounded-lg transition-all ${
+                            overrideAction === 'subtract' ? 'bg-amber-500 text-black' : 'text-zinc-400 hover:text-white'
+                          }`}
+                        >
+                          Sub (-)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setOverrideAction('set')}
+                          className={`py-1.5 text-[10px] font-bold uppercase rounded-lg transition-all ${
+                            overrideAction === 'set' ? 'bg-amber-500 text-black' : 'text-zinc-400 hover:text-white'
+                          }`}
+                        >
+                          Set (=)
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Value inputs */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-widest text-zinc-400 font-bold mb-1.5">
+                          Amount / 分值
+                        </label>
+                        <input
+                          type="number"
+                          value={overridePointsDelta}
+                          onChange={(e) => setOverridePointsDelta(parseInt(e.target.value, 10) || 0)}
+                          className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-amber-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-widest text-zinc-400 font-bold mb-1.5">
+                          Current Score
+                        </label>
+                        <div className="w-full bg-zinc-950 border border-white/5 rounded-xl px-3 py-2 text-xs text-amber-300 font-mono font-bold leading-tight flex items-center justify-center">
+                          {userData?.points || 0} pts
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Reason input */}
+                    <div>
+                      <label className="block text-[10px] uppercase tracking-widest text-zinc-400 font-bold mb-1.5">
+                        3. Reason / 調整原因、評核備註
+                      </label>
+                      <input
+                        type="text"
+                        value={overrideReason}
+                        onChange={(e) => setOverrideReason(e.target.value)}
+                        placeholder="e.g., Active CAP Test correction praise"
+                        className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-xs font-sans text-white placeholder-zinc-700 focus:outline-none focus:border-amber-500"
+                      />
+                    </div>
+
+                    {/* Submit Compensation Button */}
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (overrideBypassCode.trim().toUpperCase() !== 'SHIRLEY55') return;
+                        if (!user) return;
+                        const deltaVal = parseInt(String(overridePointsDelta), 10);
+                        if (isNaN(deltaVal)) {
+                          alert("Invalid points value.");
+                          return;
+                        }
+
+                        // We can run Firebase update directly here!
+                        const userRef = doc(db, 'users', user.uid);
+                        let finalReasonDescription = overrideReason.trim() || "Approved direct compensation by Teacher Shirley";
+                        let actualPointsAdded = deltaVal;
+
+                        if (overrideAction === 'add') {
+                          await updateDoc(userRef, { points: increment(deltaVal) });
+                          actualPointsAdded = deltaVal;
+                        } else if (overrideAction === 'subtract') {
+                          await updateDoc(userRef, { points: increment(-deltaVal) });
+                          actualPointsAdded = -deltaVal;
+                        } else if (overrideAction === 'set') {
+                          const currentPoints = userData?.points || 0;
+                          await updateDoc(userRef, { points: deltaVal });
+                          actualPointsAdded = deltaVal - currentPoints;
+                        }
+
+                        await addPointLog(
+                          user.uid,
+                          'teacher-override',
+                          actualPointsAdded,
+                          `[Tr. Shirley Override] ${finalReasonDescription}`
+                        );
+
+                        // Success notification
+                        setShowTeacherOverride(false);
+                      }}
+                      className="w-full py-3 bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-amber-400 active:scale-[0.98] text-black font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-[0_0_20px_rgba(245,158,11,0.2)] select-none text-center"
+                    >
+                      Apply Point Override
+                    </button>
+                  </motion.div>
+                ) : (
+                  <div className="p-4 bg-zinc-950 border border-white/5 rounded-2xl text-center">
+                    <ShieldAlert className="w-6 h-6 text-zinc-500 mx-auto mb-2 animate-bounce" />
+                    <p className="text-[11px] text-zinc-400 leading-relaxed font-sans">
+                      Please invite your teacher, Tr. Shirley, to review your work and enter her authorization bypass signature to adjust your points balance.
+                    </p>
+                  </div>
+                )}
               </div>
             </motion.div>
           </motion.div>
