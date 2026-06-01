@@ -1871,6 +1871,11 @@ const EmbeddedPortal = ({
       return;
     }
 
+    if (numericValue > 15000 && (!useBypass || !isBypassValid)) {
+      alert("possible cheating detected; go to Tr. Shirley for authorization");
+      return;
+    }
+
     const calculatedPoints = gemRule.calculatePoints(numericValue);
     if (calculatedPoints <= 0) {
       alert("The entered score does not meet the minimum requirements for reward points. / 輸入的數值未達換算積分之最低起點門檻。");
@@ -2277,12 +2282,24 @@ const EmbeddedPortal = ({
                       </div>
                     )}
 
+                    {inputValue && !isNaN(parseInt(inputValue, 10)) && parseInt(inputValue, 10) > 15000 && (
+                      <div className="text-xs text-center font-bold text-red-400 bg-red-950/30 border border-red-900/40 p-2.5 rounded-xl font-mono leading-relaxed">
+                        possible cheating detected; go to Tr. Shirley for authorization
+                      </div>
+                    )}
+
                     <button
                       onClick={handleClaimPoints}
-                      disabled={isClaiming || !inputValue || (!useBypass && !proofImg) || (useBypass && !isBypassValid)}
+                      disabled={
+                        isClaiming || 
+                        !inputValue || 
+                        (!useBypass && !proofImg) || 
+                        (useBypass && !isBypassValid) || 
+                        (parseInt(inputValue, 10) > 15000 && (!useBypass || !isBypassValid))
+                      }
                       className={cn(
                         "w-full py-3 rounded-xl text-xs font-bold transition-all font-sans uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-[0_0_20px_rgba(255,255,255,0.02)] border",
-                        (inputValue && (proofImg || isBypassValid))
+                        (inputValue && (proofImg || isBypassValid) && !(parseInt(inputValue, 10) > 15000 && (!useBypass || !isBypassValid)))
                           ? "bg-white text-black border-white hover:bg-zinc-200 hover:shadow-[0_0_15px_rgba(255,255,255,0.15)] active:scale-[0.98]" 
                           : "bg-white/5 border-white/5 text-zinc-500 cursor-not-allowed"
                       )}
