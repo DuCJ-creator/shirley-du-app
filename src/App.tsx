@@ -1745,18 +1745,11 @@ const EmbeddedPortal = ({
   user: any; 
   onLogPoints: (category: string, rawVal: number, points: number, description: string, proofImg?: string) => Promise<void>; 
 }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
   // Active study state tracking
   const [activeSeconds, setActiveSeconds] = useState(0);
   const [isWindowFocused, setIsWindowFocused] = useState(true);
   const [claimSuccessMsg, setClaimSuccessMsg] = useState<string | null>(null);
   const [isTrackerExpanded, setIsTrackerExpanded] = useState(false);
-
-  // Viewport Responsive Device Simulation States
-  const [deviceMode, setDeviceMode] = useState<'responsive' | 'desktop' | 'tablet' | 'mobile'>('responsive');
-  const [manualScale, setManualScale] = useState<number>(1.0);
-  const [containerWidth, setContainerWidth] = useState<number>(1024);
-  const [containerHeight, setContainerHeight] = useState<number>(600);
 
   const currentGemMetadata = useMemo(() => {
     // Check in GEMS
@@ -1864,77 +1857,24 @@ const EmbeddedPortal = ({
     }
   }, [currentMinute, currentGemMetadata, user, onLogPoints]);
 
-  useEffect(() => {
-    if (!containerRef.current) return;
-    const observer = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        setContainerWidth(Math.max(280, entry.contentRect.width || 1024));
-        setContainerHeight(Math.max(200, entry.contentRect.height || 600));
-      }
-    });
-    observer.observe(containerRef.current);
-    
-    setContainerWidth(Math.max(280, containerRef.current.clientWidth || 1024));
-    setContainerHeight(Math.max(200, containerRef.current.clientHeight || 600));
-
-    return () => observer.disconnect();
-  }, []);
-
-  // Determine target simulation widths
-  const targetWidth = useMemo(() => {
-    if (deviceMode === 'desktop') return 1280;
-    if (deviceMode === 'tablet') return 768;
-    if (deviceMode === 'mobile') return 375;
-    return containerWidth;
-  }, [deviceMode, containerWidth]);
-
-  // Determine target simulation heights
-  const targetHeight = useMemo(() => {
-    if (deviceMode === 'desktop') return 800;
-    if (deviceMode === 'tablet') return 1024;
-    if (deviceMode === 'mobile') return 667;
-    return containerHeight;
-  }, [deviceMode, containerHeight]);
-
-  // Base scale is calculated so that simulated designs fit within the actual physics boundaries with padding
-  const baseScale = useMemo(() => {
-    if (deviceMode === 'responsive') return 1.0;
-    const padding = 24; // boundary clearance layout padding
-    const scaleX = (containerWidth - padding) / targetWidth;
-    const scaleY = (containerHeight - padding) / targetHeight;
-    return Math.min(1.0, scaleX, scaleY);
-  }, [deviceMode, targetWidth, targetHeight, containerWidth, containerHeight]);
-
-  // Overall scale including user manual zoom
-  const finalScale = useMemo(() => {
-    return baseScale * manualScale;
-  }, [baseScale, manualScale]);
-
-  const handleZoomIn = () => setManualScale(prev => Math.min(2.0, Math.round((prev + 0.1) * 10) / 10));
-  const handleZoomOut = () => setManualScale(prev => Math.max(0.2, Math.round((prev - 0.1) * 10) / 10));
-  const handleReset = () => {
-    setManualScale(1.0);
-    setDeviceMode('responsive');
-  };
-
   return (
     <motion.div 
       id="portal-overlay"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[2000] flex flex-col bg-black/98 backdrop-blur-2xl"
+      className="fixed inset-0 z-[2000] flex flex-col bg-zinc-950 backdrop-blur-2xl"
     >
-      <div className="flex flex-col w-full h-full p-2 sm:p-4 md:p-6 max-w-7xl mx-auto">
-        {/* Advanced Interactive Control Toolbar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-4 shrink-0 bg-zinc-900/50 p-3 rounded-2xl border border-white/5 shadow-inner">
+      <div className="flex flex-col w-full h-full p-1 sm:p-2.5 md:p-4 max-w-7xl mx-auto">
+        {/* Simplified Header Control Toolbar */}
+        <div className="flex items-center justify-between gap-3 mb-2 shrink-0 bg-zinc-900/40 p-2 sm:p-2.5 rounded-xl sm:rounded-2xl border border-white/5 shadow-inner">
           {/* Back Action */}
           <div className="flex items-center gap-3">
             <button 
               onClick={onClose}
-              className="flex items-center gap-2 text-white hover:bg-white/10 transition-all group px-3 py-1.5 bg-white/5 rounded-xl border border-white/10 active:scale-95"
+              className="flex items-center gap-1.5 text-white/95 hover:bg-white/10 transition-all group px-2.5 py-1.5 bg-white/5 rounded-xl border border-white/10 active:scale-95"
             >
-              <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform text-zinc-300" />
+              <ChevronLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform text-zinc-300" />
               <div className="flex flex-col items-start leading-none text-left">
                 <span className="font-bold text-[10px] tracking-wider uppercase text-white">Close</span>
                 <span className="text-[8px] opacity-60 text-zinc-400">關閉</span>
@@ -1942,299 +1882,166 @@ const EmbeddedPortal = ({
             </button>
           </div>
 
-          {/* Device Selection Presets */}
-          <div className="flex items-center gap-1 bg-black/50 p-1 rounded-xl border border-white/5">
-            <button
-              onClick={() => { setDeviceMode('responsive'); setManualScale(1.0); }}
-              className={cn(
-                "px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all select-none",
-                deviceMode === 'responsive' ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 shadow-md" : "text-zinc-400 hover:text-zinc-200 border border-transparent"
-              )}
-              title="Responsive Mode / 自動適應"
-            >
-              <Monitor className="w-3.5 h-3.5" />
-              <span className="text-[9px] uppercase tracking-wider font-bold">Auto</span>
-            </button>
-            
-            <button
-              onClick={() => { setDeviceMode('desktop'); setManualScale(1.0); }}
-              className={cn(
-                "px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all select-none",
-                deviceMode === 'desktop' ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 shadow-md" : "text-zinc-400 hover:text-zinc-200 border border-transparent"
-              )}
-              title="Desktop Presentation Mode"
-            >
-              <Monitor className="w-3.5 h-3.5" />
-              <span className="text-[9px] uppercase tracking-wider font-bold">PC</span>
-            </button>
-
-            <button
-              onClick={() => { setDeviceMode('tablet'); setManualScale(1.0); }}
-              className={cn(
-                "px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all select-none",
-                deviceMode === 'tablet' ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 shadow-md" : "text-zinc-400 hover:text-zinc-200 border border-transparent"
-              )}
-              title="Tablet Viewport Simulation"
-            >
-              <Tablet className="w-3.5 h-3.5" />
-              <span className="text-[9px] uppercase tracking-wider font-bold">Tablet</span>
-            </button>
-
-            <button
-              onClick={() => { setDeviceMode('mobile'); setManualScale(1.0); }}
-              className={cn(
-                "px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all select-none",
-                deviceMode === 'mobile' ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 shadow-md" : "text-zinc-400 hover:text-zinc-200 border border-transparent"
-              )}
-              title="Mobile Phone Simulation"
-            >
-              <Smartphone className="w-3.5 h-3.5" />
-              <span className="text-[9px] uppercase tracking-wider font-bold">Phone</span>
-            </button>
-          </div>
-
-          {/* Manual Zoom Multipliers & External Redirect Link */}
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 bg-black/50 p-1 rounded-xl border border-white/5">
-              <button 
-                onClick={handleZoomOut}
-                disabled={finalScale <= 0.25}
-                className="p-1 hover:bg-white/5 text-zinc-400 hover:text-white rounded transition-colors disabled:opacity-35" 
-                title="Decrease Scale"
-              >
-                <ZoomOut className="w-3.5 h-3.5" />
-              </button>
-              <span className="text-[10px] font-mono font-bold text-zinc-300 px-1 w-10 text-center select-none">
-                {Math.round(finalScale * 100)}%
-              </span>
-              <button 
-                onClick={handleZoomIn}
-                disabled={finalScale >= 2.0}
-                className="p-1 hover:bg-white/5 text-zinc-400 hover:text-white rounded transition-colors disabled:opacity-35" 
-                title="Increase Scale"
-              >
-                <ZoomIn className="w-3.5 h-3.5" />
-              </button>
-              <button 
-                onClick={handleReset}
-                className="p-1 hover:bg-white/5 text-zinc-400 hover:text-white rounded transition-colors border-l border-white/5 pl-1.5 ml-0.5" 
-                title="Reset Simulation View"
-              >
-                <RotateCcw className="w-3 h-3 text-zinc-400 hover:text-zinc-200" />
-              </button>
-            </div>
+          {/* Current Activity Title */}
+          <div className="flex items-center gap-2 truncate text-right">
+            <span className="text-[9px] text-cyan-400 font-mono uppercase bg-cyan-950/20 px-2 py-0.5 rounded border border-cyan-500/10 truncate max-w-[100px] sm:max-w-none">
+              {currentGemMetadata.category}
+            </span>
+            <span className="text-xs sm:text-sm font-bold text-white truncate font-sans">
+              {currentGemMetadata.nameZh}
+            </span>
+            <span className="hidden sm:inline text-xs text-zinc-400 truncate font-mono">
+              ({currentGemMetadata.name})
+            </span>
           </div>
         </div>
 
-        {/* Scalable Sandbox Workspace Viewport Container with Scoring panel side-by-side */}
-        <div className="flex-1 relative rounded-3xl overflow-hidden border border-white/10 bg-zinc-950/45 shadow-[inset_0_0_80px_rgba(0,0,0,0.6)] flex flex-col md:flex-row min-h-0">
-          <div 
-            ref={containerRef} 
-            className="flex-1 relative flex items-center justify-center p-3 sm:p-4 overflow-auto scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent min-h-0"
-          >
-            {/* The adjustable Simulated Device Chassis */}
-            <motion.div 
-              layout
-              transition={{ type: 'spring', stiffness: 260, damping: 28 }}
-              style={{
-                width: deviceMode === 'responsive' ? '100%' : `${targetWidth}px`,
-                height: deviceMode === 'responsive' ? '100%' : `${targetHeight}px`,
-                transform: `scale(${finalScale})`,
-                transformOrigin: 'center center',
-                flexShrink: 0,
-              }}
-              className={cn(
-                "bg-zinc-900 overflow-hidden relative shadow-2xl transition-all duration-300",
-                deviceMode !== 'responsive' 
-                  ? "rounded-[2rem] border-[10px] border-zinc-800 ring-4 ring-black/70 shadow-[0_20px_60px_rgba(0,0,0,0.8)]" 
-                  : "w-full h-full rounded-2xl"
-              )}
-            >
-              {deviceMode !== 'responsive' && (
-                <div className="absolute top-0 inset-x-0 h-4 bg-zinc-800 flex items-center justify-center pointer-events-none z-30 shrink-0">
-                  <div className="w-16 h-2 rounded-full bg-zinc-950 opacity-40" />
-                </div>
-              )}
-              
-              <div className="w-full h-full pt-0">
-                <iframe 
-                  src={url} 
-                  className="w-full h-full border-none bg-zinc-900"
-                  title="Embedded Subject Content"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; microphone; geolocation"
-                  allowFullScreen
-                  scrolling="yes"
-                  style={{ WebkitOverflowScrolling: 'touch' }}
-                />
-              </div>
-            </motion.div>
-          </div>
+        {/* Scalable Sandbox Workspace Viewport Container */}
+        <div className="flex-1 relative rounded-2xl md:rounded-3xl overflow-hidden border border-white/10 bg-zinc-950 shadow-[inset_0_0_80px_rgba(0,0,0,0.6)] flex flex-col min-h-0">
+          
+          {/* Full frame workspace to make using tools effortlessly on phone */}
+          <div className="flex-1 w-full h-full relative bg-zinc-900">
+            <iframe 
+              src={url} 
+              className="w-full h-full border-none bg-zinc-900"
+              title="Embedded Subject Content"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; microphone; geolocation"
+              allowFullScreen
+              scrolling="yes"
+              style={{ WebkitOverflowScrolling: 'touch' }}
+            />
 
-          {/* Active Study Timer Sidebar */}
-          <div className={cn(
-            "w-full md:w-80 shrink-0 border-t md:border-t-0 md:border-l border-white/10 bg-zinc-950/60 backdrop-blur-xl flex flex-col justify-between transition-all duration-300",
-            isTrackerExpanded 
-              ? "p-5 overflow-y-auto max-h-[400px] md:max-h-none h-[400px] md:h-auto scrollbar-thin" 
-              : "p-3 md:p-5 h-16 md:h-auto overflow-hidden md:overflow-y-auto md:max-h-none scrollbar-thin shrink-0"
-          )}>
-            {/* Desktop View OR Expanded Mobile View */}
-            <div className={cn("space-y-4 flex-1 flex flex-col justify-between min-h-0", !isTrackerExpanded && "hidden md:flex")}>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-cyan-400 font-bold text-xs uppercase tracking-wider">
-                    <Clock className="w-4 h-4 text-cyan-400 animate-pulse" />
-                    <span>Active Study Tracker • 學習監測計</span>
-                  </div>
-                  {/* Collapse Button for Mobile */}
-                  <button 
-                    onClick={() => setIsTrackerExpanded(false)}
-                    className="md:hidden p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-zinc-400 hover:text-white transition-colors"
+            {/* Active Study Timer Sidebar Floating glassmorphic widget */}
+            <div className="absolute bottom-4 right-4 z-50 flex flex-col items-end gap-2 max-w-[calc(100vw-2rem)]">
+              <AnimatePresence mode="wait">
+                {isTrackerExpanded ? (
+                  /* Expanded Floating Glass Card */
+                  <motion.div
+                    key="expanded-tracker"
+                    initial={{ opacity: 0, scale: 0.9, y: 15 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9, y: 15 }}
+                    className="w-72 sm:w-80 bg-zinc-950/90 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-5 shadow-[0_12px_40px_rgba(0,0,0,0.8)] flex flex-col gap-3 text-left"
                   >
-                    <ChevronDown className="w-4 h-4" />
-                  </button>
-                </div>
-
-                <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl">
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="w-2.5 h-2.5 rounded-full bg-cyan-400/80 animate-ping shrink-0" />
-                    <span className="text-[9px] text-cyan-400 uppercase tracking-widest font-bold font-mono">
-                      {currentGemMetadata.category}
-                    </span>
-                  </div>
-                  <h4 className="text-sm font-bold text-white mb-0.5">{currentGemMetadata.nameZh}</h4>
-                  <p className="text-[10px] text-zinc-500 font-mono mb-2">{currentGemMetadata.name}</p>
-                  
-                  <div className="text-[11px] text-amber-300 bg-amber-950/25 border border-amber-900/30 px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 mt-2 leading-relaxed">
-                    <Zap className="w-3.5 h-3.5 text-amber-400 shrink-0 fill-amber-400 animate-bounce" />
-                    <span>Earn +10 pts for every 1 minute of active play & study! • 每學習與操作滿 1 分鐘，自動獲得 10 積分。</span>
-                  </div>
-                </div>
-
-                {!user ? (
-                  <div className="p-4 bg-amber-950/25 border border-amber-900/40 rounded-2xl text-center">
-                    <p className="text-xs text-amber-200">
-                      You are in guest mode. Please sign in via Google from the Moon Base to track study time and claim cosmic points permanently to your space account!
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {/* Timer Display */}
-                    <div className="p-4 bg-black/40 border border-white/5 rounded-2xl flex flex-col items-center justify-center text-center">
-                      <span className="text-[10px] text-zinc-400 font-semibold tracking-widest uppercase mb-1.5 font-sans">Accumulated Session Time</span>
-                      <p className="text-3xl font-mono font-bold text-white tracking-widest">
-                        {String(Math.floor(activeSeconds / 60)).padStart(2, '0')}
-                        <span className="text-cyan-500 animate-pulse">:</span>
-                        {String(activeSeconds % 60).padStart(2, '0')}
-                      </p>
-                      <div className="flex items-center gap-2 mt-3.5 px-3 py-1 bg-white/5 border border-white/10 rounded-full">
-                        {isWindowFocused ? (
-                          <>
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                            <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-wider font-sans">Active Practice</span>
-                          </>
-                        ) : (
-                          <>
-                            <span className="w-2 h-2 rounded-full bg-orange-500" />
-                            <span className="text-[9px] text-orange-400 font-bold uppercase tracking-wider font-sans">Time Paused</span>
-                          </>
-                        )}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 text-cyan-400 font-bold text-xs uppercase tracking-wider">
+                        <Clock className="w-4 h-4 text-cyan-400 animate-pulse" />
+                        <span>Study Tracker • 學習監測</span>
                       </div>
-                      {!isWindowFocused && (
-                        <p className="text-[9.5px] text-orange-300 bg-orange-950/15 border border-orange-900/10 px-2 py-1.5 rounded-lg mt-2.5 text-center leading-relaxed font-sans">
-                          ⚠️ Keep this tab/window focused & active to resume!
-                          <br />請點擊本網頁並保持觀看，即可繼續累積積分。
+                      {/* Fold up / Collapse Button */}
+                      <button 
+                        onClick={() => setIsTrackerExpanded(false)}
+                        className="p-1 px-2 text-[10px] uppercase font-bold tracking-wider bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white rounded-lg transition-colors border border-white/5 active:scale-95 flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>Roll Up</span>
+                        <ChevronDown className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    <div className="p-3 bg-white/[0.03] border border-white/5 rounded-xl">
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="w-2 h-2 rounded-full bg-cyan-400/80 animate-ping shrink-0" />
+                        <span className="text-[9px] text-cyan-400 uppercase tracking-widest font-bold font-mono">
+                          {currentGemMetadata.category}
+                        </span>
+                      </div>
+                      <h4 className="text-sm font-bold text-white mb-0.5">{currentGemMetadata.nameZh}</h4>
+                      <p className="text-[10px] text-zinc-500 font-mono">{currentGemMetadata.name}</p>
+                      
+                      <div className="text-[10px] text-amber-300 bg-amber-950/25 border border-amber-900/30 px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 mt-2 leading-relaxed">
+                        <Zap className="w-3.5 h-3.5 text-amber-400 shrink-0 fill-amber-400 animate-bounce" />
+                        <span>Earn +10 pts for every 1 minute of active play & study!</span>
+                      </div>
+                    </div>
+
+                    {!user ? (
+                      <div className="p-3 bg-amber-950/25 border border-amber-900/40 rounded-xl text-center">
+                        <p className="text-[10px] text-amber-200">
+                          Guest Mode. Sign in on Moon Base via Google to save cosmic points permanently!
                         </p>
-                      )}
-                    </div>
-
-                    {/* Accrued Points visual */}
-                    <div className="p-3 bg-zinc-900/30 border border-white/5 rounded-2xl flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Trophy className="w-4 h-4 text-amber-400" />
-                        <span className="text-xs text-zinc-300">Session Earnings:</span>
                       </div>
-                      <span className="text-sm font-bold text-emerald-400 font-mono">+{currentMinute * 10} pts</span>
-                    </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {/* Timer Display */}
+                        <div className="p-3 bg-black/40 border border-white/5 rounded-xl flex flex-col items-center justify-center text-center">
+                          <span className="text-[9px] text-zinc-400 font-semibold tracking-widest uppercase mb-1 font-sans">Session Duration</span>
+                          <p className="text-2xl font-mono font-bold text-white tracking-widest leading-none my-1">
+                            {String(Math.floor(activeSeconds / 60)).padStart(2, '0')}
+                            <span className="text-cyan-500 animate-pulse">:</span>
+                            {String(activeSeconds % 60).padStart(2, '0')}
+                          </p>
+                          <div className="flex items-center gap-1.5 mt-1">
+                            {isWindowFocused ? (
+                              <>
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                <span className="text-[8px] text-emerald-400 font-bold uppercase tracking-wider font-sans">Active Practice</span>
+                              </>
+                            ) : (
+                              <>
+                                <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                                <span className="text-[8px] text-orange-400 font-bold uppercase tracking-wider font-sans">Time Paused</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
 
-                    {/* Anti cheat message indicator */}
-                    <div className="p-3 bg-emerald-950/10 border border-emerald-900/20 rounded-xl text-center flex items-center gap-2 justify-center">
-                      <ShieldAlert className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                      <p className="text-[9.5px] text-emerald-400 font-medium leading-tight">
-                        Manual logging has been disabled. Only active study generates points!
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
+                        {/* Earnings */}
+                        <div className="p-2.5 bg-zinc-900/30 border border-white/5 rounded-xl flex items-center justify-between text-xs">
+                          <span className="text-zinc-400">Session Earnings:</span>
+                          <span className="font-bold text-emerald-400 font-mono">+{currentMinute * 10} pts</span>
+                        </div>
+                      </div>
+                    )}
 
-              <div className="mt-4 pt-4 border-t border-white/5 flex flex-col gap-2 shrink-0">
-                {claimSuccessMsg && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-xs text-center font-bold text-emerald-400 bg-emerald-950/30 border border-emerald-950/40 p-2 py-2.5 rounded-xl flex items-center justify-center gap-1.5"
-                  >
-                    <Sparkles className="w-4 h-4 text-emerald-400 animate-spin-slow" />
-                    <span>{claimSuccessMsg}</span>
+                    {claimSuccessMsg && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-[10px] text-center font-bold text-emerald-400 bg-emerald-950/30 border border-emerald-950/40 p-2 rounded-xl flex items-center justify-center gap-1.5"
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+                        <span>{claimSuccessMsg}</span>
+                      </motion.div>
+                    )}
                   </motion.div>
+                ) : (
+                  /* Compact Rolled-up Floating Pill Badge */
+                  <motion.button
+                    key="collapsed-tracker"
+                    initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.8, y: 10 }}
+                    onClick={() => setIsTrackerExpanded(true)}
+                    className="flex items-center gap-2.5 px-3.5 py-2.5 bg-zinc-950/90 backdrop-blur-md border border-white/10 hover:border-cyan-500/30 hover:bg-zinc-900/90 rounded-full shadow-[0_8px_24px_rgba(0,0,0,0.5)] transition-all animate-shimmer cursor-pointer relative group active:scale-95 select-none"
+                  >
+                    <div className="relative flex items-center justify-center">
+                      <Clock className="w-4 h-4 text-cyan-400 animate-pulse" />
+                      <span className="absolute -top-1 -right-1 flex h-1.5 w-1.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-cyan-500"></span>
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-left leading-none">
+                      <span className="text-xs font-mono font-bold text-white tracking-wider">
+                        {String(Math.floor(activeSeconds / 60)).padStart(2, '0')}:{String(activeSeconds % 60).padStart(2, '0')}
+                      </span>
+                      <span className="text-[10px] font-bold text-emerald-400 font-mono bg-emerald-950/20 px-1.5 py-0.5 rounded border border-emerald-500/10">
+                        +{currentMinute * 10} pts
+                      </span>
+                    </div>
+
+                    <span className="text-[9px] uppercase font-bold tracking-widest text-cyan-400 border-l border-white/10 pl-2 group-hover:text-white transition-colors">
+                      Tracker
+                    </span>
+                  </motion.button>
                 )}
-                
-                <button 
-                  onClick={onClose}
-                  className="w-full py-2.5 bg-white/5 hover:bg-white/10 active:scale-[0.98] rounded-xl text-[10px] font-bold uppercase tracking-widest text-zinc-300 hover:text-white border border-white/10 transition-all cursor-pointer text-center"
-                >
-                  Save & Return to Base
-                </button>
-              </div>
+              </AnimatePresence>
             </div>
 
-            {/* Collapsed Mobile Bottom Bar */}
-            <div className={cn("md:hidden flex items-center justify-between w-full h-full", isTrackerExpanded && "hidden")}>
-              <div className="flex items-center gap-3">
-                <div className="relative flex items-center justify-center">
-                  <Clock className="w-4 h-4 text-cyan-400 animate-pulse" />
-                  <span className="absolute -top-1 -right-1 flex h-1.5 w-1.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-cyan-500"></span>
-                  </span>
-                </div>
-                <div>
-                  <div className="flex items-center gap-1.5 leading-none">
-                    <span className="text-xs font-mono font-bold text-white tracking-wider">
-                      {String(Math.floor(activeSeconds / 60)).padStart(2, '0')}:{String(activeSeconds % 60).padStart(2, '0')}
-                    </span>
-                    <span className={cn(
-                      "w-1.5 h-1.5 rounded-full inline-block",
-                      isWindowFocused ? "bg-emerald-500 animate-pulse" : "bg-orange-500"
-                    )} />
-                    <span className="text-[10px] text-emerald-400 font-bold tracking-wider font-mono">
-                      +{currentMinute * 10} pts
-                    </span>
-                  </div>
-                  <p className="text-[9px] text-zinc-400 font-medium truncate max-w-[130px] sm:max-w-xs leading-none mt-1">
-                    Live: {currentGemMetadata.nameZh}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <button 
-                  onClick={() => setIsTrackerExpanded(true)}
-                  className="px-2.5 py-1.5 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/20 hover:border-cyan-500/30 rounded-lg text-[9px] font-bold tracking-widest uppercase flex items-center gap-1 select-none transition-all active:scale-95"
-                >
-                  <span>Tracker</span>
-                  <ChevronUp className="w-3.5 h-3.5 animate-bounce" style={{ animationDuration: '2s' }} />
-                </button>
-                <button 
-                  onClick={onClose}
-                  className="px-2.5 py-1.5 bg-white/5 hover:bg-white/10 text-white rounded-lg text-[9px] font-bold tracking-widest uppercase transition-all border border-white/5 active:scale-95"
-                >
-                  Save & Exit
-                </button>
-              </div>
-            </div>
           </div>
           
-          {/* Subtle glowing decorations under constraints */}
+          {/* Subtle glowing decorations */}
           <div className="hidden sm:block absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-cyan-500/10 rounded-tl-[2.5rem] pointer-events-none" />
           <div className="hidden sm:block absolute top-0 right-0 w-16 h-16 border-t-2 border-r-2 border-cyan-500/10 rounded-tr-[2.5rem] pointer-events-none" />
           <div className="hidden sm:block absolute bottom-0 left-0 w-16 h-16 border-b-2 border-l-2 border-cyan-500/10 rounded-bl-[2.5rem] pointer-events-none" />
@@ -2242,8 +2049,8 @@ const EmbeddedPortal = ({
         </div>
         
         {/* Footer info bar */}
-        <div className="mt-3 text-center shrink-0">
-          <p className="text-[8px] sm:text-[9px] uppercase tracking-[0.4em] text-white/20 font-medium">Teacher Shirley • Universal Education Cluster</p>
+        <div className="mt-2 text-center shrink-0">
+          <p className="text-[8px] uppercase tracking-[0.4em] text-white/20 font-medium">Teacher Shirley • Universal Education Cluster</p>
         </div>
       </div>
     </motion.div>
