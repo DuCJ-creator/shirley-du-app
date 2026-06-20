@@ -110,7 +110,7 @@ const PET_TIERS = [
       { id: 'frog', name: 'Frog', emoji: '🐸' },
       { id: 'turtle', name: 'Turtle', emoji: '🐢' },
       { id: 'mouse', name: 'Mouse', emoji: '🐭' },
-      { id: 'hedgehog', name: 'Hedgehog', emoji: '𦔔' },
+      { id: 'hedgehog', name: 'Hedgehog', emoji: '🦔' },
       { id: 'snail', name: 'Snail', emoji: '🐌' },
       { id: 'butterfly', name: 'Butterfly', emoji: '🦋' },
       { id: 'bee', name: 'Bee', emoji: '🐝' },
@@ -132,7 +132,6 @@ const PET_TIERS = [
       { id: 'panda', name: 'Panda', emoji: '🐼' },
       { id: 'deer', name: 'Deer', emoji: '🦌' },
       { id: 'flamingo', name: 'Flamingo', emoji: '🦩' },
-      { id: 'axolotl', name: 'Axolotl', emoji: '🦎' },
       { id: 'capybara', name: 'Capybara', emoji: '🦫' },
       { id: 'sloth', name: 'Sloth', emoji: '🦥' },
       { id: 'otter', name: 'Otter', emoji: '🦦' }
@@ -157,16 +156,20 @@ const PET_TIERS = [
     id: 'unique', label: 'Unique', cost: 800, color: 'text-pink-400', bg: 'bg-pink-500/10 border-pink-500/20',
     pets: [
       { id: 'polarbear', name: 'Polar Bear', emoji: '🐻‍❄️' },
-      { id: 'narwhal', name: 'Narwhal', emoji: '🦄' },
+      { id: 'narwhal', name: 'Narwhal', emoji: '🐋' },
       { id: 'eagle', name: 'Eagle', emoji: '🦅' },
       { id: 'shark', name: 'Great Shark', emoji: '🦈' },
-      { id: 'phoenix', name: 'Phoenix', emoji: '🦚' }
+      { id: 'peacock', name: 'Peacock', emoji: '🦚' }
     ]
   },
   {
     id: 'legendary', label: 'Legendary', cost: 1000, color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20',
     pets: [
-      { id: 'dragon', name: 'Dragon', emoji: '🐉' }
+      { id: 'dragon', name: 'Dragon', emoji: '🐉' },
+      { id: 'red_phoenix', name: 'Red Phoenix', emoji: '🐦‍🔥' },
+      { id: 'unicorn', name: 'Unicorn', emoji: '🦄' },
+      { id: 'axolotl', name: 'Axolotl', emoji: '🦎' },
+      { id: 'chimera', name: 'Chimera', emoji: '🦁' }
     ]
   }
 ];
@@ -238,7 +241,7 @@ const STRANDS = {
   earth: { name: 'School Courses', nameZh: '學校課程', planet: 'Earth', color: '#4ade80', icon: Globe, class: 'planet-earth', size: 0.7, orbit: 3 },
   pronunciation: { name: 'Pronunciation', nameZh: '發音練習', planet: 'Mars', color: '#ff4500', icon: Mic2, class: 'planet-mars', size: 0.6, orbit: 4 },
   tests: { name: 'ST.Tests', nameZh: '標準測驗', planet: 'Jupiter', color: '#deb887', icon: GraduationCap, class: 'planet-jupiter', size: 1.25, orbit: 5 },
-  saturn: { name: 'T&L Tools', nameZh: '教/學工具', planet: 'Saturn', color: '#f4a460', icon: Zap, class: 'planet-saturn', size: 0.95, orbit: 6 },
+  saturn: { name: 'Bi-lingual Subjects', nameZh: '雙語學科', planet: 'Saturn', color: '#f4a460', icon: GraduationCap, class: 'planet-saturn', size: 0.95, orbit: 6 },
   uranus: { name: 'Handy Tools', nameZh: '實用工具', planet: 'Uranus', color: '#40e0d0', icon: Hammer, class: 'planet-uranus', size: 0.8, orbit: 7 },
   neptune: { name: 'Fun Games', nameZh: '輕鬆遊戲', planet: 'Neptune', color: '#1e90ff', icon: Gamepad2, class: 'planet-neptune', size: 0.78, orbit: 8 },
 };
@@ -489,7 +492,6 @@ const GEMS = {
     { name: 'Roots & Affixes', nameZh: '詞根詞綴', url: 'https://ducj-creator.github.io/Shirley-Grammar/root%20and%20affix/', type: 'opal' },
     { name: 'Level 1-6 Vocab', nameZh: '六級單字', url: 'https://ducj-creator.github.io/iVocab-Self-Practice/levels1-6.html', type: 'diamond' },
     { name: 'TOEIC Core Vocab', nameZh: 'TOEIC 多益核心單字', url: 'https://ducj-creator.github.io/Shirley-Grammar/TOEIC%20vocab', type: 'ruby' },
-    { name: 'Bilingual Subjects', nameZh: '雙語學科', url: 'subjects', type: 'diamond' },
   ],
   pronunciation: [
     { name: 'KK Phonics', nameZh: 'KK 音標', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/kk.html', type: 'sapphire' },
@@ -522,12 +524,14 @@ const GEMS = {
     { name: 'TOEFL J Mock', nameZh: '初級托福模擬', url: 'https://ducj-creator.github.io/TFJ-Mock/', type: 'opal' },
   ],
   saturn: [
-    { name: 'My Own Words', nameZh: '自主單字練習', url: 'https://ducj-creator.github.io/iVocab-Self-Practice/entry.html', type: 'diamond' },
-    { name: 'Word Search Maker', nameZh: '尋字工坊', url: 'https://ducj-creator.github.io/Shirley%20Word%20Search%20Maker.html', type: 'ruby' },
-    { name: 'Cross Word Maker', nameZh: '字謎生成', url: 'https://ducj-creator.github.io/Shirley%20Crossword%20Maker.html', type: 'emerald' },
-    { name: 'Flip Card Maker', nameZh: '翻轉卡製作', url: 'https://ducj-creator.github.io/Shirley%20Flip%20Card.html', type: 'sapphire' },
-    { name: 'Writing Coach', nameZh: '寫作教練', url: 'https://ducj-creator.github.io/Shirley-AI-Writing/version2.html', type: 'ruby' },
-    { name: 'Report Formatter', nameZh: '報告格式器', url: 'https://ducj-creator.github.io/report.html', type: 'emerald' },
+    { name: 'Language Art', nameZh: '語文', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/language%20art.html', type: 'diamond' },
+    { name: 'Math', nameZh: '數學', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/math.html', type: 'ruby' },
+    { name: 'Physics', nameZh: '物理', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/physics.html', type: 'emerald' },
+    { name: 'Chemistry', nameZh: '化學', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/chemistry.html', type: 'sapphire' },
+    { name: 'Biology', nameZh: '生物', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/biology.html', type: 'amethyst' },
+    { name: 'Humanities', nameZh: '人文', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/humanities.html', type: 'topaz' },
+    { name: 'Ast. & Geo', nameZh: '天文地理', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/geography.html', type: 'opal' },
+    { name: 'Business', nameZh: '商業', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/business.html', type: 'ruby' },
   ],
   uranus: [
     { name: 'Clock', nameZh: '時鐘', url: 'https://ducj-creator.github.io/clock.html', type: 'diamond' },
@@ -539,7 +543,8 @@ const GEMS = {
     { name: 'Quiz Maker', nameZh: '測驗製作', url: 'https://ducj-creator.github.io/Shirley%20Pop%20Quiz%20Maker.html', type: 'diamond' },
     { name: 'Lucky Wheel', nameZh: '幸運輪', url: 'https://ducj-creator.github.io/Shirley%20Lucky%20Wheel.html', type: 'ruby' },
     { name: 'Signpost', nameZh: '指示牌', url: 'https://ducj-creator.github.io/sign.html', type: 'emerald' },
-    { name: 'Grade Analysis', nameZh: '成績分析📈', url: 'https://ducj-creator.github.io/grade%20analysis.html', type: 'amethyst' },
+    { name: 'My Own Words', nameZh: '自主單字練習', url: 'https://ducj-creator.github.io/iVocab-Self-Practice/entry.html', type: 'diamond' },
+    { name: 'Flip Card Maker', nameZh: '翻轉卡製作', url: 'https://ducj-creator.github.io/Shirley%20Flip%20Card.html', type: 'sapphire' },
   ],
   neptune: [
     { name: 'Sudoku', nameZh: '數獨', url: 'https://ducj-creator.github.io/shirley%20sudoku.html', type: 'diamond' },
@@ -925,27 +930,27 @@ const PreLoginExplorer = ({ onSelectGem, onSelectStrand }: {
                   )}
                 </div>
                 
-                <div className="space-y-3 flex-1 select-none">
+                <div className="space-y-3.5 flex-1 select-none">
                   {gemsArray.map((gem: any, gemIdx: number) => {
                     if (gem.url === 'subjects') {
                       return (
                         <div key={`${gem.name}-${gemIdx}`} className="flex flex-col">
                           <div
                             onClick={() => onSelectGem(gem, requiresLogin)}
-                            className="group flex items-center justify-between p-3 rounded-2xl hover:bg-slate-900/50 transition-all duration-300 cursor-pointer text-sm font-semibold border-2 border-transparent hover:border-cyan-500/20"
+                            className="group flex items-center justify-between p-4 rounded-2.5xl hover:bg-slate-900/50 transition-all duration-300 cursor-pointer text-sm font-semibold border-2 border-transparent hover:border-cyan-500/20"
                           >
-                            <div className="flex items-center gap-3 overflow-hidden mr-2">
+                            <div className="flex items-center gap-3.5 overflow-hidden mr-2">
                               <RenderMiniGem type={gem.type} />
                               <div className="truncate">
-                                <span className="text-sm md:text-base font-bold text-neutral-200 group-hover:text-cyan-300 transition-colors block truncate">{gem.name}</span>
-                                <span className="text-xs text-neutral-450 group-hover:text-neutral-300 transition-colors block truncate mt-0.5">{gem.nameZh}</span>
+                                <span className="text-base md:text-lg font-bold text-neutral-200 group-hover:text-cyan-300 transition-colors block truncate">{gem.name}</span>
+                                <span className="text-xs md:text-sm text-neutral-300/80 group-hover:text-neutral-200 transition-colors block truncate mt-1">{gem.nameZh}</span>
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
-                              <span className="text-[10px] text-cyan-400 font-bold bg-cyan-950/40 px-2 py-0.5 rounded-full uppercase border border-cyan-800/30">
+                              <span className="text-[10px] md:text-xs text-cyan-400 font-bold bg-cyan-950/40 px-2.5 py-1 rounded-full uppercase border border-cyan-800/30">
                                 {subjectsExpanded ? 'Hide' : 'Expand'}
                               </span>
-                              <ChevronRight className={`w-5 h-5 text-neutral-500 group-hover:text-cyan-350 transition-transform ${subjectsExpanded ? 'rotate-90 text-cyan-300' : ''}`} />
+                              <ChevronRight className={`w-5 h-5 text-neutral-400 group-hover:text-cyan-350 transition-transform ${subjectsExpanded ? 'rotate-90 text-cyan-300' : ''}`} />
                             </div>
                           </div>
                           
@@ -955,16 +960,16 @@ const PreLoginExplorer = ({ onSelectGem, onSelectStrand }: {
                                 <div
                                   key={`sub-${sub.name}-${sIdx}`}
                                   onClick={() => onSelectGem(sub, requiresLogin)}
-                                  className="group flex items-center justify-between p-2.5 rounded-2xl hover:bg-slate-900/40 transition-all duration-300 cursor-pointer text-xs md:text-sm font-semibold"
+                                  className="group flex items-center justify-between p-3 rounded-2xl hover:bg-slate-900/40 transition-all duration-300 cursor-pointer text-sm font-semibold"
                                 >
-                                  <div className="flex items-center gap-2.5 overflow-hidden mr-2">
+                                  <div className="flex items-center gap-3 overflow-hidden mr-2">
                                     <RenderMiniGem type={sub.type} />
                                     <div className="truncate">
-                                      <span className="text-neutral-200 group-hover:text-cyan-300 transition-colors block truncate">{sub.name}</span>
-                                      <span className="text-[11px] text-neutral-400 group-hover:text-neutral-200 transition-colors block truncate mt-0.5">{sub.nameZh}</span>
+                                      <span className="text-neutral-200 group-hover:text-cyan-300 transition-colors block truncate text-sm md:text-base">{sub.name}</span>
+                                      <span className="text-xs text-neutral-350 group-hover:text-neutral-250 transition-colors block truncate mt-1">{sub.nameZh}</span>
                                     </div>
                                   </div>
-                                  <ChevronRight className="w-4 h-4 text-neutral-500 group-hover:text-cyan-300 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+                                  <ChevronRight className="w-5 h-5 text-neutral-450 group-hover:text-cyan-300 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
                                 </div>
                               ))}
                             </div>
@@ -977,16 +982,16 @@ const PreLoginExplorer = ({ onSelectGem, onSelectStrand }: {
                       <div
                         key={`${gem.name}-${gemIdx}`}
                         onClick={() => onSelectGem(gem, requiresLogin)}
-                        className="group flex items-center justify-between p-3 rounded-2xl hover:bg-slate-900/50 transition-all duration-300 cursor-pointer text-sm font-semibold"
+                        className="group flex items-center justify-between p-3.5 rounded-2.5xl hover:bg-slate-900/50 transition-all duration-300 cursor-pointer text-sm font-semibold"
                       >
-                        <div className="flex items-center gap-3 overflow-hidden mr-2">
+                        <div className="flex items-center gap-3.5 overflow-hidden mr-2">
                           <RenderMiniGem type={gem.type} />
                           <div className="truncate">
-                            <span className="text-sm md:text-base font-bold text-neutral-200 group-hover:text-cyan-300 transition-colors block truncate">{gem.name}</span>
-                            <span className="text-xs text-neutral-450 group-hover:text-neutral-300 transition-colors block truncate mt-0.5">{gem.nameZh}</span>
+                            <span className="text-base md:text-lg font-bold text-neutral-100 group-hover:text-cyan-300 transition-colors block truncate">{gem.name}</span>
+                            <span className="text-xs md:text-sm text-neutral-300/80 group-hover:text-neutral-200 transition-colors block truncate mt-1">{gem.nameZh}</span>
                           </div>
                         </div>
-                        <ChevronRight className="w-5 h-5 text-neutral-500 group-hover:text-cyan-300 group-hover:translate-x-1 transition-all flex-shrink-0" />
+                        <ChevronRight className="w-5 h-5 text-neutral-450 group-hover:text-cyan-300 group-hover:translate-x-1 transition-all flex-shrink-0" />
                       </div>
                     );
                   })}
@@ -1596,16 +1601,16 @@ const Planet = ({ strand, info, onClick, disabled, isHovered }: { strand: Strand
         <div className="absolute inset-[-15px] rounded-full z-0 cursor-pointer" />
       </div>
 
-      <div className="mt-4 flex flex-col items-center text-center px-4 py-2 rounded-2xl bg-slate-950/75 border border-white/5 backdrop-blur-md shadow-[0_5px_15px_rgba(0,0,0,0.6)] group-hover:bg-slate-900/90 group-hover:border-white/12 transition-all">
-        <span className="font-display text-xs md:text-sm font-extrabold tracking-wide text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
+      <div className="mt-4 flex flex-col items-center text-center px-4.5 py-2.5 rounded-2xl bg-slate-950/85 border border-white/10 backdrop-blur-md shadow-[0_6px_20px_rgba(0,0,0,0.7)] group-hover:bg-slate-900/95 group-hover:border-white/20 transition-all">
+        <span className="font-display text-[13.5px] md:text-[15.5px] font-black tracking-wide text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.95)]">
           {info.name}
         </span>
-        <div className="flex items-center gap-1.5 mt-0.5">
-          <span className="text-[9px] md:text-[10px] font-zh font-semibold text-zinc-300 group-hover:text-white transition-colors">
+        <div className="flex items-center gap-1.5 mt-1">
+          <span className="text-[11px] md:text-[12px] font-zh font-bold text-zinc-100 group-hover:text-white transition-colors">
             {info.nameZh}
           </span>
-          <span className="w-1 h-1 rounded-full bg-white/30" />
-          <span className="text-[7.5px] md:text-[8.5px] text-zinc-400 group-hover:text-cyan-300 font-bold uppercase tracking-wider">{info.planet}</span>
+          <span className="w-1.5 h-1.5 rounded-full bg-cyan-450/40" />
+          <span className="text-[9px] md:text-[10px] text-cyan-300 group-hover:text-cyan-200 font-extrabold uppercase tracking-wider">{info.planet}</span>
         </div>
       </div>
     </motion.div>
@@ -1623,20 +1628,20 @@ const Gem = ({ name, nameZh, url, color, type, onVisit, onClick, className }: { 
       onVisit();
     }}
     className={cn(
-      "relative w-32 h-44 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center gap-3 group overflow-hidden cursor-pointer shrink-0 transition-all",
+      "relative w-36 h-48 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center gap-4 group overflow-hidden cursor-pointer shrink-0 transition-all shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:shadow-[0_4px_30px_rgba(0,0,0,0.5)]",
       className
     )}
   >
     <div 
-      className={cn("gem-shape", `gem-${type}`)}
+      className={cn("gem-shape scale-110", `gem-${type}`)}
       style={{ color: color }}
     />
-    <div className="text-center flex flex-col gap-0.5 px-2">
-      <span className="font-medium text-[13px] leading-tight text-white/90 group-hover:text-white line-clamp-2">{name}</span>
-      <span className="text-[11px] text-white/40 group-hover:text-white/60">{nameZh}</span>
+    <div className="text-center flex flex-col gap-1 px-3">
+      <span className="font-bold text-[14.5px] md:text-[15.5px] leading-tight text-white group-hover:text-cyan-200 transition-colors line-clamp-2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">{name}</span>
+      <span className="text-[12px] md:text-[13px] font-semibold text-neutral-300/90 group-hover:text-white transition-colors mt-0.5">{nameZh}</span>
     </div>
-    {url !== 'subjects' && <Sparkles className="absolute top-2 right-2 w-3 h-3 text-white/20 group-hover:text-white/60" />}
-    <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+    {url !== 'subjects' && <Sparkles className="absolute top-2 right-2 w-3.5 h-3.5 text-white/35 group-hover:text-white/70" />}
+    <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
   </motion.button>
 );
 
@@ -1729,13 +1734,6 @@ const SpaceshipCenter = ({ onClick }: { onClick: () => void }) => {
   );
 };
 
-// ============================================================
-// REPLACE the entire EmbeddedPortal component in App.tsx
-// with this version. It fixes two mobile issues:
-//   1. Study-tracker panel is collapsible (rolled up by default on mobile)
-//   2. Iframe never scales/simulates on mobile – avoids reload crash
-// ============================================================
-
 const EmbeddedPortal = ({ 
   url, 
   onClose, 
@@ -1748,27 +1746,19 @@ const EmbeddedPortal = ({
   onLogPoints: (category: string, rawVal: number, points: number, description: string, proofImg?: string) => Promise<void>; 
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  // Active study state tracking
   const [activeSeconds, setActiveSeconds] = useState(0);
   const [isWindowFocused, setIsWindowFocused] = useState(true);
   const [claimSuccessMsg, setClaimSuccessMsg] = useState<string | null>(null);
-  // NEW: tracker collapsed state (starts collapsed on mobile)
-  const [trackerCollapsed, setTrackerCollapsed] = useState(true);
 
+  // Viewport Responsive Device Simulation States
   const [deviceMode, setDeviceMode] = useState<'responsive' | 'desktop' | 'tablet' | 'mobile'>('responsive');
   const [manualScale, setManualScale] = useState<number>(1.0);
   const [containerWidth, setContainerWidth] = useState<number>(1024);
   const [containerHeight, setContainerHeight] = useState<number>(600);
 
-  // NEW: detect if we are on a narrow mobile screen
-  const [isMobileViewport, setIsMobileViewport] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobileViewport(window.innerWidth < 640);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
-
   const currentGemMetadata = useMemo(() => {
+    // Check in GEMS
     for (const [strandKey, strandGems] of Object.entries(GEMS)) {
       const found = strandGems.find(g => g.url === url);
       if (found) {
@@ -1778,31 +1768,58 @@ const EmbeddedPortal = ({
         if (strandKey === 'grammar') displayCategory = 'Grammar • 文句與文法';
         if (strandKey === 'tests') displayCategory = 'Tests • 隨堂測驗';
         if (strandKey === 'earth') displayCategory = 'Vocab Competency • 單字王';
-        if (strandKey === 'saturn') displayCategory = 'Saturn Drills • 衛星自練';
+        if (strandKey === 'saturn') displayCategory = 'Bi-lingual Subjects • 雙語學科';
         if (strandKey === 'uranus') displayCategory = 'Uranus Tools • 天王星工具';
         if (strandKey === 'neptune') displayCategory = 'Neptune Training • 海王星培訓';
-        return { name: found.name, nameZh: found.nameZh, category: displayCategory, type: found.type };
+        return {
+          name: found.name,
+          nameZh: found.nameZh,
+          category: displayCategory,
+          type: found.type
+        };
       }
     }
+    // Check in SUBJECT_GEMS
     const foundSubject = SUBJECT_GEMS.find(g => g.url === url);
     if (foundSubject) {
-      return { name: foundSubject.name, nameZh: foundSubject.nameZh, category: 'Subject Courses • 雙語學科', type: foundSubject.type };
+      return {
+        name: foundSubject.name,
+        nameZh: foundSubject.nameZh,
+        category: 'Subject Courses • 雙語學科',
+        type: foundSubject.type
+      };
     }
+    // Universal Challenge
     if (url === 'https://ducj-creator.github.io/etgame.html') {
-      return { name: 'Universe Challenge', nameZh: '星際愛單字(中)', category: 'Vocabulary Game • 星際單字競賽', type: 'opal' };
+      return {
+        name: 'Universe Challenge',
+        nameZh: '星際愛單字(中)',
+        category: 'Vocabulary Game • 星際單字競賽',
+        type: 'opal'
+      };
     }
-    return { name: 'Interactive Cosmic Gem', nameZh: '星際學習寶石', category: 'Cosmic Study • 星際學習', type: 'diamond' };
+    return {
+      name: 'Interactive Cosmic Gem',
+      nameZh: '星際學習寶石',
+      category: 'Cosmic Study • 星際學習',
+      type: 'diamond'
+    };
   }, [url]);
 
+  // Window visibility & focus checking to prevent idle/background tab cheating
   useEffect(() => {
     const handleFocus = () => setIsWindowFocused(true);
     const handleBlur = () => setIsWindowFocused(false);
+
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('blur', handleBlur);
+    
+    // Check document visibility api to trigger pause when user minimizes the browser
     const handleVisibility = () => {
       setIsWindowFocused(document.visibilityState === 'visible' && document.hasFocus());
     };
-    window.addEventListener('focus', handleFocus);
-    window.addEventListener('blur', handleBlur);
     document.addEventListener('visibilitychange', handleVisibility);
+
     return () => {
       window.removeEventListener('focus', handleFocus);
       window.removeEventListener('blur', handleBlur);
@@ -1810,8 +1827,10 @@ const EmbeddedPortal = ({
     };
   }, []);
 
+  // Timer run loop
   useEffect(() => {
     const timer = setInterval(() => {
+      // Direct focus check adds an extra layer of visibility insurance
       if (document.hasFocus() && document.visibilityState === 'visible') {
         setIsWindowFocused(true);
         setActiveSeconds(prev => prev + 1);
@@ -1819,21 +1838,28 @@ const EmbeddedPortal = ({
         setIsWindowFocused(false);
       }
     }, 1000);
+
     return () => clearInterval(timer);
   }, []);
 
   const currentMinute = Math.floor(activeSeconds / 60);
   const lastLoggedMinuteRef = useRef(0);
 
+  // Automatically award +10 points for every 1 minute of active play and study
   useEffect(() => {
     if (user && currentMinute > lastLoggedMinuteRef.current) {
       lastLoggedMinuteRef.current = currentMinute;
-      onLogPoints('quiz', 1, 10, `Completed 1 Minute of Active study on ${currentGemMetadata.nameZh || currentGemMetadata.name}`)
-        .then(() => {
-          setClaimSuccessMsg(`Earned +10 pts! Keep studying! ☄️`);
-          setTimeout(() => setClaimSuccessMsg(null), 3500);
-        })
-        .catch(err => console.error("Failed to automatically reward study points:", err));
+      onLogPoints(
+        'quiz', 
+        1, 
+        10, 
+        `Completed 1 Minute of Active study on ${currentGemMetadata.nameZh || currentGemMetadata.name}`
+      ).then(() => {
+        setClaimSuccessMsg(`Earned +10 pts! Keep studying! ☄️`);
+        setTimeout(() => setClaimSuccessMsg(null), 3500);
+      }).catch(err => {
+        console.error("Failed to automatically reward study points:", err);
+      });
     }
   }, [currentMinute, currentGemMetadata, user, onLogPoints]);
 
@@ -1846,128 +1872,52 @@ const EmbeddedPortal = ({
       }
     });
     observer.observe(containerRef.current);
+    
     setContainerWidth(Math.max(280, containerRef.current.clientWidth || 1024));
     setContainerHeight(Math.max(200, containerRef.current.clientHeight || 600));
+
     return () => observer.disconnect();
   }, []);
 
-  // On mobile we always force responsive at 100% — no simulation allowed
-  const effectiveDeviceMode = isMobileViewport ? 'responsive' : deviceMode;
-  const effectiveScale = isMobileViewport ? 1.0 : manualScale;
-
+  // Determine target simulation widths
   const targetWidth = useMemo(() => {
-    if (effectiveDeviceMode === 'desktop') return 1280;
-    if (effectiveDeviceMode === 'tablet') return 768;
-    if (effectiveDeviceMode === 'mobile') return 375;
+    if (deviceMode === 'desktop') return 1280;
+    if (deviceMode === 'tablet') return 768;
+    if (deviceMode === 'mobile') return 375;
     return containerWidth;
-  }, [effectiveDeviceMode, containerWidth]);
+  }, [deviceMode, containerWidth]);
 
+  // Determine target simulation heights
   const targetHeight = useMemo(() => {
-    if (effectiveDeviceMode === 'desktop') return 800;
-    if (effectiveDeviceMode === 'tablet') return 1024;
-    if (effectiveDeviceMode === 'mobile') return 667;
+    if (deviceMode === 'desktop') return 800;
+    if (deviceMode === 'tablet') return 1024;
+    if (deviceMode === 'mobile') return 667;
     return containerHeight;
-  }, [effectiveDeviceMode, containerHeight]);
+  }, [deviceMode, containerHeight]);
 
+  // Base scale is calculated so that simulated designs fit within the actual physics boundaries with padding
   const baseScale = useMemo(() => {
-    if (effectiveDeviceMode === 'responsive') return 1.0;
-    const padding = 24;
+    if (deviceMode === 'responsive') return 1.0;
+    const padding = 24; // boundary clearance layout padding
     const scaleX = (containerWidth - padding) / targetWidth;
     const scaleY = (containerHeight - padding) / targetHeight;
     return Math.min(1.0, scaleX, scaleY);
-  }, [effectiveDeviceMode, targetWidth, targetHeight, containerWidth, containerHeight]);
+  }, [deviceMode, targetWidth, targetHeight, containerWidth, containerHeight]);
 
-  const finalScale = useMemo(() => baseScale * effectiveScale, [baseScale, effectiveScale]);
+  // Overall scale including user manual zoom
+  const finalScale = useMemo(() => {
+    return baseScale * manualScale;
+  }, [baseScale, manualScale]);
 
   const handleZoomIn = () => setManualScale(prev => Math.min(2.0, Math.round((prev + 0.1) * 10) / 10));
   const handleZoomOut = () => setManualScale(prev => Math.max(0.2, Math.round((prev - 0.1) * 10) / 10));
-  const handleReset = () => { setManualScale(1.0); setDeviceMode('responsive'); };
-
-  // ─── Tracker panel (shared between mobile compact + desktop sidebar) ─────
-  const TrackerContent = () => (
-    <div className="space-y-4">
-      <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl">
-        <div className="flex items-center gap-2 mb-1">
-          <div className="w-2.5 h-2.5 rounded-full bg-cyan-400/80 animate-ping shrink-0" />
-          <span className="text-[9px] text-cyan-400 uppercase tracking-widest font-bold font-mono">
-            {currentGemMetadata.category}
-          </span>
-        </div>
-        <h4 className="text-sm font-bold text-white mb-0.5">{currentGemMetadata.nameZh}</h4>
-        <p className="text-[10px] text-zinc-500 font-mono mb-2">{currentGemMetadata.name}</p>
-        <div className="text-[11px] text-amber-300 bg-amber-950/25 border border-amber-900/30 px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 mt-2 leading-relaxed">
-          <Zap className="w-3.5 h-3.5 text-amber-400 shrink-0 fill-amber-400 animate-bounce" />
-          <span>+10 pts per minute of active study! • 每 1 分鐘主動學習自動獲得 10 積分</span>
-        </div>
-      </div>
-
-      {!user ? (
-        <div className="p-4 bg-amber-950/25 border border-amber-900/40 rounded-2xl text-center">
-          <p className="text-xs text-amber-200">
-            Sign in via Google from Moon Base to track study time and claim points!
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          <div className="p-4 bg-black/40 border border-white/5 rounded-2xl flex flex-col items-center justify-center text-center">
-            <span className="text-[10px] text-zinc-400 font-semibold tracking-widest uppercase mb-1.5 font-sans">Session Time</span>
-            <p className="text-3xl font-mono font-bold text-white tracking-widest">
-              {String(Math.floor(activeSeconds / 60)).padStart(2, '0')}
-              <span className="text-cyan-500 animate-pulse">:</span>
-              {String(activeSeconds % 60).padStart(2, '0')}
-            </p>
-            <div className="flex items-center gap-2 mt-3 px-3 py-1 bg-white/5 border border-white/10 rounded-full">
-              {isWindowFocused ? (
-                <>
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-wider font-sans">Active Practice</span>
-                </>
-              ) : (
-                <>
-                  <span className="w-2 h-2 rounded-full bg-orange-500" />
-                  <span className="text-[9px] text-orange-400 font-bold uppercase tracking-wider font-sans">Time Paused</span>
-                </>
-              )}
-            </div>
-            {!isWindowFocused && (
-              <p className="text-[9.5px] text-orange-300 bg-orange-950/15 border border-orange-900/10 px-2 py-1.5 rounded-lg mt-2.5 text-center leading-relaxed font-sans">
-                ⚠️ Keep this tab focused to resume! • 請保持本頁面在前台
-              </p>
-            )}
-          </div>
-
-          <div className="p-3 bg-zinc-900/30 border border-white/5 rounded-2xl flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Trophy className="w-4 h-4 text-amber-400" />
-              <span className="text-xs text-zinc-300">Session Earnings:</span>
-            </div>
-            <span className="text-sm font-bold text-emerald-400 font-mono">+{currentMinute * 10} pts</span>
-          </div>
-
-          <div className="p-3 bg-emerald-950/10 border border-emerald-900/20 rounded-xl text-center flex items-center gap-2 justify-center">
-            <ShieldAlert className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-            <p className="text-[9.5px] text-emerald-400 font-medium leading-tight">
-              Manual logging disabled — only active study earns points
-            </p>
-          </div>
-        </div>
-      )}
-
-      {claimSuccessMsg && (
-        <motion.div
-          initial={{ opacity: 0, y: 5 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-xs text-center font-bold text-emerald-400 bg-emerald-950/30 border border-emerald-950/40 p-2 py-2.5 rounded-xl flex items-center justify-center gap-1.5"
-        >
-          <Sparkles className="w-4 h-4 text-emerald-400" />
-          <span>{claimSuccessMsg}</span>
-        </motion.div>
-      )}
-    </div>
-  );
+  const handleReset = () => {
+    setManualScale(1.0);
+    setDeviceMode('responsive');
+  };
 
   return (
-    <motion.div
+    <motion.div 
       id="portal-overlay"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -1975,133 +1925,139 @@ const EmbeddedPortal = ({
       className="fixed inset-0 z-[2000] flex flex-col bg-black/98 backdrop-blur-2xl"
     >
       <div className="flex flex-col w-full h-full p-2 sm:p-4 md:p-6 max-w-7xl mx-auto">
+        {/* Advanced Interactive Control Toolbar */}
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4 shrink-0 bg-zinc-900/50 p-3 rounded-2xl border border-white/5 shadow-inner">
+          {/* Back Action */}
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={onClose}
+              className="flex items-center gap-2 text-white hover:bg-white/10 transition-all group px-3 py-1.5 bg-white/5 rounded-xl border border-white/10 active:scale-95"
+            >
+              <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform text-zinc-300" />
+              <div className="flex flex-col items-start leading-none text-left">
+                <span className="font-bold text-[10px] tracking-wider uppercase text-white">Close</span>
+                <span className="text-[8px] opacity-60 text-zinc-400">關閉</span>
+              </div>
+            </button>
+          </div>
 
-        {/* ── Toolbar ── */}
-        <div className="flex flex-wrap items-center justify-between gap-2 mb-2 sm:mb-4 shrink-0 bg-zinc-900/50 p-2 sm:p-3 rounded-2xl border border-white/5 shadow-inner">
-          {/* Close */}
-          <button
-            onClick={onClose}
-            className="flex items-center gap-2 text-white hover:bg-white/10 transition-all group px-3 py-1.5 bg-white/5 rounded-xl border border-white/10 active:scale-95"
-          >
-            <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform text-zinc-300" />
-            <div className="flex flex-col items-start leading-none text-left">
-              <span className="font-bold text-[10px] tracking-wider uppercase text-white">Close</span>
-              <span className="text-[8px] opacity-60 text-zinc-400">關閉</span>
-            </div>
-          </button>
+          {/* Device Selection Presets */}
+          <div className="flex items-center gap-1 bg-black/50 p-1 rounded-xl border border-white/5">
+            <button
+              onClick={() => { setDeviceMode('responsive'); setManualScale(1.0); }}
+              className={cn(
+                "px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all select-none",
+                deviceMode === 'responsive' ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 shadow-md" : "text-zinc-400 hover:text-zinc-200 border border-transparent"
+              )}
+              title="Responsive Mode / 自動適應"
+            >
+              <Monitor className="w-3.5 h-3.5" />
+              <span className="text-[9px] uppercase tracking-wider font-bold">Auto</span>
+            </button>
+            
+            <button
+              onClick={() => { setDeviceMode('desktop'); setManualScale(1.0); }}
+              className={cn(
+                "px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all select-none",
+                deviceMode === 'desktop' ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 shadow-md" : "text-zinc-400 hover:text-zinc-200 border border-transparent"
+              )}
+              title="Desktop Presentation Mode"
+            >
+              <Monitor className="w-3.5 h-3.5" />
+              <span className="text-[9px] uppercase tracking-wider font-bold">PC</span>
+            </button>
 
-          {/* Device presets – hidden on mobile to prevent crash-inducing scaling */}
-          {!isMobileViewport && (
-            <div className="flex items-center gap-1 bg-black/50 p-1 rounded-xl border border-white/5">
-              {(['responsive', 'desktop', 'tablet', 'mobile'] as const).map((mode) => {
-                const labels: Record<string, string> = { responsive: 'Auto', desktop: 'PC', tablet: 'Tablet', mobile: 'Phone' };
-                const Icons: Record<string, any> = { responsive: Monitor, desktop: Monitor, tablet: Tablet, mobile: Smartphone };
-                const Icon = Icons[mode];
-                return (
-                  <button
-                    key={mode}
-                    onClick={() => { setDeviceMode(mode); setManualScale(1.0); }}
-                    className={cn(
-                      "px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all select-none",
-                      deviceMode === mode
-                        ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 shadow-md"
-                        : "text-zinc-400 hover:text-zinc-200 border border-transparent"
-                    )}
-                  >
-                    <Icon className="w-3.5 h-3.5" />
-                    <span className="text-[9px] uppercase tracking-wider font-bold">{labels[mode]}</span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
+            <button
+              onClick={() => { setDeviceMode('tablet'); setManualScale(1.0); }}
+              className={cn(
+                "px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all select-none",
+                deviceMode === 'tablet' ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 shadow-md" : "text-zinc-400 hover:text-zinc-200 border border-transparent"
+              )}
+              title="Tablet Viewport Simulation"
+            >
+              <Tablet className="w-3.5 h-3.5" />
+              <span className="text-[9px] uppercase tracking-wider font-bold">Tablet</span>
+            </button>
 
-          {/* Zoom controls – hidden on mobile */}
-          {!isMobileViewport && (
+            <button
+              onClick={() => { setDeviceMode('mobile'); setManualScale(1.0); }}
+              className={cn(
+                "px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all select-none",
+                deviceMode === 'mobile' ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 shadow-md" : "text-zinc-400 hover:text-zinc-200 border border-transparent"
+              )}
+              title="Mobile Phone Simulation"
+            >
+              <Smartphone className="w-3.5 h-3.5" />
+              <span className="text-[9px] uppercase tracking-wider font-bold">Phone</span>
+            </button>
+          </div>
+
+          {/* Manual Zoom Multipliers & External Redirect Link */}
+          <div className="flex items-center gap-2">
             <div className="flex items-center gap-1.5 bg-black/50 p-1 rounded-xl border border-white/5">
-              <button onClick={handleZoomOut} disabled={finalScale <= 0.25} className="p-1 hover:bg-white/5 text-zinc-400 hover:text-white rounded transition-colors disabled:opacity-35">
+              <button 
+                onClick={handleZoomOut}
+                disabled={finalScale <= 0.25}
+                className="p-1 hover:bg-white/5 text-zinc-400 hover:text-white rounded transition-colors disabled:opacity-35" 
+                title="Decrease Scale"
+              >
                 <ZoomOut className="w-3.5 h-3.5" />
               </button>
               <span className="text-[10px] font-mono font-bold text-zinc-300 px-1 w-10 text-center select-none">
                 {Math.round(finalScale * 100)}%
               </span>
-              <button onClick={handleZoomIn} disabled={finalScale >= 2.0} className="p-1 hover:bg-white/5 text-zinc-400 hover:text-white rounded transition-colors disabled:opacity-35">
+              <button 
+                onClick={handleZoomIn}
+                disabled={finalScale >= 2.0}
+                className="p-1 hover:bg-white/5 text-zinc-400 hover:text-white rounded transition-colors disabled:opacity-35" 
+                title="Increase Scale"
+              >
                 <ZoomIn className="w-3.5 h-3.5" />
               </button>
-              <button onClick={handleReset} className="p-1 hover:bg-white/5 text-zinc-400 hover:text-white rounded transition-colors border-l border-white/5 pl-1.5 ml-0.5">
-                <RotateCcw className="w-3 h-3" />
+              <button 
+                onClick={handleReset}
+                className="p-1 hover:bg-white/5 text-zinc-400 hover:text-white rounded transition-colors border-l border-white/5 pl-1.5 ml-0.5" 
+                title="Reset Simulation View"
+              >
+                <RotateCcw className="w-3 h-3 text-zinc-400 hover:text-zinc-200" />
               </button>
             </div>
-          )}
-
-          {/* Mobile: collapsible tracker toggle button in toolbar */}
-          {isMobileViewport && (
-            <button
-              onClick={() => setTrackerCollapsed(prev => !prev)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all active:scale-95"
-            >
-              <Clock className="w-3.5 h-3.5" />
-              {trackerCollapsed ? 'Tracker' : 'Hide'}
-              <ChevronRight className={cn("w-3.5 h-3.5 transition-transform", !trackerCollapsed && "rotate-90")} />
-            </button>
-          )}
+          </div>
         </div>
 
-        {/* ── Mobile collapsed tracker strip ── */}
-        <AnimatePresence>
-          {isMobileViewport && !trackerCollapsed && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              className="overflow-hidden shrink-0 mb-2"
-            >
-              <div className="bg-zinc-950/80 border border-white/10 rounded-2xl p-4 overflow-y-auto max-h-[55vh]">
-                <TrackerContent />
-                <button
-                  onClick={onClose}
-                  className="w-full mt-4 py-2.5 bg-white/5 hover:bg-white/10 active:scale-[0.98] rounded-xl text-[10px] font-bold uppercase tracking-widest text-zinc-300 hover:text-white border border-white/10 transition-all"
-                >
-                  Save & Return to Base
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* ── Main content area ── */}
+        {/* Scalable Sandbox Workspace Viewport Container with Scoring panel side-by-side */}
         <div className="flex-1 relative rounded-3xl overflow-hidden border border-white/10 bg-zinc-950/45 shadow-[inset_0_0_80px_rgba(0,0,0,0.6)] flex flex-col md:flex-row min-h-0">
-          {/* Iframe viewport */}
-          <div
-            ref={containerRef}
-            className="flex-1 relative flex items-center justify-center p-2 sm:p-3 sm:p-4 overflow-auto scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent min-h-0"
+          <div 
+            ref={containerRef} 
+            className="flex-1 relative flex items-center justify-center p-3 sm:p-4 overflow-auto scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent min-h-0"
           >
-            <motion.div
+            {/* The adjustable Simulated Device Chassis */}
+            <motion.div 
               layout
               transition={{ type: 'spring', stiffness: 260, damping: 28 }}
               style={{
-                width: effectiveDeviceMode === 'responsive' ? '100%' : `${targetWidth}px`,
-                height: effectiveDeviceMode === 'responsive' ? '100%' : `${targetHeight}px`,
+                width: deviceMode === 'responsive' ? '100%' : `${targetWidth}px`,
+                height: deviceMode === 'responsive' ? '100%' : `${targetHeight}px`,
                 transform: `scale(${finalScale})`,
                 transformOrigin: 'center center',
                 flexShrink: 0,
               }}
               className={cn(
                 "bg-zinc-900 overflow-hidden relative shadow-2xl transition-all duration-300",
-                effectiveDeviceMode !== 'responsive'
-                  ? "rounded-[2rem] border-[10px] border-zinc-800 ring-4 ring-black/70 shadow-[0_20px_60px_rgba(0,0,0,0.8)]"
+                deviceMode !== 'responsive' 
+                  ? "rounded-[2rem] border-[10px] border-zinc-800 ring-4 ring-black/70 shadow-[0_20px_60px_rgba(0,0,0,0.8)]" 
                   : "w-full h-full rounded-2xl"
               )}
             >
-              {effectiveDeviceMode !== 'responsive' && (
+              {deviceMode !== 'responsive' && (
                 <div className="absolute top-0 inset-x-0 h-4 bg-zinc-800 flex items-center justify-center pointer-events-none z-30 shrink-0">
                   <div className="w-16 h-2 rounded-full bg-zinc-950 opacity-40" />
                 </div>
               )}
+              
               <div className="w-full h-full pt-0">
-                <iframe
-                  src={url}
+                <iframe 
+                  src={url} 
                   className="w-full h-full border-none bg-zinc-900"
                   title="Embedded Subject Content"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; microphone; geolocation"
@@ -2113,34 +2069,116 @@ const EmbeddedPortal = ({
             </motion.div>
           </div>
 
-          {/* Desktop sidebar tracker (hidden on mobile) */}
-          {!isMobileViewport && (
-            <div className="w-full md:w-80 shrink-0 border-t md:border-t-0 md:border-l border-white/10 bg-zinc-950/60 backdrop-blur-xl p-5 flex flex-col justify-between overflow-y-auto max-h-[350px] md:max-h-none scrollbar-thin">
-              <div>
-                <div className="flex items-center gap-1.5 text-cyan-400 font-bold text-xs uppercase tracking-wider mb-4">
-                  <Clock className="w-4 h-4 text-cyan-400 animate-pulse" />
-                  <span>Active Study Tracker • 學習監測計</span>
-                </div>
-                <TrackerContent />
+          {/* Active Study Timer Sidebar */}
+          <div className="w-full md:w-80 shrink-0 border-t md:border-t-0 md:border-l border-white/10 bg-zinc-950/60 backdrop-blur-xl p-5 flex flex-col justify-between overflow-y-auto max-h-[350px] md:max-h-none scrollbar-thin">
+            <div className="space-y-4">
+              <div className="flex items-center gap-1.5 text-cyan-400 font-bold text-xs uppercase tracking-wider">
+                <Clock className="w-4 h-4 text-cyan-400 animate-pulse" />
+                <span>Active Study Tracker • 學習監測計</span>
               </div>
-              <div className="mt-4 pt-4 border-t border-white/5 shrink-0">
-                <button
-                  onClick={onClose}
-                  className="w-full py-2.5 bg-white/5 hover:bg-white/10 active:scale-[0.98] rounded-xl text-[10px] font-bold uppercase tracking-widest text-zinc-300 hover:text-white border border-white/10 transition-all cursor-pointer text-center"
-                >
-                  Save & Return to Base
-                </button>
-              </div>
-            </div>
-          )}
 
-          {/* Corner accents */}
+              <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-2.5 h-2.5 rounded-full bg-cyan-400/80 animate-ping shrink-0" />
+                  <span className="text-[9px] text-cyan-400 uppercase tracking-widest font-bold font-mono">
+                    {currentGemMetadata.category}
+                  </span>
+                </div>
+                <h4 className="text-sm font-bold text-white mb-0.5">{currentGemMetadata.nameZh}</h4>
+                <p className="text-[10px] text-zinc-500 font-mono mb-2">{currentGemMetadata.name}</p>
+                
+                <div className="text-[11px] text-amber-300 bg-amber-950/25 border border-amber-900/30 px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 mt-2 leading-relaxed">
+                  <Zap className="w-3.5 h-3.5 text-amber-400 shrink-0 fill-amber-400 animate-bounce" />
+                  <span>Earn +10 pts for every 1 minute of active play & study! • 每學習與操作滿 1 分鐘，自動獲得 10 積分。</span>
+                </div>
+              </div>
+
+              {!user ? (
+                <div className="p-4 bg-amber-950/25 border border-amber-900/40 rounded-2xl text-center">
+                  <p className="text-xs text-amber-200">
+                    You are in guest mode. Please sign in via Google from the Moon Base to track study time and claim cosmic points permanently to your space account!
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* Timer Display */}
+                  <div className="p-4 bg-black/40 border border-white/5 rounded-2xl flex flex-col items-center justify-center text-center">
+                    <span className="text-[10px] text-zinc-400 font-semibold tracking-widest uppercase mb-1.5 font-sans">Accumulated Session Time</span>
+                    <p className="text-3xl font-mono font-bold text-white tracking-widest">
+                      {String(Math.floor(activeSeconds / 60)).padStart(2, '0')}
+                      <span className="text-cyan-500 animate-pulse">:</span>
+                      {String(activeSeconds % 60).padStart(2, '0')}
+                    </p>
+                    <div className="flex items-center gap-2 mt-3.5 px-3 py-1 bg-white/5 border border-white/10 rounded-full">
+                      {isWindowFocused ? (
+                        <>
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                          <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-wider font-sans">Active Practice</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="w-2 h-2 rounded-full bg-orange-500" />
+                          <span className="text-[9px] text-orange-400 font-bold uppercase tracking-wider font-sans">Time Paused</span>
+                        </>
+                      )}
+                    </div>
+                    {!isWindowFocused && (
+                      <p className="text-[9.5px] text-orange-300 bg-orange-950/15 border border-orange-900/10 px-2 py-1.5 rounded-lg mt-2.5 text-center leading-relaxed font-sans">
+                        ⚠️ Keep this tab/window focused & active to resume!
+                        <br />請點擊本網頁並保持觀看，即可繼續累積積分。
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Accrued Points visual */}
+                  <div className="p-3 bg-zinc-900/30 border border-white/5 rounded-2xl flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Trophy className="w-4 h-4 text-amber-400" />
+                      <span className="text-xs text-zinc-300">Session Earnings:</span>
+                    </div>
+                    <span className="text-sm font-bold text-emerald-400 font-mono">+{currentMinute * 10} pts</span>
+                  </div>
+
+                  {/* Anti cheat message indicator */}
+                  <div className="p-3 bg-emerald-950/10 border border-emerald-900/20 rounded-xl text-center flex items-center gap-2 justify-center">
+                    <ShieldAlert className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                    <p className="text-[9.5px] text-emerald-400 font-medium leading-tight">
+                      Manual logging has been disabled. Only active study generates points!
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-4 pt-4 border-t border-white/5 flex flex-col gap-2 shrink-0">
+              {claimSuccessMsg && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-xs text-center font-bold text-emerald-400 bg-emerald-950/30 border border-emerald-950/40 p-2 py-2.5 rounded-xl flex items-center justify-center gap-1.5"
+                >
+                  <Sparkles className="w-4 h-4 text-emerald-400 animate-spin-slow" />
+                  <span>{claimSuccessMsg}</span>
+                </motion.div>
+              )}
+              
+              <button 
+                onClick={onClose}
+                className="w-full py-2.5 bg-white/5 hover:bg-white/10 active:scale-[0.98] rounded-xl text-[10px] font-bold uppercase tracking-widest text-zinc-300 hover:text-white border border-white/10 transition-all cursor-pointer text-center"
+              >
+                Save & Return to Base
+              </button>
+            </div>
+          </div>
+          
+          {/* Subtle glowing decorations under constraints */}
           <div className="hidden sm:block absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-cyan-500/10 rounded-tl-[2.5rem] pointer-events-none" />
           <div className="hidden sm:block absolute top-0 right-0 w-16 h-16 border-t-2 border-r-2 border-cyan-500/10 rounded-tr-[2.5rem] pointer-events-none" />
           <div className="hidden sm:block absolute bottom-0 left-0 w-16 h-16 border-b-2 border-l-2 border-cyan-500/10 rounded-bl-[2.5rem] pointer-events-none" />
           <div className="hidden sm:block absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-cyan-500/10 rounded-br-[2.5rem] pointer-events-none" />
         </div>
-
+        
+        {/* Footer info bar */}
         <div className="mt-3 text-center shrink-0">
           <p className="text-[8px] sm:text-[9px] uppercase tracking-[0.4em] text-white/20 font-medium">Teacher Shirley • Universal Education Cluster</p>
         </div>
