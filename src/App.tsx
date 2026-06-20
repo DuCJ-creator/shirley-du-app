@@ -490,16 +490,16 @@ const GEMS = {
     { name: 'Common Collocations', nameZh: '常用搭配', url: 'https://ducj-creator.github.io/Shirley-Grammar/collocations', type: 'amethyst' },
     { name: 'Buzzwords', nameZh: '流行術語', url: 'https://ducj-creator.github.io/Shirley-Grammar/buzzwords', type: 'topaz' },
     { name: 'Roots & Affixes', nameZh: '詞根詞綴', url: 'https://ducj-creator.github.io/Shirley-Grammar/root%20and%20affix/', type: 'opal' },
-    { name: 'Level 1-6 Vocab', nameZh: '六級單字', url: 'https://ducj-creator.github.io/iVocab-Self-Practice/levels1-6.html', type: 'diamond' },
-    { name: 'TOEIC Core Vocab', nameZh: 'TOEIC 多益核心單字', url: 'https://ducj-creator.github.io/Shirley-Grammar/TOEIC%20vocab', type: 'ruby' },
+    { name: 'Level 1-6 Vocab', nameZh: '六級單字', url: 'https://ducj-creator.github.io/iVocab-Self-Practice/levels1-6.html', type: 'sapphire' },
+    { name: 'TOEIC Core Vocab', nameZh: 'TOEIC 多益核心單字', url: 'https://ducj-creator.github.io/Shirley-Grammar/TOEIC%20vocab', type: 'topaz' },
   ],
   pronunciation: [
     { name: 'KK Phonics', nameZh: 'KK 音標', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/kk.html', type: 'sapphire' },
     { name: 'International Phonics', nameZh: '國際音標', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/ipa.html', type: 'ruby' },
     { name: 'Vowel Clusters', nameZh: '母音字群', url: 'https://hexagon-of-vowels.vercel.app/', type: 'emerald' },
     { name: 'Consonant Blends', nameZh: '子音字群', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/consonant.html', type: 'amethyst' },
-    { name: 'Sentence Practice', nameZh: '例句語音練習', url: 'https://ducj-creator.github.io/Shirley-AI-Sentence-Practice/bank.html', type: 'ruby' },
-    { name: 'My Own Sentences', nameZh: '自主句子練習', url: 'https://ducj-creator.github.io/Shirley-AI-Sentence-Practice/entry.html', type: 'amethyst' },
+    { name: 'Sentence Practice', nameZh: '例句語音練習', url: 'https://ducj-creator.github.io/Shirley-AI-Sentence-Practice/bank.html', type: 'topaz' },
+    { name: 'My Own Sentences', nameZh: '自主句子練習', url: 'https://ducj-creator.github.io/Shirley-AI-Sentence-Practice/entry.html', type: 'opal' },
   ],
   grammar: [
     { name: 'Grammar Lemon Tree', nameZh: '文法檸檬樹', url: 'https://ducj-creator.github.io/Shirley-Grammar/', type: 'emerald' },
@@ -531,7 +531,7 @@ const GEMS = {
     { name: 'Biology', nameZh: '生物', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/biology.html', type: 'amethyst' },
     { name: 'Humanities', nameZh: '人文', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/humanities.html', type: 'topaz' },
     { name: 'Ast. & Geo', nameZh: '天文地理', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/geography.html', type: 'opal' },
-    { name: 'Business', nameZh: '商業', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/business.html', type: 'ruby' },
+    { name: 'Business', nameZh: '商業', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/business.html', type: 'emerald' },
   ],
   uranus: [
     { name: 'Clock', nameZh: '時鐘', url: 'https://ducj-creator.github.io/clock.html', type: 'diamond' },
@@ -540,11 +540,11 @@ const GEMS = {
     { name: 'Stopwatch', nameZh: '碼表⌚️', url: 'https://ducj-creator.github.io/Shirley%20Stop%20Watch.html', type: 'sapphire' },
     { name: 'Scoreboard', nameZh: '計分牌', url: 'https://ducj-creator.github.io/scoreboard.html', type: 'amethyst' },
     { name: 'Name/Group Picker', nameZh: '選名/分組🧑🎓', url: 'https://ducj-creator.github.io/namepicker.html', type: 'topaz' },
-    { name: 'Quiz Maker', nameZh: '測驗製作', url: 'https://ducj-creator.github.io/Shirley%20Pop%20Quiz%20Maker.html', type: 'diamond' },
-    { name: 'Lucky Wheel', nameZh: '幸運輪', url: 'https://ducj-creator.github.io/Shirley%20Lucky%20Wheel.html', type: 'ruby' },
-    { name: 'Signpost', nameZh: '指示牌', url: 'https://ducj-creator.github.io/sign.html', type: 'emerald' },
-    { name: 'My Own Words', nameZh: '自主單字練習', url: 'https://ducj-creator.github.io/iVocab-Self-Practice/entry.html', type: 'diamond' },
-    { name: 'Flip Card Maker', nameZh: '翻轉卡製作', url: 'https://ducj-creator.github.io/Shirley%20Flip%20Card.html', type: 'sapphire' },
+    { name: 'Quiz Maker', nameZh: '測驗製作', url: 'https://ducj-creator.github.io/Shirley%20Pop%20Quiz%20Maker.html', type: 'opal' },
+    { name: 'Lucky Wheel', nameZh: '幸運輪', url: 'https://ducj-creator.github.io/Shirley%20Lucky%20Wheel.html', type: 'emerald' },
+    { name: 'Signpost', nameZh: '指示牌', url: 'https://ducj-creator.github.io/sign.html', type: 'sapphire' },
+    { name: 'My Own Words', nameZh: '自主單字練習', url: 'https://ducj-creator.github.io/iVocab-Self-Practice/entry.html', type: 'amethyst' },
+    { name: 'Flip Card Maker', nameZh: '翻轉卡製作', url: 'https://ducj-creator.github.io/Shirley%20Flip%20Card.html', type: 'topaz' },
   ],
   neptune: [
     { name: 'Sudoku', nameZh: '數獨', url: 'https://ducj-creator.github.io/shirley%20sudoku.html', type: 'diamond' },
@@ -554,9 +554,9 @@ const GEMS = {
     { name: 'EMO Shredder', nameZh: '負能量粉碎機', url: 'https://ducj-creator.github.io/emoshredder.html', type: 'amethyst' },
     { name: 'Gems', nameZh: '寶石連連看', url: 'https://ducj-creator.github.io/gem.html', type: 'topaz' },
     { name: 'iVocab Champion', nameZh: '愛單字挑戰', url: 'https://ducj-creator.github.io/ivchampion.html', type: 'opal' },
-    { name: 'Lucky Dice', nameZh: '幸運骰🎲', url: 'https://ducj-creator.github.io/Shirley%20Dice2.html', type: 'opal' },
-    { name: 'Moonblock', nameZh: '擲筊', url: 'https://ducj-creator.github.io/moonblock.html', type: 'emerald' },
-    { name: 'Coinflip', nameZh: '扔硬幣', url: 'https://ducj-creator.github.io/coin.html', type: 'sapphire' },
+    { name: 'Lucky Dice', nameZh: '幸運骰🎲', url: 'https://ducj-creator.github.io/Shirley%20Dice2.html', type: 'emerald' },
+    { name: 'Moonblock', nameZh: '擲筊', url: 'https://ducj-creator.github.io/moonblock.html', type: 'sapphire' },
+    { name: 'Coinflip', nameZh: '扔硬幣', url: 'https://ducj-creator.github.io/coin.html', type: 'amethyst' },
   ],
 };
 
@@ -568,7 +568,7 @@ const SUBJECT_GEMS = [
   { name: 'Biology', nameZh: '生物', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/biology.html', type: 'amethyst' },
   { name: 'Humanities', nameZh: '人文', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/humanities.html', type: 'topaz' },
   { name: 'Ast. & Geo', nameZh: '天文地理', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/geography.html', type: 'opal' },
-  { name: 'Business', nameZh: '商業', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/business.html', type: 'ruby' },
+  { name: 'Business', nameZh: '商業', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/business.html', type: 'emerald' },
 ];
 
 const RenderMiniGem = ({ type = 'diamond', className = '' }: { type?: string, className?: string }) => {
@@ -2878,8 +2878,8 @@ const BilingualSubjectsView = ({
         >
           <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
           <div className="flex flex-col items-start leading-none text-left">
-            <span className="font-medium text-sm">Back to Universe</span>
-            <span className="text-[10px] opacity-60">回到單字區</span>
+            <span className="font-medium text-sm">Back to Moon Base</span>
+            <span className="text-[10px] opacity-60">回到首頁</span>
           </div>
         </motion.button>
       </div>
@@ -3040,7 +3040,43 @@ export default function App() {
 
         const u2 = onSnapshot(collection(db, 'users', u.uid, 'pets'), {
           next: (snapshot) => {
-            const list = snapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as any) } as PetData));
+            const list = snapshot.docs.map(docSnap => {
+              const data = docSnap.data() as any;
+              let updated = false;
+              let emoji = data.emoji;
+              let type = data.type;
+              let name = data.name;
+
+              // Migrate hedgehog emoji from corrupted '𦔔' to real '🦔'
+              if (emoji === '𦔔' || (data.type?.includes('Hedgehog') && emoji !== '🦔')) {
+                emoji = '🦔';
+                updated = true;
+              }
+
+              // Migrate Unique Phoenix to Unique Peacock
+              if (data.type?.includes('Phoenix') && !data.type?.includes('Red Phoenix')) {
+                type = data.type.replace('Phoenix', 'Peacock');
+                if (name === 'Phoenix') name = 'Peacock';
+                emoji = '🦚';
+                updated = true;
+              }
+
+              if (updated) {
+                updateDoc(doc(db, 'users', u.uid, 'pets', docSnap.id), {
+                  emoji,
+                  type,
+                  name
+                }).catch(err => console.error("Silently migrating pet document failed:", err));
+              }
+
+              return {
+                id: docSnap.id,
+                ...data,
+                emoji,
+                type,
+                name
+              } as PetData;
+            });
             setPetsList(list);
           },
           error: (err) => console.error(`Firestore [users/${u.uid}/pets] listener error:`, err)
@@ -3551,7 +3587,11 @@ export default function App() {
       return;
     }
     setCurrentStrand(strand);
-    setShowSubjects(false);
+    if (strand === 'saturn') {
+      setShowSubjects(true);
+    } else {
+      setShowSubjects(false);
+    }
   };
 
   const handleUpdateAvatar = async (data: any) => {
@@ -4219,6 +4259,11 @@ export default function App() {
                               setShowLoginModal(true);
                             } else {
                               setCurrentStrand(strand);
+                              if (strand === 'saturn') {
+                                setShowSubjects(true);
+                              } else {
+                                setShowSubjects(false);
+                              }
                             }
                           }}
                         />
@@ -4436,15 +4481,21 @@ export default function App() {
             >
               <button 
                 onClick={() => {
-                  if (showSubjects) setShowSubjects(false);
-                  else setCurrentStrand('home');
+                  if (currentStrand === 'saturn') {
+                    setShowSubjects(false);
+                    setCurrentStrand('home');
+                  } else if (showSubjects) {
+                    setShowSubjects(false);
+                  } else {
+                    setCurrentStrand('home');
+                  }
                 }}
                 className="mb-4 flex items-center gap-2 text-white/60 hover:text-white transition-colors group"
               >
                 <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> 
                 <div className="flex flex-col items-start leading-none">
-                  <span className="text-xs font-medium">{showSubjects ? "Back to Vocabulary" : "Back to Moon Base"}</span>
-                  <span className="text-[9px] opacity-65">{showSubjects ? "回到單字區" : "回到首頁"}</span>
+                  <span className="text-xs font-medium">{currentStrand === 'saturn' ? "Back to Moon Base" : (showSubjects ? "Back to Vocabulary" : "Back to Moon Base")}</span>
+                  <span className="text-[9px] opacity-65">{currentStrand === 'saturn' ? "回到首頁" : (showSubjects ? "回到單字區" : "回到首頁")}</span>
                 </div>
               </button>
 
@@ -4485,7 +4536,10 @@ export default function App() {
                 {showSubjects ? (
                   <div className="w-full">
                     <BilingualSubjectsView 
-                      onBack={() => setShowSubjects(false)} 
+                      onBack={() => {
+                        setShowSubjects(false);
+                        setCurrentStrand('home');
+                      }} 
                       onVisit={(name) => handleVisitGem(name)} 
                       onGemClick={(url) => setActivePortalUrl(url)}
                       currentStrand={currentStrand}
