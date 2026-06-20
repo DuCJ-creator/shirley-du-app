@@ -6,7 +6,7 @@ import {
   LogIn, LogOut, Clock, Zap, RefreshCw, Search, TrendingUp, ChevronRight,
   ClipboardX, FileText, Trash2, Download, Palette, Plus, Save, X, Edit, Pencil, Check,
   Hammer, Gamepad2, Monitor, Tablet, Smartphone, ZoomIn, ZoomOut, RotateCcw, Compass, Globe,
-  Camera, FileImage, UploadCloud, Settings, ShieldAlert
+  Camera, FileImage, UploadCloud, Settings, ShieldAlert, ChevronUp, ChevronDown
 } from 'lucide-react';
 import { cn } from './lib/utils';
 import { 
@@ -1750,6 +1750,7 @@ const EmbeddedPortal = ({
   const [activeSeconds, setActiveSeconds] = useState(0);
   const [isWindowFocused, setIsWindowFocused] = useState(true);
   const [claimSuccessMsg, setClaimSuccessMsg] = useState<string | null>(null);
+  const [isTrackerExpanded, setIsTrackerExpanded] = useState(false);
 
   // Viewport Responsive Device Simulation States
   const [deviceMode, setDeviceMode] = useState<'responsive' | 'desktop' | 'tablet' | 'mobile'>('responsive');
@@ -2070,104 +2071,166 @@ const EmbeddedPortal = ({
           </div>
 
           {/* Active Study Timer Sidebar */}
-          <div className="w-full md:w-80 shrink-0 border-t md:border-t-0 md:border-l border-white/10 bg-zinc-950/60 backdrop-blur-xl p-5 flex flex-col justify-between overflow-y-auto max-h-[350px] md:max-h-none scrollbar-thin">
-            <div className="space-y-4">
-              <div className="flex items-center gap-1.5 text-cyan-400 font-bold text-xs uppercase tracking-wider">
-                <Clock className="w-4 h-4 text-cyan-400 animate-pulse" />
-                <span>Active Study Tracker • 學習監測計</span>
-              </div>
+          <div className={cn(
+            "w-full md:w-80 shrink-0 border-t md:border-t-0 md:border-l border-white/10 bg-zinc-950/60 backdrop-blur-xl flex flex-col justify-between transition-all duration-300",
+            isTrackerExpanded 
+              ? "p-5 overflow-y-auto max-h-[400px] md:max-h-none h-[400px] md:h-auto scrollbar-thin" 
+              : "p-3 md:p-5 h-16 md:h-auto overflow-hidden md:overflow-y-auto md:max-h-none scrollbar-thin shrink-0"
+          )}>
+            {/* Desktop View OR Expanded Mobile View */}
+            <div className={cn("space-y-4 flex-1 flex flex-col justify-between min-h-0", !isTrackerExpanded && "hidden md:flex")}>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-cyan-400 font-bold text-xs uppercase tracking-wider">
+                    <Clock className="w-4 h-4 text-cyan-400 animate-pulse" />
+                    <span>Active Study Tracker • 學習監測計</span>
+                  </div>
+                  {/* Collapse Button for Mobile */}
+                  <button 
+                    onClick={() => setIsTrackerExpanded(false)}
+                    className="md:hidden p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-zinc-400 hover:text-white transition-colors"
+                  >
+                    <ChevronDown className="w-4 h-4" />
+                  </button>
+                </div>
 
-              <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-2.5 h-2.5 rounded-full bg-cyan-400/80 animate-ping shrink-0" />
-                  <span className="text-[9px] text-cyan-400 uppercase tracking-widest font-bold font-mono">
-                    {currentGemMetadata.category}
-                  </span>
+                <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="w-2.5 h-2.5 rounded-full bg-cyan-400/80 animate-ping shrink-0" />
+                    <span className="text-[9px] text-cyan-400 uppercase tracking-widest font-bold font-mono">
+                      {currentGemMetadata.category}
+                    </span>
+                  </div>
+                  <h4 className="text-sm font-bold text-white mb-0.5">{currentGemMetadata.nameZh}</h4>
+                  <p className="text-[10px] text-zinc-500 font-mono mb-2">{currentGemMetadata.name}</p>
+                  
+                  <div className="text-[11px] text-amber-300 bg-amber-950/25 border border-amber-900/30 px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 mt-2 leading-relaxed">
+                    <Zap className="w-3.5 h-3.5 text-amber-400 shrink-0 fill-amber-400 animate-bounce" />
+                    <span>Earn +10 pts for every 1 minute of active play & study! • 每學習與操作滿 1 分鐘，自動獲得 10 積分。</span>
+                  </div>
                 </div>
-                <h4 className="text-sm font-bold text-white mb-0.5">{currentGemMetadata.nameZh}</h4>
-                <p className="text-[10px] text-zinc-500 font-mono mb-2">{currentGemMetadata.name}</p>
-                
-                <div className="text-[11px] text-amber-300 bg-amber-950/25 border border-amber-900/30 px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 mt-2 leading-relaxed">
-                  <Zap className="w-3.5 h-3.5 text-amber-400 shrink-0 fill-amber-400 animate-bounce" />
-                  <span>Earn +10 pts for every 1 minute of active play & study! • 每學習與操作滿 1 分鐘，自動獲得 10 積分。</span>
-                </div>
-              </div>
 
-              {!user ? (
-                <div className="p-4 bg-amber-950/25 border border-amber-900/40 rounded-2xl text-center">
-                  <p className="text-xs text-amber-200">
-                    You are in guest mode. Please sign in via Google from the Moon Base to track study time and claim cosmic points permanently to your space account!
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {/* Timer Display */}
-                  <div className="p-4 bg-black/40 border border-white/5 rounded-2xl flex flex-col items-center justify-center text-center">
-                    <span className="text-[10px] text-zinc-400 font-semibold tracking-widest uppercase mb-1.5 font-sans">Accumulated Session Time</span>
-                    <p className="text-3xl font-mono font-bold text-white tracking-widest">
-                      {String(Math.floor(activeSeconds / 60)).padStart(2, '0')}
-                      <span className="text-cyan-500 animate-pulse">:</span>
-                      {String(activeSeconds % 60).padStart(2, '0')}
+                {!user ? (
+                  <div className="p-4 bg-amber-950/25 border border-amber-900/40 rounded-2xl text-center">
+                    <p className="text-xs text-amber-200">
+                      You are in guest mode. Please sign in via Google from the Moon Base to track study time and claim cosmic points permanently to your space account!
                     </p>
-                    <div className="flex items-center gap-2 mt-3.5 px-3 py-1 bg-white/5 border border-white/10 rounded-full">
-                      {isWindowFocused ? (
-                        <>
-                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                          <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-wider font-sans">Active Practice</span>
-                        </>
-                      ) : (
-                        <>
-                          <span className="w-2 h-2 rounded-full bg-orange-500" />
-                          <span className="text-[9px] text-orange-400 font-bold uppercase tracking-wider font-sans">Time Paused</span>
-                        </>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Timer Display */}
+                    <div className="p-4 bg-black/40 border border-white/5 rounded-2xl flex flex-col items-center justify-center text-center">
+                      <span className="text-[10px] text-zinc-400 font-semibold tracking-widest uppercase mb-1.5 font-sans">Accumulated Session Time</span>
+                      <p className="text-3xl font-mono font-bold text-white tracking-widest">
+                        {String(Math.floor(activeSeconds / 60)).padStart(2, '0')}
+                        <span className="text-cyan-500 animate-pulse">:</span>
+                        {String(activeSeconds % 60).padStart(2, '0')}
+                      </p>
+                      <div className="flex items-center gap-2 mt-3.5 px-3 py-1 bg-white/5 border border-white/10 rounded-full">
+                        {isWindowFocused ? (
+                          <>
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                            <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-wider font-sans">Active Practice</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="w-2 h-2 rounded-full bg-orange-500" />
+                            <span className="text-[9px] text-orange-400 font-bold uppercase tracking-wider font-sans">Time Paused</span>
+                          </>
+                        )}
+                      </div>
+                      {!isWindowFocused && (
+                        <p className="text-[9.5px] text-orange-300 bg-orange-950/15 border border-orange-900/10 px-2 py-1.5 rounded-lg mt-2.5 text-center leading-relaxed font-sans">
+                          ⚠️ Keep this tab/window focused & active to resume!
+                          <br />請點擊本網頁並保持觀看，即可繼續累積積分。
+                        </p>
                       )}
                     </div>
-                    {!isWindowFocused && (
-                      <p className="text-[9.5px] text-orange-300 bg-orange-950/15 border border-orange-900/10 px-2 py-1.5 rounded-lg mt-2.5 text-center leading-relaxed font-sans">
-                        ⚠️ Keep this tab/window focused & active to resume!
-                        <br />請點擊本網頁並保持觀看，即可繼續累積積分。
-                      </p>
-                    )}
-                  </div>
 
-                  {/* Accrued Points visual */}
-                  <div className="p-3 bg-zinc-900/30 border border-white/5 rounded-2xl flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Trophy className="w-4 h-4 text-amber-400" />
-                      <span className="text-xs text-zinc-300">Session Earnings:</span>
+                    {/* Accrued Points visual */}
+                    <div className="p-3 bg-zinc-900/30 border border-white/5 rounded-2xl flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Trophy className="w-4 h-4 text-amber-400" />
+                        <span className="text-xs text-zinc-300">Session Earnings:</span>
+                      </div>
+                      <span className="text-sm font-bold text-emerald-400 font-mono">+{currentMinute * 10} pts</span>
                     </div>
-                    <span className="text-sm font-bold text-emerald-400 font-mono">+{currentMinute * 10} pts</span>
-                  </div>
 
-                  {/* Anti cheat message indicator */}
-                  <div className="p-3 bg-emerald-950/10 border border-emerald-900/20 rounded-xl text-center flex items-center gap-2 justify-center">
-                    <ShieldAlert className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                    <p className="text-[9.5px] text-emerald-400 font-medium leading-tight">
-                      Manual logging has been disabled. Only active study generates points!
-                    </p>
+                    {/* Anti cheat message indicator */}
+                    <div className="p-3 bg-emerald-950/10 border border-emerald-900/20 rounded-xl text-center flex items-center gap-2 justify-center">
+                      <ShieldAlert className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                      <p className="text-[9.5px] text-emerald-400 font-medium leading-tight">
+                        Manual logging has been disabled. Only active study generates points!
+                      </p>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
+
+              <div className="mt-4 pt-4 border-t border-white/5 flex flex-col gap-2 shrink-0">
+                {claimSuccessMsg && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-xs text-center font-bold text-emerald-400 bg-emerald-950/30 border border-emerald-950/40 p-2 py-2.5 rounded-xl flex items-center justify-center gap-1.5"
+                  >
+                    <Sparkles className="w-4 h-4 text-emerald-400 animate-spin-slow" />
+                    <span>{claimSuccessMsg}</span>
+                  </motion.div>
+                )}
+                
+                <button 
+                  onClick={onClose}
+                  className="w-full py-2.5 bg-white/5 hover:bg-white/10 active:scale-[0.98] rounded-xl text-[10px] font-bold uppercase tracking-widest text-zinc-300 hover:text-white border border-white/10 transition-all cursor-pointer text-center"
+                >
+                  Save & Return to Base
+                </button>
+              </div>
             </div>
 
-            <div className="mt-4 pt-4 border-t border-white/5 flex flex-col gap-2 shrink-0">
-              {claimSuccessMsg && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="text-xs text-center font-bold text-emerald-400 bg-emerald-950/30 border border-emerald-950/40 p-2 py-2.5 rounded-xl flex items-center justify-center gap-1.5"
+            {/* Collapsed Mobile Bottom Bar */}
+            <div className={cn("md:hidden flex items-center justify-between w-full h-full", isTrackerExpanded && "hidden")}>
+              <div className="flex items-center gap-3">
+                <div className="relative flex items-center justify-center">
+                  <Clock className="w-4 h-4 text-cyan-400 animate-pulse" />
+                  <span className="absolute -top-1 -right-1 flex h-1.5 w-1.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-cyan-500"></span>
+                  </span>
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5 leading-none">
+                    <span className="text-xs font-mono font-bold text-white tracking-wider">
+                      {String(Math.floor(activeSeconds / 60)).padStart(2, '0')}:{String(activeSeconds % 60).padStart(2, '0')}
+                    </span>
+                    <span className={cn(
+                      "w-1.5 h-1.5 rounded-full inline-block",
+                      isWindowFocused ? "bg-emerald-500 animate-pulse" : "bg-orange-500"
+                    )} />
+                    <span className="text-[10px] text-emerald-400 font-bold tracking-wider font-mono">
+                      +{currentMinute * 10} pts
+                    </span>
+                  </div>
+                  <p className="text-[9px] text-zinc-400 font-medium truncate max-w-[130px] sm:max-w-xs leading-none mt-1">
+                    Live: {currentGemMetadata.nameZh}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => setIsTrackerExpanded(true)}
+                  className="px-2.5 py-1.5 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/20 hover:border-cyan-500/30 rounded-lg text-[9px] font-bold tracking-widest uppercase flex items-center gap-1 select-none transition-all active:scale-95"
                 >
-                  <Sparkles className="w-4 h-4 text-emerald-400 animate-spin-slow" />
-                  <span>{claimSuccessMsg}</span>
-                </motion.div>
-              )}
-              
-              <button 
-                onClick={onClose}
-                className="w-full py-2.5 bg-white/5 hover:bg-white/10 active:scale-[0.98] rounded-xl text-[10px] font-bold uppercase tracking-widest text-zinc-300 hover:text-white border border-white/10 transition-all cursor-pointer text-center"
-              >
-                Save & Return to Base
-              </button>
+                  <span>Tracker</span>
+                  <ChevronUp className="w-3.5 h-3.5 animate-bounce" style={{ animationDuration: '2s' }} />
+                </button>
+                <button 
+                  onClick={onClose}
+                  className="px-2.5 py-1.5 bg-white/5 hover:bg-white/10 text-white rounded-lg text-[9px] font-bold tracking-widest uppercase transition-all border border-white/5 active:scale-95"
+                >
+                  Save & Exit
+                </button>
+              </div>
             </div>
           </div>
           
