@@ -3666,12 +3666,21 @@ export default function App() {
   const handleReleasePet = async (targetPet?: PetData) => {
     const activePetToRelease = targetPet || petData;
     if (!user || !activePetToRelease || !activePetToRelease.id) return;
-    const confirm = window.confirm(`Are you sure you want to release ${activePetToRelease.name} back into the wild universe? This will reset all progress for this companion.`);
+    
+    const petLevel = activePetToRelease.level || 1;
+    const refundPoints = petLevel * 100;
+
+    const confirm = window.confirm(`Are you sure you want to release ${activePetToRelease.name} back into the wild universe? This will reset all progress for this companion. (You will receive ${refundPoints} points back!)`);
     if (!confirm) return;
 
     const petRef = doc(db, 'users', user.uid, 'pets', activePetToRelease.id);
     await deleteDoc(petRef);
     
+    // Add refund points back to player
+    const userRef = doc(db, 'users', user.uid);
+    await updateDoc(userRef, { points: increment(refundPoints) });
+    await addPointLog(user.uid, 'pet-release-refund', refundPoints, `Released ${activePetToRelease.name} (Lvl ${petLevel}) - Refunded ${refundPoints} pts`);
+
     const nextPet = petsList.find(p => p.id !== activePetToRelease.id);
     if (nextPet) {
       setActivePetId(nextPet.id || null);
