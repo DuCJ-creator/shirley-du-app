@@ -1912,7 +1912,7 @@ const EmbeddedPortal = ({
             />
 
             {/* Active Study Timer Sidebar Floating glassmorphic widget */}
-            <div className="absolute bottom-4 right-4 z-50 flex flex-col items-end gap-2 max-w-[calc(100vw-2rem)]">
+            <div className="absolute top-4 right-4 z-50 flex flex-col items-end gap-2 max-w-[calc(100vw-2rem)]">
               <AnimatePresence mode="wait">
                 {isTrackerExpanded ? (
                   /* Expanded Floating Glass Card */
