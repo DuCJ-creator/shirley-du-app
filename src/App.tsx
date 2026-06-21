@@ -1227,10 +1227,14 @@ const NotePad = ({ notes, onSave, onDelete }: { notes: StudyNote[], onSave: (not
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            className="fixed top-24 right-8 w-[420px] h-[600px] bg-[#fbf9f3] border border-[#d2cca1]/40 rounded-3xl shadow-[0_30px_70px_rgba(0,0,0,0.5),_0_0_0_1px_rgba(0,0,0,0.06)] z-[2500] flex flex-row pointer-events-auto overflow-hidden"
+            className="fixed top-24 right-4 sm:right-8 w-[calc(100vw-2rem)] sm:w-[420px] h-[500px] sm:h-[600px] bg-[#fbf9f3] border border-[#d2cca1]/40 rounded-3xl shadow-[0_30px_70px_rgba(0,0,0,0.5),_0_0_0_1px_rgba(0,0,0,0.06)] z-[2500] flex flex-row pointer-events-auto overflow-hidden"
           >
             {/* Left spiral side spine with beautiful physical metal wire ring loops */}
-            <div className="w-10 bg-[#ebe7d8]/60 border-r border-[#d4cfbd]/80 relative flex flex-col justify-around py-6 z-20 select-none">
+            <div 
+              onPointerDown={(e) => dragControls.start(e)}
+              className="w-10 bg-[#ebe7d8]/60 border-r border-[#d4cfbd]/80 relative flex flex-col justify-around py-6 z-20 select-none cursor-grab active:cursor-grabbing touch-none"
+              title="Drag to move"
+            >
               {Array.from({ length: 12 }).map((_, idx) => (
                 <div key={idx} className="relative w-full h-4 flex items-center justify-end">
                   {/* Outer wire ring looping over */}
@@ -1248,7 +1252,8 @@ const NotePad = ({ notes, onSave, onDelete }: { notes: StudyNote[], onSave: (not
               {/* Draggable Header - Grab handle */}
               <div 
                 onPointerDown={(e) => dragControls.start(e)}
-                className="h-14 flex items-center justify-between px-5 border-b border-[#e5dfcf] cursor-grab active:cursor-grabbing select-none"
+                className="h-14 flex items-center justify-between px-5 border-b border-[#e5dfcf] cursor-grab active:cursor-grabbing select-none touch-none bg-slate-50/50"
+                title="Drag to move"
               >
                 <div className="flex items-center gap-3">
                   <div className="flex gap-1.5">
