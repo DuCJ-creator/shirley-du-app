@@ -557,6 +557,7 @@ const GEMS = {
     { name: 'Lucky Dice', nameZh: '幸運骰🎲', url: 'https://ducj-creator.github.io/Shirley%20Dice2.html', type: 'emerald' },
     { name: 'Moonblock', nameZh: '擲筊', url: 'https://ducj-creator.github.io/moonblock.html', type: 'sapphire' },
     { name: 'Coinflip', nameZh: '扔硬幣', url: 'https://ducj-creator.github.io/coin.html', type: 'amethyst' },
+    { name: 'Hungry Snake', nameZh: '貪吃蛇', url: 'https://i-vocab-hungry-snake-mobilev.vercel.app/', type: 'topaz' },
   ],
 };
 
