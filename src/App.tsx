@@ -2742,7 +2742,7 @@ const PetSection = ({
               <Heart className={cn("w-4 h-4 group-hover:scale-110 transition-transform", pet.isPlaying ? "text-white" : "text-pink-500")} /> 
               <div className="flex flex-col items-start leading-none">
                 <span className="text-xs font-bold uppercase tracking-wider">{pet.isPlaying ? "Playing..." : "Play"}</span>
-                <span className={cn("text-[7px]", pet.isPlaying ? "text-white/70" : "text-white/40")}>+10 XP</span>
+                <span className={cn("text-[7px]", pet.isPlaying ? "text-white/70" : "text-white/40")}>{pet.isPlaying ? "+10 XP" : "+10 XP / -10 PTS"}</span>
               </div>
             </button>
           </div>
@@ -3705,32 +3705,48 @@ export default function App() {
   const handlePlayWithPet = async () => {
     if (!user || !petData) return;
     const petId = petData.id || 'main_pet';
-    
     const petRef = doc(db, 'users', user.uid, 'pets', petId);
     const newIsPlaying = !petData.isPlaying;
 
     if (newIsPlaying) {
+      if (!userData || userData.points < 10) {
+        setPetError("Not enough points! Playing requires 10 points.");
+        return;
+      }
+      setPetError(null);
+
       setIsRolling(true);
       setTimeout(() => setIsRolling(false), 1000);
+
+      // Deduct 10 points
+      const userRef = doc(db, 'users', user.uid);
+      await updateDoc(userRef, { points: increment(-10) });
+      await addPointLog(user.uid, 'pet-play', -10, `Played with ${petData.name} (consumed 10 points)`);
+
+      // Add 10 XP
+      let newLevel = petData.level || 1;
+      let newXp = (petData.xp || 0) + 10;
+      let newMaxXp = petData.maxXp || 100;
+
+      if (newXp >= newMaxXp) {
+        newXp -= newMaxXp;
+        newLevel += 1;
+        newMaxXp = newLevel * 100;
+      }
+
+      await updateDoc(petRef, {
+        isPlaying: true,
+        happiness: Math.min(100, (petData.happiness || 0) + 10),
+        xp: newXp,
+        level: newLevel,
+        maxXp: newMaxXp
+      });
+    } else {
+      // Just stop playing
+      await updateDoc(petRef, {
+        isPlaying: false
+      });
     }
-
-    let newLevel = petData.level || 1;
-    let newXp = (petData.xp || 0) + 10;
-    let newMaxXp = petData.maxXp || 100;
-
-    if (newXp >= newMaxXp) {
-      newXp -= newMaxXp;
-      newLevel += 1;
-      newMaxXp = newLevel * 100;
-    }
-
-    await updateDoc(petRef, {
-      isPlaying: newIsPlaying,
-      happiness: Math.min(100, (petData.happiness || 0) + 10),
-      xp: newXp,
-      level: newLevel,
-      maxXp: newMaxXp
-    });
   };
 
   const handleReturnPet = async () => {
