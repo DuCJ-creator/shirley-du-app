@@ -1757,6 +1757,12 @@ const EmbeddedPortal = ({
   const [claimSuccessMsg, setClaimSuccessMsg] = useState<string | null>(null);
   const [isTrackerExpanded, setIsTrackerExpanded] = useState(false);
   const [isTrackerVisible, setIsTrackerVisible] = useState(true);
+  const [viewportMode, setViewportMode] = useState<'fit' | 'medium' | 'tall'>(() => {
+    if (url.includes('hungry-snake') || url.includes('etgame.html')) {
+      return 'tall';
+    }
+    return 'fit';
+  });
 
   const currentGemMetadata = useMemo(() => {
     // Check in GEMS
@@ -1908,6 +1914,47 @@ const EmbeddedPortal = ({
                 </span>
               </div>
             </button>
+
+            <button 
+              onClick={() => window.open(url, '_blank')}
+              className="flex items-center gap-1.5 text-amber-300 hover:bg-amber-500/10 bg-amber-500/5 border border-amber-500/20 transition-all px-2.5 py-1.5 rounded-xl active:scale-95 select-none cursor-pointer"
+              title="Open in a new tab for the best fullscreen experience"
+            >
+              <ExternalLink className="w-3.5 h-3.5 text-current" />
+              <div className="flex flex-col items-start leading-none text-left">
+                <span className="font-bold text-[10px] tracking-wider uppercase text-amber-300">New Tab</span>
+                <span className="text-[8px] opacity-60 text-amber-400">新分頁開啟</span>
+              </div>
+            </button>
+
+            <button 
+              onClick={() => {
+                setViewportMode(prev => {
+                  if (prev === 'fit') return 'medium';
+                  if (prev === 'medium') return 'tall';
+                  return 'fit';
+                });
+              }}
+              className="flex items-center gap-1.5 text-emerald-300 hover:bg-emerald-500/10 bg-emerald-500/5 border border-emerald-500/20 transition-all px-2.5 py-1.5 rounded-xl active:scale-95 select-none cursor-pointer"
+              title="Change iframe sizing mode to fit games/pages perfectly"
+            >
+              {viewportMode === 'fit' && <Monitor className="w-3.5 h-3.5 text-emerald-400" />}
+              {viewportMode === 'medium' && <Tablet className="w-3.5 h-3.5 text-emerald-400" />}
+              {viewportMode === 'tall' && <Smartphone className="w-3.5 h-3.5 text-emerald-400" />}
+              
+              <div className="flex flex-col items-start leading-none text-left">
+                <span className="font-bold text-[10px] tracking-wider uppercase text-emerald-300">
+                  {viewportMode === 'fit' && "Fit Screen"}
+                  {viewportMode === 'medium' && "Tall Mode"}
+                  {viewportMode === 'tall' && "Extra Tall"}
+                </span>
+                <span className="text-[8px] opacity-60 text-emerald-400">
+                  {viewportMode === 'fit' && "滿版適應"}
+                  {viewportMode === 'medium' && "長版 800px"}
+                  {viewportMode === 'tall' && "超長 1100px"}
+                </span>
+              </div>
+            </button>
           </div>
 
           {/* Current Activity Title */}
@@ -1928,10 +1975,15 @@ const EmbeddedPortal = ({
         <div className="flex-1 relative rounded-2xl md:rounded-3xl overflow-hidden border border-white/10 bg-zinc-950 shadow-[inset_0_0_80px_rgba(0,0,0,0.6)] flex flex-col min-h-0">
           
           {/* Full frame workspace to make using tools effortlessly on phone */}
-          <div className="flex-1 w-full h-full relative bg-zinc-900">
+          <div className="flex-1 w-full h-full relative bg-zinc-900 overflow-auto">
             <iframe 
               src={url} 
-              className="w-full h-full border-none bg-zinc-900"
+              className={cn(
+                "w-full border-none bg-zinc-900 transition-all duration-300",
+                viewportMode === 'fit' && "h-full min-h-[600px] sm:min-h-0",
+                viewportMode === 'medium' && "h-[800px]",
+                viewportMode === 'tall' && "h-[1100px]"
+              )}
               title="Embedded Subject Content"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; microphone; geolocation"
               allowFullScreen
