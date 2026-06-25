@@ -532,6 +532,7 @@ const GEMS = {
     { name: 'Humanities', nameZh: '人文', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/humanities.html', type: 'topaz' },
     { name: 'Ast. & Geo', nameZh: '天文地理', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/geography.html', type: 'opal' },
     { name: 'Business', nameZh: '商業', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/business.html', type: 'emerald' },
+    { name: 'Literature', nameZh: '文學賞析', url: 'https://ducj-creator.github.io/literature/', type: 'ruby' },
   ],
   uranus: [
     { name: 'Clock', nameZh: '時鐘', url: 'https://ducj-creator.github.io/clock.html', type: 'diamond' },
@@ -570,6 +571,7 @@ const SUBJECT_GEMS = [
   { name: 'Humanities', nameZh: '人文', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/humanities.html', type: 'topaz' },
   { name: 'Ast. & Geo', nameZh: '天文地理', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/geography.html', type: 'opal' },
   { name: 'Business', nameZh: '商業', url: 'https://ducj-creator.github.io/Teacher-Shirley/subject/business.html', type: 'emerald' },
+  { name: 'Literature', nameZh: '文學賞析', url: 'https://ducj-creator.github.io/literature/', type: 'ruby' },
 ];
 
 const RenderMiniGem = ({ type = 'diamond', className = '' }: { type?: string, className?: string }) => {
