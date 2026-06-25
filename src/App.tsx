@@ -2835,6 +2835,17 @@ const PetSection = ({
   );
 };
 
+const STRAND_QUOTES: Record<string, { title: string; subtitle: string; color: string }> = {
+  grammar: { title: "Speak with Clarity.", subtitle: "Core Grammar", color: "#cbd5e1" },
+  vocabulary: { title: "Words open Worlds.", subtitle: "Core Vocabulary", color: "#ffd700" },
+  earth: { title: "Learn to Grow.", subtitle: "School Courses", color: "#4ade80" },
+  pronunciation: { title: "Voice your Mind.", subtitle: "Pronunciation Practice", color: "#ff4500" },
+  tests: { title: "Practice makes Perfect.", subtitle: "Standardized Tests", color: "#deb887" },
+  saturn: { title: "Knowledge is Power.", subtitle: "Francis Bacon", color: "#f4a460" },
+  uranus: { title: "Tools for Success.", subtitle: "Handy Utilities", color: "#40e0d0" },
+  neptune: { title: "Play to Learn.", subtitle: "Educational Games", color: "#1e90ff" },
+};
+
 const BilingualSubjectsView = ({ 
   onBack, 
   onVisit,
@@ -2846,7 +2857,11 @@ const BilingualSubjectsView = ({
   onGemClick: (url: string) => void,
   currentStrand: string
 }) => {
-  const localSubjectGems = useMemo(() => SUBJECT_GEMS, []);
+  const localSubjectGems = useMemo(() => {
+    return GEMS[currentStrand as keyof typeof GEMS] || [];
+  }, [currentStrand]);
+
+  const quote = STRAND_QUOTES[currentStrand] || { title: "Knowledge is Power.", subtitle: "Francis Bacon", color: "#f4a460" };
 
   return (
     <div className="relative w-full max-w-6xl mx-auto py-8 px-4 flex flex-col items-center">
@@ -2875,28 +2890,41 @@ const BilingualSubjectsView = ({
 
         {/* Centerpiece: The Knowledge Core */}
         <div className="relative z-10 w-[200px] h-[200px]">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-center p-5 bg-black/60 backdrop-blur-xl rounded-full border border-white/20 w-full h-full flex flex-col items-center justify-center relative overflow-hidden group transform-gpu"
+            style={{
+              boxShadow: `0 0 60px ${quote.color}25, inset 0 0 20px rgba(255, 255, 255, 0.1)`
+            }}
+          >
+            <div 
+              className="absolute inset-0 opacity-20 group-hover:opacity-30 transition-opacity"
+              style={{
+                background: `linear-gradient(135deg, ${quote.color}40, transparent)`
+              }}
+            />
             <motion.div 
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="text-center p-5 bg-black/60 backdrop-blur-xl rounded-full border border-white/20 w-full h-full flex flex-col items-center justify-center shadow-[0_0_60px_rgba(255,255,255,0.05)] relative overflow-hidden group transform-gpu"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-transparent opacity-40 group-hover:opacity-60 transition-opacity" />
-              <motion.div 
-                animate={{ 
-                  opacity: [0.1, 0.2, 0.1],
-                }}
-                transition={{ duration: 8, repeat: Infinity }}
-                className="absolute inset-[15%] border border-white/5 rounded-full" 
-              />
-              <h3 className="font-artistic text-xl text-white mb-2 leading-tight relative z-10 drop-shadow-[0_0_10px_rgba(255,255,255,0.4)] text-center">Knowledge is Power.</h3>
-              <div className="w-10 h-[0.5px] bg-gradient-to-r from-transparent via-white/40 to-transparent mb-2 relative z-10" />
-            <p className="font-display text-[9px] tracking-[0.4em] text-white/50 uppercase relative z-10 font-bold">Francis Bacon</p>
+              animate={{ 
+                opacity: [0.1, 0.2, 0.1],
+              }}
+              transition={{ duration: 8, repeat: Infinity }}
+              className="absolute inset-[15%] border border-white/5 rounded-full" 
+            />
+            <h3 className="font-artistic text-base text-white mb-2 leading-tight relative z-10 drop-shadow-[0_0_8px_rgba(255,255,255,0.4)] text-center">
+              {quote.title}
+            </h3>
+            <div className="w-10 h-[0.5px] bg-gradient-to-r from-transparent via-white/40 to-transparent mb-2 relative z-10" />
+            <p className="font-display text-[8px] tracking-[0.25em] text-white/50 uppercase relative z-10 font-bold">
+              {quote.subtitle}
+            </p>
           </motion.div>
         </div>
 
         {/* Corrected Multi-Gem Orbital Propagation */}
         {localSubjectGems.map((subject, i) => {
-          const angle = (i * 360) / 8;
+          const totalGems = localSubjectGems.length || 1;
+          const angle = (i * 360) / totalGems;
           const radius = 245; // Stabilized radius
           // Explicit radian calculation
           const radian = (angle - 90) * (Math.PI / 180);
@@ -2923,12 +2951,13 @@ const BilingualSubjectsView = ({
                 url={subject.url}
                 type={subject.type}
                 color={
-                  subject.type === 'diamond' ? '#fff' :
-                  subject.type === 'ruby' ? '#ff4d4d' :
-                  subject.type === 'emerald' ? '#2ecc71' :
-                  subject.type === 'sapphire' ? '#3498db' :
-                  subject.type === 'amethyst' ? '#9b59b6' :
-                  subject.type === 'topaz' ? '#f39c12' : '#fff'
+                  subject.type === 'diamond' ? '#cbd5e1' :
+                  subject.type === 'ruby' ? '#f43f5e' :
+                  subject.type === 'emerald' ? '#10b981' :
+                  subject.type === 'sapphire' ? '#3b82f6' :
+                  subject.type === 'amethyst' ? '#a855f7' :
+                  subject.type === 'topaz' ? '#f59e0b' :
+                  subject.type === 'opal' ? '#38bdf8' : '#fff'
                 }
                 onVisit={() => onVisit(subject.name)}
                 onClick={() => onGemClick(subject.url)}
@@ -3568,11 +3597,7 @@ export default function App() {
       return;
     }
     setCurrentStrand(strand);
-    if (strand === 'saturn') {
-      setShowSubjects(true);
-    } else {
-      setShowSubjects(false);
-    }
+    setShowSubjects(true);
   };
 
   const handleUpdateAvatar = async (data: any) => {
@@ -4265,11 +4290,7 @@ export default function App() {
                               setShowLoginModal(true);
                             } else {
                               setCurrentStrand(strand);
-                              if (strand === 'saturn') {
-                                setShowSubjects(true);
-                              } else {
-                                setShowSubjects(false);
-                              }
+                              setShowSubjects(true);
                             }
                           }}
                         />
@@ -4487,21 +4508,15 @@ export default function App() {
             >
               <button 
                 onClick={() => {
-                  if (currentStrand === 'saturn') {
-                    setShowSubjects(false);
-                    setCurrentStrand('home');
-                  } else if (showSubjects) {
-                    setShowSubjects(false);
-                  } else {
-                    setCurrentStrand('home');
-                  }
+                  setShowSubjects(false);
+                  setCurrentStrand('home');
                 }}
                 className="mb-4 flex items-center gap-2 text-white/60 hover:text-white transition-colors group"
               >
                 <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> 
                 <div className="flex flex-col items-start leading-none">
-                  <span className="text-xs font-medium">{currentStrand === 'saturn' ? "Back to Moon Base" : (showSubjects ? "Back to Vocabulary" : "Back to Moon Base")}</span>
-                  <span className="text-[9px] opacity-65">{currentStrand === 'saturn' ? "回到首頁" : (showSubjects ? "回到單字區" : "回到首頁")}</span>
+                  <span className="text-xs font-medium">Back to Moon Base</span>
+                  <span className="text-[9px] opacity-65">回到首頁</span>
                 </div>
               </button>
 
