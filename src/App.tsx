@@ -489,6 +489,7 @@ const GEMS = {
     { name: 'Buzzwords', nameZh: '流行術語', url: 'https://ducj-creator.github.io/Shirley-Grammar/buzzwords', type: 'topaz' },
     { name: 'Roots & Affixes', nameZh: '詞根詞綴', url: 'https://ducj-creator.github.io/Shirley-Grammar/root%20and%20affix/', type: 'opal' },
     { name: 'Level 1-6 Vocab', nameZh: '六級單字', url: 'https://ducj-creator.github.io/iVocab-Self-Practice/levels1-6.html', type: 'sapphire' },
+    { name: 'Level 1-6 VR', nameZh: 'Level1-6 VR 詞彙及閱讀', url: 'https://ducj-creator.github.io/iVocab-Self-Practice/VR/', type: 'ruby' },
     { name: 'TOEIC Core Vocab', nameZh: 'TOEIC 多益核心單字', url: 'https://ducj-creator.github.io/Shirley-Grammar/TOEIC%20vocab', type: 'topaz' },
   ],
   pronunciation: [
