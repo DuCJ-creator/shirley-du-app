@@ -238,12 +238,11 @@ const FOOD_TIERS = [
 const STRANDS = {
   grammar: { name: 'E Grammar', nameZh: '核心文法', planet: 'Mercury', color: '#a9a9a9', icon: PenTool, class: 'planet-mercury', size: 0.45, orbit: 1 },
   vocabulary: { name: 'E Vocabulary', nameZh: '核心字彙', planet: 'Venus', color: '#ffd700', icon: BookOpen, class: 'planet-venus', size: 0.75, orbit: 2 },
-  earth: { name: 'School Courses', nameZh: '學校課程', planet: 'Earth', color: '#4ade80', icon: Globe, class: 'planet-earth', size: 0.7, orbit: 3 },
-  pronunciation: { name: 'Pronunciation', nameZh: '發音練習', planet: 'Mars', color: '#ff4500', icon: Mic2, class: 'planet-mars', size: 0.6, orbit: 4 },
-  tests: { name: 'ST.Tests', nameZh: '標準測驗', planet: 'Jupiter', color: '#deb887', icon: GraduationCap, class: 'planet-jupiter', size: 1.25, orbit: 5 },
-  saturn: { name: 'Bi-lingual Subjects', nameZh: '雙語學科', planet: 'Saturn', color: '#f4a460', icon: GraduationCap, class: 'planet-saturn', size: 0.95, orbit: 6 },
-  uranus: { name: 'Handy Tools', nameZh: '實用工具', planet: 'Uranus', color: '#40e0d0', icon: Hammer, class: 'planet-uranus', size: 0.8, orbit: 7 },
-  neptune: { name: 'Fun Games', nameZh: '輕鬆遊戲', planet: 'Neptune', color: '#1e90ff', icon: Gamepad2, class: 'planet-neptune', size: 0.78, orbit: 8 },
+  pronunciation: { name: 'Pronunciation', nameZh: '發音練習', planet: 'Mars', color: '#ff4500', icon: Mic2, class: 'planet-mars', size: 0.6, orbit: 3 },
+  tests: { name: 'ST.Tests', nameZh: '標準測驗', planet: 'Jupiter', color: '#deb887', icon: GraduationCap, class: 'planet-jupiter', size: 1.25, orbit: 4 },
+  saturn: { name: 'Bi-lingual Subjects', nameZh: '雙語學科', planet: 'Saturn', color: '#f4a460', icon: GraduationCap, class: 'planet-saturn', size: 0.95, orbit: 5 },
+  uranus: { name: 'Handy Tools', nameZh: '實用工具', planet: 'Uranus', color: '#40e0d0', icon: Hammer, class: 'planet-uranus', size: 0.8, orbit: 6 },
+  neptune: { name: 'Fun Games', nameZh: '輕鬆遊戲', planet: 'Neptune', color: '#1e90ff', icon: Gamepad2, class: 'planet-neptune', size: 0.78, orbit: 7 },
 };
 
 const UserAvatarCenter = ({ userData, onUpdate }: { userData: any, onUpdate: (data: any) => void }) => {
@@ -365,10 +364,10 @@ const UniverseDisplay = ({ user, userData, onStrandClick, onUpdateAvatar, onSpac
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const orbitDistances = isMobile ? [85, 130, 175, 220, 265, 310, 355, 400] : [95, 135, 175, 215, 255, 295, 335, 375];
+  const orbitDistances = isMobile ? [90, 140, 190, 240, 290, 340, 390] : [100, 145, 190, 235, 280, 325, 370];
   
-  // Adjusted angles for better visibility and avoiding overlap with side branding for 8 planets
-  const desktopAngles = [25, 70, 115, 160, 205, 250, 295, 340];
+  // Adjusted angles for better visibility and avoiding overlap with side branding for 7 planets
+  const desktopAngles = [25, 76, 127, 178, 229, 280, 331];
   
   if (isMobile) {
     // S-Curve logic for mobile
@@ -381,7 +380,7 @@ const UniverseDisplay = ({ user, userData, onStrandClick, onUpdateAvatar, onSpac
           <SpaceshipCenter onClick={onSpaceshipClick} />
         </div>
 
-        <div className="relative w-full h-[960px]">
+        <div className="relative w-full h-[840px]">
           {Object.entries(STRANDS).map(([key, info], index) => {
             const orbitIdx = info.orbit - 1;
             const dist = orbitDistances[orbitIdx] || 330;
@@ -488,8 +487,6 @@ const GEMS = {
     { name: 'Common Collocations', nameZh: '常用搭配', url: 'https://ducj-creator.github.io/Shirley-Grammar/collocations', type: 'amethyst' },
     { name: 'Buzzwords', nameZh: '流行術語', url: 'https://ducj-creator.github.io/Shirley-Grammar/buzzwords', type: 'topaz' },
     { name: 'Roots & Affixes', nameZh: '詞根詞綴', url: 'https://ducj-creator.github.io/Shirley-Grammar/root%20and%20affix/', type: 'opal' },
-    { name: 'Level 1-6 Vocab', nameZh: '六級單字', url: 'https://ducj-creator.github.io/iVocab-Self-Practice/levels1-6.html', type: 'sapphire' },
-    { name: 'Level 1-6 VR', nameZh: 'Level1-6 VR 詞彙及閱讀', url: 'https://ducj-creator.github.io/iVocab-Self-Practice/VR/', type: 'ruby' },
     { name: 'TOEIC Core Vocab', nameZh: 'TOEIC 多益核心單字', url: 'https://ducj-creator.github.io/Shirley-Grammar/TOEIC%20vocab', type: 'topaz' },
   ],
   pronunciation: [
@@ -515,13 +512,6 @@ const GEMS = {
     { name: 'GSAT Comprehensive', nameZh: '學測綜合測驗', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/GSAT%20Comprehensive.html', type: 'amethyst' },
     { name: 'GSAT Cloze', nameZh: '學測克漏字', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/GSAT%20cloze.html', type: 'topaz' },
     { name: 'GSAT Reading', nameZh: '學測閱讀', url: 'https://ducj-creator.github.io/Teacher-Shirley/tests/gsat%20reading.html', type: 'opal' },
-  ],
-  earth: [
-    { name: 'iVocab Reading', nameZh: '愛單字閱讀理解', url: 'https://ducj-creator.github.io/iVocab-Readers/', type: 'topaz' },
-    { name: 'FRP ELA Vocab', nameZh: '人文專題單字王', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/FRP%20ELA.html', type: 'sapphire' },
-    { name: 'TOEFL J Vocab1', nameZh: '初級托福單字王1', url: 'https://ducj-creator.github.io/Teacher-Shirley/study-tools/TOEFL%20Junior%20Vocab.html', type: 'ruby' },
-    { name: 'TOEFL J Vocab 2', nameZh: '初級托福單字王2', url: 'https://ducj-creator.github.io/toefl-junior-vocab-master/', type: 'emerald' },
-    { name: 'CHHS Monthly', nameZh: '忠信月刊', url: 'https://ducj-creator.github.io/events/chhsmonthly/', type: 'amethyst' },
     { name: 'TOEFL J Mock', nameZh: '初級托福模擬', url: 'https://ducj-creator.github.io/TFJ-Mock/', type: 'opal' },
   ],
   saturn: [
@@ -542,24 +532,19 @@ const GEMS = {
     { name: 'Stopwatch', nameZh: '碼表⌚️', url: 'https://ducj-creator.github.io/Shirley%20Stop%20Watch.html', type: 'sapphire' },
     { name: 'Scoreboard', nameZh: '計分牌', url: 'https://ducj-creator.github.io/scoreboard.html', type: 'amethyst' },
     { name: 'Name/Group Picker', nameZh: '選名/分組🧑🎓', url: 'https://ducj-creator.github.io/namepicker.html', type: 'topaz' },
-    { name: 'Quiz Maker', nameZh: '測驗製作', url: 'https://ducj-creator.github.io/Shirley%20Pop%20Quiz%20Maker.html', type: 'opal' },
     { name: 'Lucky Wheel', nameZh: '幸運輪', url: 'https://ducj-creator.github.io/Shirley%20Lucky%20Wheel.html', type: 'emerald' },
     { name: 'Signpost', nameZh: '指示牌', url: 'https://ducj-creator.github.io/sign.html', type: 'sapphire' },
     { name: 'My Own Words', nameZh: '自主單字練習', url: 'https://ducj-creator.github.io/iVocab-Self-Practice/entry.html', type: 'amethyst' },
-    { name: 'Flip Card Maker', nameZh: '翻轉卡製作', url: 'https://ducj-creator.github.io/Shirley%20Flip%20Card.html', type: 'topaz' },
   ],
   neptune: [
     { name: 'Sudoku', nameZh: '數獨', url: 'https://ducj-creator.github.io/shirley%20sudoku.html', type: 'diamond' },
     { name: 'Gomoku', nameZh: '五子棋', url: 'https://ducj-creator.github.io/gomoku.html', type: 'ruby' },
     { name: 'Go', nameZh: '圍棋', url: 'https://ducj-creator.github.io/go.html', type: 'emerald' },
-    { name: 'LOT', nameZh: '幸運上上簽', url: 'https://ducj-creator.github.io/bestlot.html', type: 'sapphire' },
     { name: 'EMO Shredder', nameZh: '負能量粉碎機', url: 'https://ducj-creator.github.io/emoshredder.html', type: 'amethyst' },
     { name: 'Gems', nameZh: '寶石連連看', url: 'https://ducj-creator.github.io/gem.html', type: 'topaz' },
-    { name: 'iVocab Champion', nameZh: '愛單字挑戰', url: 'https://ducj-creator.github.io/ivchampion.html', type: 'opal' },
     { name: 'Lucky Dice', nameZh: '幸運骰🎲', url: 'https://ducj-creator.github.io/Shirley%20Dice2.html', type: 'emerald' },
     { name: 'Moonblock', nameZh: '擲筊', url: 'https://ducj-creator.github.io/moonblock.html', type: 'sapphire' },
     { name: 'Coinflip', nameZh: '扔硬幣', url: 'https://ducj-creator.github.io/coin.html', type: 'amethyst' },
-    { name: 'Hungry Snake', nameZh: '貪吃蛇', url: 'https://i-vocab-hungry-snake-mobilev.vercel.app/', type: 'topaz' },
   ],
 };
 
@@ -900,7 +885,7 @@ const PreLoginExplorer = ({ onSelectGem, onSelectStrand }: {
       ) : (
         /* Regular Table of Contents Grid */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
-          {(['grammar', 'vocabulary', 'earth', 'pronunciation', 'tests', 'saturn', 'uranus', 'neptune'] as Strand[]).map((strandKey) => {
+          {(['grammar', 'vocabulary', 'pronunciation', 'tests', 'saturn', 'uranus', 'neptune'] as Strand[]).map((strandKey) => {
             const info = STRANDS[strandKey];
             if (!info) return null;
             
@@ -2839,7 +2824,6 @@ const PetSection = ({
 const STRAND_QUOTES: Record<string, { title: string; subtitle: string; color: string }> = {
   grammar: { title: "Speak with Clarity.", subtitle: "Core Grammar", color: "#cbd5e1" },
   vocabulary: { title: "Words open Worlds.", subtitle: "Core Vocabulary", color: "#ffd700" },
-  earth: { title: "Learn to Grow.", subtitle: "School Courses", color: "#4ade80" },
   pronunciation: { title: "Voice your Mind.", subtitle: "Pronunciation Practice", color: "#ff4500" },
   tests: { title: "Practice makes Perfect.", subtitle: "Standardized Tests", color: "#deb887" },
   saturn: { title: "Knowledge is Power.", subtitle: "Francis Bacon", color: "#f4a460" },
@@ -4144,7 +4128,7 @@ export default function App() {
                 userData={userData} 
                 onStrandClick={handleStrandClick} 
                 onUpdateAvatar={handleUpdateAvatar} 
-                onSpaceshipClick={() => setActivePortalUrl("https://ducj-creator.github.io/etgame.html")}
+                onSpaceshipClick={() => setActivePortalUrl("https://vocab-escape.vercel.app/")}
               />
 
               {/* Centered clean parchment scroll button (keeps front page clean, concise, catchy) */}
