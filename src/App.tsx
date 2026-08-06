@@ -1373,14 +1373,6 @@ const EmbeddedPortalLegacy = ({
         type: 'opal'
       };
     }
-    if (url.includes('vocab-escape.vercel.app') || url.includes('vocab-escape-proxy')) {
-      return {
-        name: 'Vocab Escape Room',
-        nameZh: '單字密室逃脫',
-        category: 'Spaceship Portal • 密室逃脫',
-        type: 'ruby'
-      };
-    }
     return {
       name: 'Interactive Cosmic Gem',
       nameZh: '星際學習寶石',
@@ -1389,7 +1381,7 @@ const EmbeddedPortalLegacy = ({
     };
   }, [url]);
 
-  const iframeSrc = (url.includes('vocab-escape.vercel.app') || url.includes('vocab-escape-proxy')) ? '/vocab-escape-proxy/' : url;
+  const iframeSrc = url;
 
   // Window visibility & focus checking to prevent idle/background tab cheating
   useEffect(() => {
@@ -3719,7 +3711,7 @@ export default function App() {
                 onStrandClick={handleStrandClick} 
                 onUpdateAvatar={handleUpdateAvatar} 
                 onSpaceshipClick={() => {
-                  setActivePortalUrl("/vocab-escape-proxy/");
+                  setActivePortalUrl("https://ducj-creator.github.io/etgame.html");
                 }}
               />
 
