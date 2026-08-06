@@ -7,6 +7,21 @@ export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
   return {
     plugins: [react(), tailwindcss()],
+    server: {
+      proxy: {
+        '/vocab-escape-proxy': {
+          target: 'https://vocab-escape.vercel.app',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/vocab-escape-proxy/, ''),
+          configure: (proxy) => {
+            proxy.on('proxyRes', (proxyRes) => {
+              delete proxyRes.headers['x-frame-options'];
+              delete proxyRes.headers['content-security-policy'];
+            });
+          }
+        }
+      }
+    },
     define: {
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
       'process.env.VITE_FIREBASE_CONFIG': JSON.stringify(env.VITE_FIREBASE_CONFIG || env.FIREBASE_CONFIG),
