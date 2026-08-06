@@ -5,7 +5,7 @@ import {
   Home, User, Trophy, Heart, Coffee, ChevronLeft, ExternalLink,
   LogIn, LogOut, Clock, Zap, RefreshCw, Search, TrendingUp, ChevronRight,
   ClipboardX, FileText, Trash2, Download, Palette, Plus, Save, X, Edit, Pencil, Check,
-  Hammer, Gamepad2, Monitor, Tablet, Smartphone, ZoomIn, ZoomOut, RotateCcw, Compass, Globe,
+  Hammer, Gamepad2, Monitor, Tablet, Smartphone, ZoomIn, ZoomOut, RotateCcw, Compass, Globe, Rocket,
   Camera, FileImage, UploadCloud, Settings, ShieldAlert, ChevronUp, ChevronDown
 } from 'lucide-react';
 import { cn } from './lib/utils';
@@ -1793,6 +1793,14 @@ const EmbeddedPortal = ({
         type: 'opal'
       };
     }
+    if (url.includes('vocab-escape.vercel.app') || url.includes('vocab-escape-proxy')) {
+      return {
+        name: 'Vocab Escape Room',
+        nameZh: '單字密室逃脫',
+        category: 'Spaceship Portal • 密室逃脫',
+        type: 'ruby'
+      };
+    }
     return {
       name: 'Interactive Cosmic Gem',
       nameZh: '星際學習寶石',
@@ -1800,6 +1808,8 @@ const EmbeddedPortal = ({
       type: 'diamond'
     };
   }, [url]);
+
+  const iframeSrc = (url.includes('vocab-escape.vercel.app') || url.includes('vocab-escape-proxy')) ? '/vocab-escape-proxy/' : url;
 
   // Window visibility & focus checking to prevent idle/background tab cheating
   useEffect(() => {
@@ -1965,7 +1975,7 @@ const EmbeddedPortal = ({
           {/* Full frame workspace to make using tools effortlessly on phone */}
           <div className="flex-1 w-full h-full relative bg-zinc-900 overflow-auto">
             <iframe 
-              src={url} 
+              src={iframeSrc} 
               className={cn(
                 "w-full border-none bg-zinc-900 transition-all duration-300",
                 viewportMode === 'fit' && "h-full min-h-[600px] sm:min-h-0",
@@ -4128,7 +4138,9 @@ export default function App() {
                 userData={userData} 
                 onStrandClick={handleStrandClick} 
                 onUpdateAvatar={handleUpdateAvatar} 
-                onSpaceshipClick={() => setActivePortalUrl("https://vocab-escape.vercel.app/")}
+                onSpaceshipClick={() => {
+                  setActivePortalUrl("/vocab-escape-proxy/");
+                }}
               />
 
               {/* Centered clean parchment scroll button (keeps front page clean, concise, catchy) */}
