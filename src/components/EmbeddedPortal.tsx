@@ -73,14 +73,6 @@ export const EmbeddedPortal = ({
         type: 'opal'
       };
     }
-    if (url.includes('vocab-escape.vercel.app') || url.includes('vocab-escape-proxy')) {
-      return {
-        name: 'Vocab Escape Room',
-        nameZh: '單字密室逃脫',
-        category: 'Spaceship Portal • 密室逃脫',
-        type: 'ruby'
-      };
-    }
     return {
       name: 'Interactive Cosmic Gem',
       nameZh: '星際學習寶石',
@@ -89,7 +81,7 @@ export const EmbeddedPortal = ({
     };
   }, [url]);
 
-  const iframeSrc = (url.includes('vocab-escape.vercel.app') || url.includes('vocab-escape-proxy')) ? '/vocab-escape-proxy/' : url;
+  const iframeSrc = url;
 
   // Window visibility & focus checking
   useEffect(() => {
@@ -190,7 +182,7 @@ export const EmbeddedPortal = ({
             </button>
 
             <button 
-              onClick={() => window.open(url.includes('vocab-escape-proxy') ? 'https://vocab-escape.vercel.app' : url, '_blank')}
+              onClick={() => window.open(url, '_blank')}
               className="flex items-center gap-1.5 text-amber-300 hover:bg-amber-500/10 bg-amber-500/5 border border-amber-500/20 transition-all px-2.5 py-1.5 rounded-xl active:scale-95 select-none cursor-pointer"
               title="Open in a new tab for the best fullscreen experience"
             >
